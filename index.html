@@ -709,7 +709,7 @@ function renderQuestions() {
     
     quizData.forEach((q, index) => {
         html += `
-        <div class="question" id="q${index}" style="display: ${index === 0 ? 'block' : 'none'};">
+        <div class="question" id="q${index}">
             <div class="question-title">
                 <span>${index + 1}. ${q.question}</span>
                 <span class="weight-tag ${q.weightClass}">${q.weightLabel}</span>
@@ -733,6 +733,21 @@ function renderQuestions() {
     updateProgress();
 }
 
+function updateQuestionDisplay() {
+    // Hide all questions first
+    for (let i = 0; i < quizData.length; i++) {
+        const questionEl = document.getElementById(`q${i}`);
+        if (questionEl) {
+            questionEl.style.display = 'none';
+        }
+    }
+    // Show only current question
+    const currentEl = document.getElementById(`q${currentQuestionIndex}`);
+    if (currentEl) {
+        currentEl.style.display = 'block';
+    }
+}
+
 function recordAnswer(questionIndex, answerIndex) {
     userAnswers[questionIndex] = answerIndex;
     updateProgress();
@@ -753,23 +768,20 @@ function handleNextButton() {
         return;
     }
     
-    // If not the last question, show next question
+    // If not the last question, move to next
     if (currentQuestionIndex < quizData.length - 1) {
-        // Hide current question
-        document.getElementById(`q${currentQuestionIndex}`).style.display = 'none';
-        // Move to next question
         currentQuestionIndex++;
-        // Show next question
-        document.getElementById(`q${currentQuestionIndex}`).style.display = 'block';
+        updateQuestionDisplay();
         // Reset button to disabled until next question is answered
         document.getElementById('next-btn').disabled = true;
+        document.getElementById('next-btn').textContent = 'Next Question →';
         // Update button text if on last question
         if (currentQuestionIndex === quizData.length - 1) {
             document.getElementById('next-btn').textContent = 'See My Score →';
         }
         updateProgress();
     } else {
-        // Last question - show email section
+        // Last question answered - show email section
         document.getElementById('quiz-container').style.display = 'none';
         document.getElementById('next-btn').style.display = 'none';
         document.getElementById('email-section').style.display = 'block';
@@ -848,8 +860,11 @@ function sendResultEmail(email, score, levelName, rawScore) {
     console.log(`Results sent to ${email}`);
 }
 
-// Initialize quiz
-renderQuestions();
+// Initialize quiz on page load
+document.addEventListener('DOMContentLoaded', function() {
+    renderQuestions();
+    updateQuestionDisplay();
+});
 </script>
 
 </body>
