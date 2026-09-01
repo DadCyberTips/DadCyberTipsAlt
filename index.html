@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dad Cyber Tips - Practical Digital Security for Families</title>
+    <style>
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #e8e8e6;
+            background: #0f0f0d;
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Header & Navigation */
+        header {
+            background: #1a1a18;
+            padding: 24px 20px;
+            border-bottom: 1px solid #2a2a28;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            color: #e8e8e6;
+            text-decoration: none;
+        }
+        
+        .logo-accent {
+            color: #31ff57;
+        }
+        
+        nav a {
+            color: #e8e8e6;
+            text-decoration: none;
+            margin-left: 32px;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+        
+        nav a:hover {
+            color: #31ff57;
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1a1a18 0%, #252523 100%);
+            color: #e8e8e6;
+            padding: 60px 20px;
+            text-align: center;
+        }
+        
+        .hero-content {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-size: 42px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: #ffffff;
+        }
+        
+        .hero-subtitle {
+            font-size: 18px;
+            color: #b8b8b6;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+        
+        .hero-cta {
+            margin-top: 32px;
+            font-size: 14px;
+            color: #31ff57;
+            font-weight: 500;
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Quiz Section */
+        .quiz-section {
+            margin: -80px 20px 60px 20px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .quiz-wrapper {
+            background: #1a1a18;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        
+        .quiz-wrapper h2 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        
+        .quiz-intro {
+            font-size: 15px;
+            color: #b8b8b6;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #2a2a28;
+            border-radius: 3px;
+            margin-bottom: 32px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #31ff57;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .question {
+            margin-bottom: 32px;
+            padding: 20px;
+            background: #252523;
+            border-radius: 12px;
+            border-left: 4px solid #31ff57;
+        }
+        
+        .question-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .weight-tag {
+            display: inline-block;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            margin-left: auto;
+            white-space: nowrap;
+        }
+        
+        .weight-heavy { background: #d63a3a; }
+        .weight-medium { background: #d98e04; }
+        .weight-light { background: #0081a0; }
+        
+        .options label {
+            display: flex;
+            align-items: flex-start;
+            padding: 12px 14px;
+            margin: 8px 0;
+            cursor: pointer;
+            border-radius: 8px;
+            background: #1a1a18;
+            border: 1px solid #3a3a38;
+            transition: all 0.2s;
+        }
+        
+        .options label:hover {
+            border-color: #31ff57;
+            background: #2a2a28;
+        }
+        
+        .options input[type="radio"] {
+            margin-top: 3px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #31ff57;
+            flex-shrink: 0;
+        }
+        
+        .option-text {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #e8e8e6;
+        }
+        
+        .question-tip {
+            font-size: 13px;
+            color: #888888;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #3a3a38;
+            font-style: italic;
+        }
+        
+        .btn {
+            background: #31ff57;
+            color: #0f0f0d;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .btn:hover {
+            background: #2ad946;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(49, 255, 87, 0.3);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        #email-section {
+            display: none;
+            text-align: center;
+            padding: 32px 20px;
+            background: #1a1a18;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        
+        #email-section h3 {
+            font-size: 22px;
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+        
+        #email-section p {
+            color: #b8b8b6;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+        
+        .email-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            border: 2px solid #3a3a38;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+            background: #252523;
+            color: #e8e8e6;
+        }
+        
+        .email-input:focus {
+            outline: none;
+            border-color: #31ff57;
+            background: #2a2a28;
+        }
+        
+        .privacy-note {
+            font-size: 13px;
+            color: #888888;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        
+        #result-section {
+            display: none;
+            padding: 40px 20px;
+            background: #1a1a18;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: center;
+            border: 2px solid #31ff57;
+        }
+        
+        .score-display {
+            font-size: 56px;
+            font-weight: 700;
+            color: #31ff57;
+            margin: 20px 0;
+        }
+        
+        .level-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+        
+        .level-description {
+            font-size: 16px;
+            color: #b8b8b6;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+        
+        .recommendation-list {
+            text-align: left;
+            margin: 24px auto;
+            max-width: 500px;
+            background: #252523;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .recommendation-list li {
+            margin: 12px 0;
+            padding-left: 24px;
+            position: relative;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #e8e8e6;
+        }
+        
+        .recommendation-list li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #31ff57;
+            font-weight: 600;
+        }
+        
+        /* Content Sections */
+        section {
+            margin: 80px 0;
+        }
+        
+        section h2 {
+            font-size: 32px;
+            margin-bottom: 32px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        
+        section p {
+            color: #b8b8b6;
+        }
+        
+        /* Store Links Section */
+        .store-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-top: 40px;
+        }
+        
+        .store-card {
+            background: #1a1a18;
+            padding: 40px 32px;
+            border-radius: 12px;
+            border: 2px solid #3a3a38;
+            text-align: center;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #e8e8e6;
+        }
+        
+        .store-card:hover {
+            border-color: #31ff57;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(49, 255, 87, 0.15);
+        }
+        
+        .store-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .store-card h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+            color: #ffffff;
+            font-weight: 600;
+        }
+        
+        .store-card p {
+            font-size: 15px;
+            color: #b8b8b6;
+            line-height: 1.6;
+        }
+        
+        .store-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #31ff57;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        
+        .store-link:hover {
+            color: #2ad946;
+        }
+        
+        /* Footer */
+        footer {
+            background: #1a1a18;
+            color: #e8e8e6;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 80px;
+            border-top: 1px solid #2a2a28;
+        }
+        
+        footer p {
+            margin: 8px 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        footer a {
+            color: #31ff57;
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            nav {
+                display: flex;
+                gap: 20px;
+                justify-content: center;
+            }
+            
+            nav a {
+                margin-left: 0;
+            }
+            
+            .hero h1 {
+                font-size: 32px;
+            }
+            
+            .quiz-wrapper {
+                padding: 24px;
+            }
+            
+            .question-title {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .weight-tag {
+                margin-left: 0;
+                margin-top: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+    <div class="header-content">
+        <a href="#" class="logo">Cyber <span class="logo-accent">Dad</span> Tips</a>
+        <nav>
+            <a href="#quiz">Quiz</a>
+            <a href="#store">Store</a>
+            <a href="#merch">Merch</a>
+        </nav>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1>Secure Your Digital Home</h1>
+        <p class="hero-subtitle">
+            Practical cybersecurity advice for families. Learn what actually matters, skip the hype, and protect what you care about.
+        </p>
+        <p class="hero-cta">Take the security assessment below ↓</p>
+    </div>
+</section>
+
+<!-- Quiz Section -->
+<section id="quiz" class="quiz-section">
+    <div class="quiz-wrapper">
+        <h2>Your Digital Security Assessment</h2>
+        <p class="quiz-intro">
+            Answer these 12 questions to understand your current security posture. No judgment—just practical insights into where you stand and where to improve. Takes about 15 minutes.
+        </p>
+        
+        <div class="progress-bar"><div class="progress-fill" id="progress" style="width: 0%"></div></div>
+        
+        <div id="quiz-container"></div>
+        
+        <button class="btn" id="next-btn" onclick="handleNextButton()" disabled>Next Question →</button>
+        
+        <div id="email-section">
+            <h3>Almost There</h3>
+            <p>Enter your email to receive your personalized security score and next-step recommendations.</p>
+            <input type="email" class="email-input" id="email-input" placeholder="your@email.com" required>
+            <p class="privacy-note">We'll never share your email. Your results are yours alone.</p>
+            <button class="btn" onclick="calculateAndShowResults()">Get My Score</button>
+        </div>
+        
+        <div id="result-section">
+            <div class="level-name" id="level-name"></div>
+            <div class="score-display" id="final-score">0/10</div>
+            <div class="level-description" id="level-description"></div>
+            <div class="recommendation-list" id="recommendations"></div>
+        </div>
+    </div>
+</section>
+
+<!-- Store Section -->
+<section id="store" class="container">
+    <h2>Learn, Shop, Secure</h2>
+    <p style="font-size: 16px; color: #b8b8b6; line-height: 1.8; max-width: 700px;">
+        Beyond the quiz, we've created books and resources to go deeper into digital security for your family. Browse our curated selection of guides, eBooks, and tools.
+    </p>
+    
+    <div class="store-grid">
+        <a href="https://payhip.com/dadcybertips" target="_blank" class="store-card">
+            <div class="store-icon">📚</div>
+            <h3>Books & Guides</h3>
+            <p>Deep-dive resources on digital privacy, password security, and protecting your family online.</p>
+            <span class="store-link">Visit Store →</span>
+        </a>
+        
+        <a href="https://dadcybertips-shop.fourthwall.com/" target="_blank" class="store-card">
+            <div class="store-icon">👕</div>
+            <h3>Merch & Resources</h3>
+            <p>Wearables, stickers, and practical tools to remind you and your family about security best practices.</p>
+            <span class="store-link">Shop Now →</span>
+        </a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <p>&copy; 2024 Dad Cyber Tips. Practical security for families.</p>
+    <p>Created with <span style="color: #31ff57;">→</span> by Gavin Marlowe</p>
+</footer>
+
+<script>
+// QUIZ DATA - 12 Weighted Questions
+const quizData = [
+    {
+        question: "How many passwords do you reuse across multiple accounts?",
+        options: ["None — every password is unique", "1-2 passwords reused occasionally", "Several accounts share the same password", "Most of my passwords are identical"],
+        correct: 0,
+        weight: 3,
+        weightLabel: "Heavy",
+        weightClass: "weight-heavy",
+        tip: "Use a password manager to generate unique passwords for each account."
+    },
+    {
+        question: "Which method do you primarily use to protect your online accounts?",
+        options: ["Two-Factor Authentication (2FA) on all important accounts", "2FA on some accounts, mostly email and banking", "Only SMS verification or security questions", "No additional protection beyond passwords"],
+        correct: 0,
+        weight: 3,
+        weightLabel: "Heavy",
+        weightClass: "weight-heavy",
+        tip: "Enable authenticator apps (Google Authenticator, Authy) over SMS for 2FA."
+    },
+    {
+        question: "How frequently do you update your operating systems and software?",
+        options: ["Immediately when updates are available", "Within a few days of release", "Monthly or less frequently", "Rarely — I disable automatic updates"],
+        correct: 0,
+        weight: 3,
+        weightLabel: "Heavy",
+        weightClass: "weight-heavy",
+        tip: "Enable automatic updates for OS, browsers, and critical applications."
+    },
+    {
+        question: "How do you identify suspicious emails or messages?",
+        options: ["I verify sender addresses, check links before clicking, and spot urgency tactics", "I'm cautious but sometimes click links without checking", "I rely on gut feeling about whether something looks right", "Most emails look legitimate to me"],
+        correct: 0,
+        weight: 3,
+        weightLabel: "Heavy",
+        weightClass: "weight-heavy",
+        tip: "Hover over links to preview URLs, verify sender domains, and never rush urgent requests."
+    },
+    {
+        question: "How often do you back up your important data?",
+        options: ["Automatically daily or weekly to multiple locations", "Weekly manually to an external drive", "Monthly or when I remember", "Rarely — I haven't set up a backup system"],
+        correct: 0,
+        weight: 2,
+        weightLabel: "Medium",
+        weightClass: "weight-medium",
+        tip: "Follow the 3-2-1 rule: 3 copies, 2 media types, 1 offsite backup."
+    },
+    {
+        question: "What security measures does your home Wi-Fi have?",
+        options: ["WPA3 encryption, strong unique password, guest network enabled", "WPA2 encryption with a strong password", "WPA/WEP or default router credentials", "Open network or no password protection"],
+        correct: 0,
+        weight: 2,
+        weightLabel: "Medium",
+        weightClass: "weight-medium",
+        tip: "Change default router passwords and enable WPA3 encryption immediately."
+    },
+    {
+        question: "Do you use a firewall on your computers and devices?",
+        options: ["Built-in firewall plus hardware firewall/router protection", "Built-in firewall only (Windows Defender/Mac Firewall)", "Sometimes — depends on what I'm doing", "No, I haven't enabled one"],
+        correct: 0,
+        weight: 2,
+        weightLabel: "Medium",
+        weightClass: "weight-medium",
+        tip: "Keep firewalls enabled on all devices and consider a network-level firewall."
+    },
+    {
+        question: "How do you handle downloads and software installations?",
+        options: ["Only from official sources, verified checksums, antivirus scan", "Official websites only, occasional verification", "Various sources including file-sharing sites", "Download freely — antivirus catches problems"],
+        correct: 0,
+        weight: 2,
+        weightLabel: "Medium",
+        weightClass: "weight-medium",
+        tip: "Stick to official app stores and developer websites; verify download integrity."
+    },
+    {
+        question: "How many connected smart devices do you have, and how are they configured?",
+        options: ["Minimal devices, all updated with unique passwords and network segmentation", "Moderate number, most have changed passwords and regular updates", "Several with default settings and shared networks", "Many IoT devices with factory settings"],
+        correct: 0,
+        weight: 2,
+        weightLabel: "Medium",
+        weightClass: "weight-medium",
+        tip: "Isolate IoT devices on a separate VLAN/guest network with unique credentials."
+    },
+    {
+        question: "How often do you review your privacy settings on social media and online accounts?",
+        options: ["Quarterly or whenever major updates occur", "Annually or when prompted", "Occasionally — maybe once a year", "Never — I don't check privacy settings"],
+        correct: 0,
+        weight: 1,
+        weightLabel: "Light",
+        weightClass: "weight-light",
+        tip: "Audit privacy settings annually and after platform updates."
+    },
+    {
+        question: "Do you use any browser extensions or ad blockers?",
+        options: ["Yes, essential privacy extensions + uBlock Origin or similar", "Some basic ad blocking and privacy tools", "A few random extensions installed years ago", "None — I browse with default browser settings"],
+        correct: 0,
+        weight: 1,
+        weightLabel: "Light",
+        weightClass: "weight-light",
+        tip: "Install reputable privacy extensions: uBlock Origin, Privacy Badger, ClearURLs."
+    },
+    {
+        question: "Have you checked if your email has been compromised in known data breaches?",
+        options: ["Yes, regularly using breach monitoring services", "Yes, once or twice using HaveIBeenPwned or similar", "I've heard about it but haven't checked", "No, I'm not aware of this service"],
+        correct: 0,
+        weight: 1,
+        weightLabel: "Light",
+        weightClass: "weight-light",
+        tip: "Check haveibeenpwned.com and set up breach alerts for your email addresses."
+    }
+];
+
+// LEVEL DEFINITIONS
+const levels = [
+    { scoreMin: 9, scoreMax: 10, name: "Cyber Fortress", 
+      desc: "Elite security posture. Your digital defenses are excellent!",
+      recs: ["Maintain current practices", "Stay updated on emerging threats", "Share best practices with family and friends"] },
+    { scoreMin: 7, scoreMax: 8, name: "Fortified Home", 
+      desc: "Strong protections with minor gaps to seal.",
+      recs: ["Review the areas where you scored lower", "Consider upgrading 2FA to authenticator apps", "Set up automated backup schedules"] },
+    { scoreMin: 5, scoreMax: 6, name: "Basic Lock", 
+      desc: "Moderate security. Several improvements needed urgently.",
+      recs: ["Enable 2FA on all critical accounts immediately", "Update all device firmware and software", "Change default router credentials", "Set up regular backups"] },
+    { scoreMin: 3, scoreMax: 4, name: "Vulnerable House", 
+      desc: "Gaps exposed. Your digital home needs immediate attention.",
+      recs: ["Start with a password manager setup", "Enable WPA2/WPA3 on your router", "Install firewall software", "Begin backing up important data"] },
+    { scoreMin: 1, scoreMax: 2, name: "Digital Door Open", 
+      desc: "Critical risk. Multiple vulnerabilities require urgent action.",
+      recs: ["Change all passwords immediately", "Enable 2FA everywhere possible", "Run full antivirus and malware scans", "Reset router to factory settings and reconfigure securely", "Consider consulting an IT professional"] }
+];
+
+let currentQuestionIndex = 0;
+let userAnswers = new Array(quizData.length).fill(null);
+
+function renderQuestions() {
+    const container = document.getElementById('quiz-container');
+    let html = '';
+    
+    quizData.forEach((q, index) => {
+        html += `
+        <div class="question" id="q${index}" style="display: ${index === 0 ? 'block' : 'none'};">
+            <div class="question-title">
+                <span>${index + 1}. ${q.question}</span>
+                <span class="weight-tag ${q.weightClass}">${q.weightLabel}</span>
+            </div>
+            <div class="options">
+        `;
+        
+        q.options.forEach((opt, i) => {
+            html += `
+                <label>
+                    <input type="radio" name="question${index}" value="${i}" onchange="recordAnswer(${index}, ${i})">
+                    <span class="option-text">${opt}</span>
+                </label>
+            `;
+        });
+        
+        html += `<div class="question-tip">💡 ${q.tip}</div></div>`;
+    });
+    
+    container.innerHTML = html;
+    updateProgress();
+}
+
+function recordAnswer(questionIndex, answerIndex) {
+    userAnswers[questionIndex] = answerIndex;
+    updateProgress();
+    // Enable next button when current question is answered
+    document.getElementById('next-btn').disabled = false;
+}
+
+function updateProgress() {
+    const answered = userAnswers.filter(a => a !== null).length;
+    const pct = (answered / quizData.length) * 100;
+    document.getElementById('progress').style.width = pct + '%';
+}
+
+function handleNextButton() {
+    // Check if current question is answered
+    if (userAnswers[currentQuestionIndex] === null) {
+        alert('Please answer this question before continuing.');
+        return;
+    }
+    
+    // If not the last question, show next question
+    if (currentQuestionIndex < quizData.length - 1) {
+        // Hide current question
+        document.getElementById(`q${currentQuestionIndex}`).style.display = 'none';
+        // Move to next question
+        currentQuestionIndex++;
+        // Show next question
+        document.getElementById(`q${currentQuestionIndex}`).style.display = 'block';
+        // Reset button to disabled until next question is answered
+        document.getElementById('next-btn').disabled = true;
+        // Update button text if on last question
+        if (currentQuestionIndex === quizData.length - 1) {
+            document.getElementById('next-btn').textContent = 'See My Score →';
+        }
+        updateProgress();
+    } else {
+        // Last question - show email section
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('email-section').style.display = 'block';
+        document.getElementById('email-input').focus();
+    }
+}
+
+function calculateAndShowResults() {
+    const email = document.getElementById('email-input').value;
+    if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address.');
+        return;
+    }
+    
+    // Calculate raw score
+    let rawScore = 0;
+    quizData.forEach((q, i) => {
+        if (userAnswers[i] === q.correct) {
+            rawScore += q.weight;
+        }
+    });
+    
+    // Convert to 1-10 scale
+    let finalScore = Math.round((rawScore / 25) * 10);
+    finalScore = Math.max(1, Math.min(10, finalScore));
+    
+    // Find matching level
+    const level = levels.find(l => finalScore >= l.scoreMin && finalScore <= l.scoreMax) || levels[4];
+    
+    // Hide email section, show results
+    document.getElementById('email-section').style.display = 'none';
+    document.getElementById('result-section').style.display = 'block';
+    
+    // Display results
+    document.getElementById('final-score').textContent = `${finalScore}/10`;
+    document.getElementById('level-name').textContent = level.name;
+    document.getElementById('level-description').textContent = level.desc;
+    
+    // Generate personalized recommendations
+    const recList = document.getElementById('recommendations');
+    recList.innerHTML = '<li>' + level.recs.join('</li><li>') + '</li>';
+    
+    // Send email notification (integrate with your backend)
+    sendResultEmail(email, finalScore, level.name, rawScore);
+    
+    // Scroll to results
+    document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+}
+
+function sendResultEmail(email, score, levelName, rawScore) {
+    // INTEGRATION REQUIRED:
+    // Replace with your email service. Options:
+    // 1. Formspree (free): Send form data to email
+    // 2. Firebase Cloud Functions
+    // 3. SendGrid API
+    // 4. Custom backend endpoint (Node.js, PHP, Python)
+    // 5. Mailchimp or other email platform API
+    
+    console.log(`Email: ${email}, Score: ${score}/10, Level: ${levelName}`);
+    
+    // Example using Formspree (free service):
+    /*
+    fetch('https://formspree.io/f/YOUR_FORM_ID', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            email: email,
+            score: score,
+            level: levelName,
+            timestamp: new Date().toISOString()
+        })
+    }).catch(err => console.log('Email sent:', email));
+    */
+    
+    // Show confirmation (optional)
+    console.log(`Results sent to ${email}`);
+}
+
+// Initialize quiz
+renderQuestions();
+</script>
+
+</body>
+</html>
