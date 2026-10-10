@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Desktop Simulator</title>
+  <link rel="stylesheet" href="css/desktop.css">
+  <link rel="stylesheet" href="css/windows.css">
+  <meta name="robots" content="noindex">
+</head>
+<body>
+  <!-- Boot Screen -->
+  <div id="boot-screen">
+    <div class="boot-container">
+      <svg class="boot-logo" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="#6d4aff"/>
+        <path d="M30 50 L45 65 L70 35" stroke="white" stroke-width="8" fill="none"/>
+      </svg>
+      <div class="spinning-loader"></div>
+      <p class="boot-text">Starting up...</p>
+    </div>
+  </div>
+
+  <!-- Desktop Container -->
+  <div id="desktop">
+    <div id="wallpaper"></div>
+    
+    <!-- Desktop Icons -->
+    <div class="desktop-icon" id="doc-icon">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='48' height='56' x='8' y='4' fill='%23ffffff' stroke='%23666' stroke-width='2'/%3E%3Crect width='30' height='2' x='17' y='14' fill='%23666'/%3E%3Crect width='30' height='2' x='17' y='20' fill='%23666'/%3E%3Crect width='30' height='2' x='17' y='26' fill='%23666'/%3E%3Crect width='30' height='2' x='17' y='32' fill='%23666'/%3E%3C/svg%3E" alt="File Icon">
+      <span>Documents.txt</span>
+    </div>
+
+    <div class="desktop-icon" id="settings-icon">
+      <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='20' fill='%236d4aff'/%3E%3Cpath d='M28 32 L32 28 L36 32' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E" alt="Settings Icon">
+      <span>Settings</span>
+    </div>
+
+    <!-- Start Menu -->
+    <div id="start-menu" class="hidden">
+      <div class="start-search">
+        <input type="text" placeholder="Search for apps, settings, and documents">
+      </div>
+      <div class="start-section-title">Pinned</div>
+      <div class="start-pinned">
+        <div class="app-tile" onclick="openDocument()">📄 Documents</div>
+        <div class="app-tile" onclick="openSettings()">⚙️ Settings</div>
+        <div class="app-tile" onclick="showAbout()">ℹ️ About</div>
+      </div>
+      <div class="start-footer">
+        <div class="user-profile">👤 Guest User</div>
+        <button class="shutdown-btn" onclick="fakeShutdown()">⏻ Shut Down</button>
+      </div>
+    </div>
+
+    <!-- Taskbar -->
+    <div id="taskbar">
+      <button id="start-button">❖ Start</button>
+      <div id="taskbar-apps"></div>
+      <div class="system-tray">
+        <span id="notification-icon">🔔</span>
+        <span id="clock">12:00 PM</span>
+        <span id="date">Oct 10, 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Modal -->
+  <div id="update-modal" class="modal hidden">
+    <div class="update-container">
+      <h2>Windows Update</h2>
+      <p id="update-message">Checking for updates...</p>
+      <div class="progress-bar">
+        <div id="update-progress" class="progress-fill" style="width: 0%"></div>
+      </div>
+      <p id="update-percent" class="update-percentage">0%</p>
+    </div>
+  </div>
+
+  <!-- Update Notification Toast -->
+  <div id="update-notification" class="notification-toast hidden">
+    <div class="toast-content">
+      <span>🔔 Updates available for your system</span>
+      <button onclick="startUpdateSimulation()">Install Now</button>
+    </div>
+  </div>
+
+  <!-- About Modal -->
+  <div id="about-modal" class="modal hidden">
+    <div class="about-container">
+      <h2>About This Project</h2>
+      <p>This is a web-based desktop simulation created for educational purposes.</p>
+      <p><strong>Not affiliated with Microsoft Corporation.</strong></p>
+      <p>Windows® is a registered trademark of Microsoft Corporation.</p>
+      <button onclick="closeAbout()">Close</button>
+    </div>
+  </div>
+
+  <!-- Footer Disclaimer (visible on page load) -->
+  <div class="footer-disclaimer">
+    Unofficial web simulation • Not affiliated with Microsoft
+  </div>
+
+  <script src="js/boot.js"></script>
+  <script src="js/clock.js"></script>
+  <script src="js/startmenu.js"></script>
+  <script src="js/windowmanager.js"></script>
+  <script src="js/update.js"></script>
+  <script src="js/document.js"></script>
+  <script>
+    // Initialize on load
+    window.addEventListener('load', () => {
+      bootSequence();
+      startClock();
+      checkUpdatesStatus();
+    });
+  </script>
+</body>
+</html>
