@@ -19,7 +19,7 @@
     ic.addEventListener('pointerdown',e=>{
       e.stopPropagation();select(ic);setOpen(false);
       const t=performance.now();
-      if(lastIc===ic&&t-lastT<450){lastIc=null;launchApp(ic.dataset.app);}
+      if(e.button===0&&lastIc===ic&&t-lastT<450){lastIc=null;launchApp(ic.dataset.app);}
       else{lastIc=ic;lastT=t;}
     });
     ic.addEventListener('keydown',e=>{if(e.key==='Enter')launchApp(ic.dataset.app);});

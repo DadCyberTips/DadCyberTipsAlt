@@ -26,16 +26,7 @@ class WindowManager{
       top:Math.max(0,Math.min(o.top??50+k,scr.offsetHeight-H-48))+'px'
     });
 
-    const btn=document.createElement('button');
-    btn.className='tb-btn taskbar-app';btn.title=o.title||'';
-    btn.innerHTML=`<svg><use href="#i-${icon}"/></svg>`;
-    btn.addEventListener('click',()=>{
-      const w=this.wins.get(id);
-      if(w.min)this.restore(id);
-      else if(this.order[this.order.length-1]===id)this.minimize(id);
-      else this.focus(id);
-    });
-    document.getElementById('taskbar-apps').appendChild(btn);
+    const btn=Taskbar.attach(id,{title:o.title||'',icon});
     this.wins.set(id,{id,el,btn,min:false});
 
     el.addEventListener('pointerdown',()=>this.focus(id));
@@ -80,7 +71,7 @@ class WindowManager{
 
   closeWindow(id){
     const w=this.wins.get(id);if(!w)return;
-    w.el.remove();w.btn.remove();this.wins.delete(id);
+    w.el.remove();Taskbar.detach(id);this.wins.delete(id);
     this.order=this.order.filter(x=>x!==id);
     const t=this.topVisible();if(t)this.focus(t);
   }

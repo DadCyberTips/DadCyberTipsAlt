@@ -56,6 +56,12 @@
     </div>
   </div>
 
+  <div id="calendar">
+    <div class="cal-date"></div>
+    <div class="cal-bar"><b class="cal-title"></b><span><button class="cal-prev">▲</button><button class="cal-next">▼</button></span></div>
+    <div class="cal-grid"></div>
+  </div>
+
   <div id="quick-settings">
     <div class="qs-tile"><svg><use href="#i-lan"/></svg><div><b>Ethernet</b><small>Connected</small></div></div>
     <div class="qs-vol">
@@ -76,7 +82,7 @@
         <button id="tray-net" class="tray-btn" title="Ethernet — Connected"><svg><use href="#i-lan"/></svg></button>
         <button id="tray-vol" class="tray-btn" title="Speakers: 50%"><svg><use id="tray-vol-use" href="#i-vol-1"/></svg></button>
       </div>
-      <div class="tray-clock"><div id="clock">12:00 PM</div><div id="date">10/14/2026</div></div>
+      <div class="tray-clock" id="tray-clock"><div id="clock">12:00 PM</div><div id="date">10/14/2026</div></div>
     </div>
   </div>
 </div>
@@ -117,6 +123,7 @@
 <script src="js/update.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/minesweeper.js"></script>
+<script src="js/shell.js"></script>
 <script src="js/document.js"></script>
 <script>
 const fit=()=>document.getElementById('screen').style.setProperty('--s',Math.min((innerWidth-24)/1024,(innerHeight-24)/768));

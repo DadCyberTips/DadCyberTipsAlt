@@ -117,3 +117,23 @@ svg use{pointer-events:none}
 .update-body .btn{background:#0067c0;color:#fff}
 .update-body .btn:hover{background:#1a78cc}
 .update-body .btn:active{background:#005aa8}
+
+.taskbar-app:not(.open)::after{display:none}
+.tray-clock.active{background:rgba(255,255,255,.14)}
+#ctx{position:absolute;display:none;min-width:200px;padding:4px;background:rgba(43,43,43,.98);border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.5);z-index:3000;font-size:13px}
+#ctx div{padding:7px 12px;border-radius:4px}
+#ctx div:hover{background:rgba(255,255,255,.09)}
+.app-tile{touch-action:none}
+.app-tile.drag{position:relative;z-index:5;pointer-events:none;background:rgba(255,255,255,.16);box-shadow:0 6px 18px rgba(0,0,0,.5);transition:none}
+#calendar{position:absolute;bottom:60px;right:12px;width:330px;padding:14px 16px 16px;background:rgba(38,38,38,.98);border:1px solid rgba(255,255,255,.08);border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:1001;opacity:0;visibility:hidden;transform:translateY(10px);transition:opacity .1s,transform .1s,visibility 0s .1s}
+#calendar.open{opacity:1;visibility:visible;transform:none;transition:opacity .1s,transform .1s}
+.cal-date{margin-bottom:10px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08);font-size:15px;font-weight:600}
+.cal-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:13px}
+.cal-bar button{width:28px;height:28px;border-radius:4px;font-size:10px}
+.cal-bar button:hover{background:rgba(255,255,255,.09)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);row-gap:2px;text-align:center;font-size:12px}
+.cal-grid span{display:flex;align-items:center;justify-content:center;width:36px;height:36px;margin:0 auto;border-radius:50%}
+.cal-grid span:not(.dow):not(.today):hover{background:rgba(255,255,255,.09)}
+.cal-grid .dow{font-size:11px;color:rgba(255,255,255,.6)}
+.cal-grid .dim{color:rgba(255,255,255,.4)}
+.cal-grid .today{background:#4cc2ff;color:#000;font-weight:600}
