@@ -1,58 +1,28 @@
-/**
- * Start Menu Controller
- * Handles opening, closing, and toggling the start menu
- */
+(function(){
+  const $=id=>document.getElementById(id),menu=$('start-menu'),btn=$('start-button');
+  const setOpen=o=>{menu.classList.toggle('open',o);btn.classList.toggle('active',o);};
+  const toggle=()=>setOpen(!menu.classList.contains('open'));
+  window.closeStartMenu=()=>setOpen(false);
 
-(function() {
-  const startMenu = document.getElementById('start-menu');
-  const startButton = document.getElementById('start-button');
-  const desktopIcons = document.querySelectorAll('.desktop-icon');
-  
-  let isOpen = false;
-  
-  function toggleStartMenu(e) {
-    e.stopPropagation();
-    isOpen = !isOpen;
-    
-    if (isOpen) {
-      startMenu.classList.remove('hidden');
-      setTimeout(() => startMenu.classList.add('active'), 10);
-      
-      // Play subtle sound effect (optional)
-      playStartupSound();
-    } else {
-      closeStartMenu();
-    }
-  }
-  
-  function closeStartMenu() {
-    isOpen = false;
-    startMenu.classList.remove('active');
-    setTimeout(() => startMenu.classList.add('hidden'), 200);
-  }
-  
-  function handleOutsideClick(e) {
-    if (isOpen && 
-        !startMenu.contains(e.target) && 
-        !startButton.contains(e.target)) {
-      closeStartMenu();
-    }
-  }
-  
-  function playStartupSound() {
-    // Optional: Add subtle audio feedback
-    // const audio = new Audio('assets/startup.mp3');
-    // audio.volume = 0.3;
-    // audio.play().catch(() => {});
-  }
-  
-  // Event listeners
-  startButton.addEventListener('click', toggleStartMenu);
-  document.addEventListener('click', handleOutsideClick);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && isOpen) {
-      closeStartMenu();
-    }
+  btn.addEventListener('pointerdown',e=>{e.stopPropagation();toggle();});
+  btn.addEventListener('click',e=>{if(e.detail===0)toggle();});
+  menu.addEventListener('click',e=>{
+    const t=e.target.closest('[data-app]');
+    if(t){setOpen(false);launchApp(t.dataset.app);}
   });
-  
+
+  const icons=[...document.querySelectorAll('.desktop-icon')];
+  const select=ic=>{icons.forEach(i=>i.classList.toggle('sel',i===ic));};
+  icons.forEach(ic=>{
+    ic.addEventListener('pointerdown',e=>{e.stopPropagation();select(ic);setOpen(false);});
+    ic.addEventListener('dblclick',()=>launchApp(ic.dataset.app));
+    ic.addEventListener('click',e=>{if(e.pointerType==='touch')launchApp(ic.dataset.app);});
+    ic.addEventListener('keydown',e=>{if(e.key==='Enter')launchApp(ic.dataset.app);});
+  });
+
+  document.addEventListener('pointerdown',e=>{
+    if(!menu.contains(e.target)&&!btn.contains(e.target))setOpen(false);
+    if(!e.target.closest('.desktop-icon'))select(null);
+  });
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false);});
 })();

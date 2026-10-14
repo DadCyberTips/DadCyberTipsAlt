@@ -12,7 +12,7 @@
   
   let updateInProgress = false;
   
-  function checkUpdatesStatus() {
+  window.checkUpdatesStatus = function() {
     const updatesComplete = localStorage.getItem('updatesComplete');
     const hideUpdates = localStorage.getItem('hideUpdateNotification');
     
@@ -27,7 +27,7 @@
         }, 10000);
       }, 3000);
     }
-  }
+  };
   
   window.startUpdateSimulation = async function() {
     if (updateInProgress) return;
@@ -69,6 +69,7 @@
     
     modal.classList.add('hidden');
     updateInProgress = false;
+    if (typeof windowManager !== 'undefined') windowManager.closeWindow('blocked');
   };
   
   // Hide notification without installing
@@ -77,8 +78,5 @@
     localStorage.setItem('hideUpdateNotification', 'true');
   });
   
-  function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
   
 })();

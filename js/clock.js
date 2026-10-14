@@ -1,36 +1,9 @@
-/**
- * System Clock
- * Updates the time and date in the taskbar
- */
-
-function startClock() {
-  updateClock();
-  setInterval(updateClock, 1000);
-}
-
-function updateClock() {
-  const clockEl = document.getElementById('clock');
-  const dateEl = document.getElementById('date');
-  
-  if (!clockEl || !dateEl) return;
-  
-  const now = new Date();
-  
-  // Format time (12-hour with AM/PM)
-  let hours = now.getHours();
-  const minutes = now.getMinutes().toString().padStart(2, '0');
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  hours = hours % 12;
-  hours = hours ? hours : 12;
-  
-  clockEl.textContent = `${hours}:${minutes} ${ampm}`;
-  
-  // Format date
-  const options = { year: 'numeric', month: 'short', day: 'numeric' };
-  dateEl.textContent = now.toLocaleDateString('en-US', options);
-}
-
-// Export
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { startClock, updateClock };
+function startClock(){
+  const c=document.getElementById('clock'),d=document.getElementById('date');
+  const tick=()=>{
+    const n=new Date();
+    c.textContent=n.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    d.textContent=n.toLocaleDateString('en-US');
+  };
+  tick();setInterval(tick,1000);
 }

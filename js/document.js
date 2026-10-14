@@ -46,32 +46,22 @@ function openDocument() {
 }
 
 function showBlockedMessage() {
-  const win = typeof windowManager !== 'undefined' 
-    ? windowManager.createWindow({
-        title: 'Access Blocked',
-        content: `
-          <div style="padding: 40px; text-align: center;">
-            <h2 style="color: #e81123; margin-bottom: 20px;">⚠️ Action Required</h2>
-            <p style="margin-bottom: 30px;">
-              You cannot open this document at the moment.
-            </p>
-            <p style="color: #666; margin-bottom: 20px;">
-              System updates must be installed before accessing files.
-            </p>
-            <button 
-              onclick="startUpdateSimulation()"
-              style="background: #6d4aff; color: #fff; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer;"
-            >
-              Run Updates Now
-            </button>
-          </div>
-        `,
-        width: 450,
-        height: 350,
-        top: 200,
-        left: 300
-      })
-    : null;
+  if (typeof windowManager === 'undefined') return;
+  windowManager.createWindow({
+    key: 'blocked',
+    title: 'Access Blocked',
+    content: `
+      <div class="dialog">
+        <h2 style="color: #c42b1c;">⚠️ Action Required</h2>
+        <p>You cannot open this document at the moment.</p>
+        <p>System updates must be installed before accessing files.</p>
+        <button class="btn" onclick="startUpdateSimulation()">Run Updates Now</button>
+      </div>`,
+    width: 450,
+    height: 320,
+    top: 160,
+    left: 300
+  });
 }
 
 // Export globally
