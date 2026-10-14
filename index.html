@@ -16,6 +16,7 @@
 <symbol id="i-info" viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#4cc2ff"/><path d="M24 21v13M24 14v3" stroke="#fff" stroke-width="4"/></symbol>
 </defs></svg>
 
+<div id="screen">
 <div id="boot-screen">
   <div class="boot-container">
     <svg class="boot-logo"><use href="#i-start"/></svg>
@@ -86,6 +87,8 @@
 
 <div class="footer-disclaimer">Unofficial web simulation • Not affiliated with Microsoft</div>
 
+</div>
+
 <script src="js/boot.js"></script>
 <script src="js/clock.js"></script>
 <script src="js/startmenu.js"></script>
@@ -93,6 +96,8 @@
 <script src="js/update.js"></script>
 <script src="js/document.js"></script>
 <script>
+const fit=()=>document.getElementById('screen').style.setProperty('--s',Math.min((innerWidth-24)/1024,(innerHeight-24)/768));
+fit();addEventListener('resize',fit);
 window.addEventListener('load', () => { bootSequence(); startClock(); checkUpdatesStatus(); });
 </script>
 </body>

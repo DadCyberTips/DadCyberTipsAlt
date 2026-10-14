@@ -4,6 +4,8 @@ const CAPTION={
   close:'<svg viewBox="0 0 10 10"><path d="M0 0l10 10M10 0L0 10" stroke="currentColor"/></svg>'
 };
 
+const scr=document.getElementById('screen');
+
 class WindowManager{
   constructor(){this.n=0;this.wins=new Map();this.order=[];}
 
@@ -17,11 +19,11 @@ class WindowManager{
     const c=el.querySelector('.content');
     if(o.node)c.appendChild(o.node);else c.innerHTML=o.content||'';
 
-    const k=this.wins.size%6*28,W=Math.min(o.width||600,innerWidth-16),H=Math.min(o.height||400,innerHeight-64);
+    const k=this.wins.size%6*28,W=Math.min(o.width||600,scr.offsetWidth-16),H=Math.min(o.height||400,scr.offsetHeight-64);
     Object.assign(el.style,{
       width:W+'px',height:H+'px',
-      left:Math.max(0,Math.min(o.left??80+k,innerWidth-W))+'px',
-      top:Math.max(0,Math.min(o.top??50+k,innerHeight-H-48))+'px'
+      left:Math.max(0,Math.min(o.left??80+k,scr.offsetWidth-W))+'px',
+      top:Math.max(0,Math.min(o.top??50+k,scr.offsetHeight-H-48))+'px'
     });
 
     const btn=document.createElement('button');
@@ -44,7 +46,7 @@ class WindowManager{
     bar.addEventListener('dblclick',e=>{if(!e.target.closest('.controls'))this.toggleMaximize(el);});
     this.makeDraggable(el,bar);
 
-    document.body.appendChild(el);
+    scr.appendChild(el);
     this.focus(id);
     return el;
   }
@@ -86,11 +88,11 @@ class WindowManager{
   makeDraggable(el,bar){
     bar.addEventListener('pointerdown',e=>{
       if(e.target.closest('.controls')||el.classList.contains('max'))return;
-      const sx=e.clientX-el.offsetLeft,sy=e.clientY-el.offsetTop;
+      const k=scr.getBoundingClientRect().width/scr.offsetWidth,x0=e.clientX,y0=e.clientY,l0=el.offsetLeft,t0=el.offsetTop;
       bar.setPointerCapture(e.pointerId);
       const move=ev=>{
-        el.style.left=Math.max(80-el.offsetWidth,Math.min(innerWidth-80,ev.clientX-sx))+'px';
-        el.style.top=Math.max(0,Math.min(innerHeight-88,ev.clientY-sy))+'px';
+        el.style.left=Math.max(80-el.offsetWidth,Math.min(scr.offsetWidth-80,l0+(ev.clientX-x0)/k))+'px';
+        el.style.top=Math.max(0,Math.min(scr.offsetHeight-88,t0+(ev.clientY-y0)/k))+'px';
       };
       const up=()=>{bar.removeEventListener('pointermove',move);bar.removeEventListener('pointerup',up);bar.removeEventListener('pointercancel',up);};
       bar.addEventListener('pointermove',move);
@@ -133,6 +135,6 @@ window.launchApp=a=>{
 window.fakeShutdown=function(){
   const s=document.createElement('div');
   s.className='shutdown-screen';s.style.display='flex';s.innerHTML='<p>Shutting down...</p>';
-  document.body.appendChild(s);
+  scr.appendChild(s);
   setTimeout(()=>location.reload(),1500);
 };
