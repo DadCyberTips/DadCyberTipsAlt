@@ -1,82 +1,56 @@
 /**
  * Update Simulator
- * Manages the simulated Windows Update process
+ * A non-blocking "Windows Update" panel whose progress wanders up and down
+ * and parks at 99% after ~4 minutes. It never completes.
  */
-
 (function() {
+  const DURATION = 240000; // ms until it sticks at 99%
   const modal = document.getElementById('update-modal');
-  const notificationToast = document.getElementById('update-notification');
   const messageEl = document.getElementById('update-message');
   const progressEl = document.getElementById('update-progress');
   const percentEl = document.getElementById('update-percent');
-  
-  let updateInProgress = false;
-  
+  const rnd = (a, b) => a + Math.random() * (b - a);
+
+  // Updates never finish, so make sure no stale "complete" flag unlocks anything
+  localStorage.removeItem('updatesComplete');
+
+  function render(n) {
+    progressEl.style.width = n + '%';
+    percentEl.textContent = n + '% complete';
+  }
+
+  // Start automatically shortly after the desktop appears
   window.checkUpdatesStatus = function() {
-    const updatesComplete = localStorage.getItem('updatesComplete');
-    const hideUpdates = localStorage.getItem('hideUpdateNotification');
-    
-    if (!updatesComplete && !hideUpdates) {
-      // Show notification after brief delay
-      setTimeout(() => {
-        notificationToast.classList.remove('hidden');
-        
-        // Auto-hide notification after 10 seconds
-        setTimeout(() => {
-          notificationToast.classList.add('hidden');
-        }, 10000);
-      }, 3000);
-    }
+    setTimeout(() => window.startUpdateSimulation(), 2500);
   };
-  
+
   window.startUpdateSimulation = async function() {
-    if (updateInProgress) return;
-    updateInProgress = true;
-    
-    notificationToast.classList.add('hidden');
-    modal.classList.remove('hidden');
-    
-    const stages = [
-      { message: 'Checking for updates...', progress: 0 },
-      { message: 'Checking for updates...', progress: 5 },
-      { message: 'Downloading update files...', progress: 25 },
-      { message: 'Downloading update files...', progress: 50 },
-      { message: 'Downloading update files...', progress: 75 },
-      { message: 'Installing updates...', progress: 85 },
-      { message: 'Installing updates...', progress: 95 },
-      { message: 'Getting things ready...', progress: 100 }
-    ];
-    
-    const times = [800, 600, 700, 800, 900, 700, 800, 1500];
-    
-    for (let i = 0; i < stages.length; i++) {
-      messageEl.textContent = stages[i].message;
-      progressEl.style.width = `${stages[i].progress}%`;
-      percentEl.textContent = `${stages[i].progress}%`;
-      
-      // Add slight random variation to timing
-      const waitTime = times[i] + Math.random() * 200;
-      await delay(waitTime);
-    }
-    
-    // Complete
-    localStorage.setItem('updatesComplete', 'true');
-    localStorage.removeItem('hideUpdateNotification');
-    
-    // Final screen
-    messageEl.textContent = 'Updates installed successfully!';
-    await delay(1500);
-    
-    modal.classList.add('hidden');
-    updateInProgress = false;
+    if (window.updateInProgress) return;
+    window.updateInProgress = true;
     if (typeof windowManager !== 'undefined') windowManager.closeWindow('blocked');
+
+    modal.style.display = 'flex';
+    messageEl.textContent = 'Working on updates';
+    render(0);
+
+    const t0 = performance.now();
+    let shown = 0;
+    while (true) {
+      const t = performance.now() - t0;
+      if (t >= DURATION) { render(99); break; }
+
+      const f = t / DURATION;
+      const target = 98 * Math.pow(f, 0.85);
+      const bias = f < 0.1 ? 2 : 0;
+      let next = Math.round(target + bias + rnd(-3.5, 4.5));
+      next = Math.max(0, Math.min(98, next));
+      if (next === shown && Math.random() < 0.5) next = Math.max(0, Math.min(98, shown + (Math.random() < 0.5 ? -2 : 3)));
+      shown = next;
+      render(shown);
+
+      // Usually a few seconds between changes, sometimes a long stall
+      const wait = Math.random() < 0.1 ? rnd(8000, 14000) : rnd(1200, 4500);
+      await delay(Math.min(wait, DURATION - t));
+    }
   };
-  
-  // Hide notification without installing
-  notificationToast.addEventListener('click', () => {
-    notificationToast.classList.add('hidden');
-    localStorage.setItem('hideUpdateNotification', 'true');
-  });
-  
-  
 })();

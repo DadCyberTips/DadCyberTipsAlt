@@ -116,7 +116,7 @@ class WindowManager{
       <div class="settings-content">
         <div class="settings-item"><h4>💾 Storage</h4><p>Local storage usage: ${(b/1024).toFixed(1)} KB used</p></div>
         <div class="settings-item"><h4>🖼️ Appearance</h4><p>Theme: Light</p></div>
-        <div class="settings-item"><h4>🔄 Windows Update</h4><p>Status: ${done?'Up to date':'Updates pending'}</p></div>
+        <div class="settings-item"><h4>🔄 Windows Update</h4><p>Status: ${window.updateInProgress?'Installing updates':'Updates pending'}</p></div>
         <div class="settings-item"><h4>ℹ️ Version</h4><p>Web Desktop Simulator v1.1.0</p></div>
       </div>`});
   }

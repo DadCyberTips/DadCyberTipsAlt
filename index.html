@@ -63,19 +63,15 @@
   </div>
 </div>
 
-<div id="update-modal" class="modal hidden">
-  <div class="update-container">
-    <h2>Windows Update</h2>
-    <p id="update-message">Checking for updates...</p>
+<div id="update-modal" class="window active" style="display:none;z-index:500;left:612px;top:150px;width:380px;min-height:0">
+  <div class="title-bar"><svg class="icon"><use href="#i-gear"/></svg><span class="title">Windows Update</span></div>
+  <div class="content update-body">
+    <div class="update-row">
+      <div class="spinning-loader"></div>
+      <div><h2 id="update-message">Working on updates</h2><p id="update-percent" class="update-percentage">0% complete</p></div>
+    </div>
     <div class="progress-bar"><div id="update-progress" class="progress-fill" style="width:0%"></div></div>
-    <p id="update-percent" class="update-percentage">0%</p>
-  </div>
-</div>
-
-<div id="update-notification" class="notification-toast hidden">
-  <div class="toast-content">
-    <span>🔔 Updates available for your system</span>
-    <button class="btn" onclick="startUpdateSimulation()">Install now</button>
+    <p class="update-note">Don't turn off your computer.</p>
   </div>
 </div>
 

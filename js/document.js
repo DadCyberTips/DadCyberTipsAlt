@@ -31,9 +31,9 @@ if (!documentContent) {
 }
 
 function openDocument() {
-  const updatesComplete = localStorage.getItem('updatesComplete');
+  const updatesComplete = window.updateFinished;
   
-  if (updatesComplete !== 'true') {
+  if (updatesComplete !== true) {
     // Block access with message
     showBlockedMessage();
     return;
@@ -47,20 +47,21 @@ function openDocument() {
 
 function showBlockedMessage() {
   if (typeof windowManager === 'undefined') return;
+  const busy = window.updateInProgress;
   windowManager.createWindow({
     key: 'blocked',
     title: 'Access Blocked',
     content: `
       <div class="dialog">
-        <h2 style="color: #c42b1c;">⚠️ Action Required</h2>
+        <h2 style="color: #c42b1c;">⚠️ ${busy ? 'Updates in progress' : 'Action Required'}</h2>
         <p>You cannot open this document at the moment.</p>
-        <p>System updates must be installed before accessing files.</p>
-        <button class="btn" onclick="startUpdateSimulation()">Run Updates Now</button>
+        <p>${busy ? 'Windows is still installing updates. Please wait until they finish.' : 'System updates must be installed before accessing files.'}</p>
+        ${busy ? '' : '<button class="btn" onclick="startUpdateSimulation()">Run Updates Now</button>'}
       </div>`,
     width: 450,
     height: 320,
-    top: 160,
-    left: 300
+    top: 200,
+    left: 100
   });
 }
 
