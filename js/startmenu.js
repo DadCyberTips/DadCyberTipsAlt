@@ -13,10 +13,14 @@
 
   const icons=[...document.querySelectorAll('.desktop-icon')];
   const select=ic=>{icons.forEach(i=>i.classList.toggle('sel',i===ic));};
+  let lastIc=null,lastT=0;
   icons.forEach(ic=>{
-    ic.addEventListener('pointerdown',e=>{e.stopPropagation();select(ic);setOpen(false);});
-    ic.addEventListener('dblclick',()=>launchApp(ic.dataset.app));
-    ic.addEventListener('click',e=>{if(e.pointerType==='touch')launchApp(ic.dataset.app);});
+    ic.addEventListener('pointerdown',e=>{
+      e.stopPropagation();select(ic);setOpen(false);
+      const t=performance.now();
+      if(lastIc===ic&&t-lastT<450){lastIc=null;launchApp(ic.dataset.app);}
+      else{lastIc=ic;lastT=t;}
+    });
     ic.addEventListener('keydown',e=>{if(e.key==='Enter')launchApp(ic.dataset.app);});
   });
 
