@@ -1,31 +1,26 @@
 /**
  * Update Simulator
- * A non-blocking "Windows Update" panel. The user starts it manually; progress
- * wanders up and down and parks at 99% after ~4 minutes. It never completes,
- * but the document unlocks 60 seconds after the install is started.
+ * The user starts the update from Settings > Windows Update. A non-blocking
+ * progress panel then appears; progress wanders up and down and parks at 99%
+ * after ~4 minutes. It never completes, but the document unlocks 60 seconds
+ * after the install is started.
  */
 (function() {
-  const DURATION = 240000; // ms until it sticks at 99%
+  const DURATION = 240000;    // ms until it sticks at 99%
   const UNLOCK_AFTER = 60000; // ms after starting until the document can be opened
   const modal = document.getElementById('update-modal');
-  const pendingEl = document.getElementById('update-pending');
-  const runningEl = document.getElementById('update-running');
   const progressEl = document.getElementById('update-progress');
   const percentEl = document.getElementById('update-percent');
   const rnd = (a, b) => a + Math.random() * (b - a);
 
-  // Updates never finish, so make sure no stale "complete" flag unlocks anything
-  localStorage.removeItem('updatesComplete');
-
   function render(n) {
+    window.updatePct = n;
     progressEl.style.width = n + '%';
     percentEl.textContent = n + '% complete';
+    // Keep the Settings > Windows Update page in sync, if it is open
+    document.querySelectorAll('.su-pct').forEach(e => { e.textContent = n + '% complete'; });
+    document.querySelectorAll('.su-bar').forEach(e => { e.style.width = n + '%'; });
   }
-
-  // Show the "update required" prompt shortly after the desktop appears
-  window.checkUpdatesStatus = function() {
-    setTimeout(() => { if (!window.updateInProgress) modal.style.display = 'flex'; }, 2500);
-  };
 
   window.startUpdateSimulation = async function() {
     if (window.updateInProgress) return;
@@ -33,8 +28,6 @@
     if (typeof windowManager !== 'undefined') windowManager.closeWindow('blocked');
 
     modal.style.display = 'flex';
-    pendingEl.style.display = 'none';
-    runningEl.style.display = 'block';
     render(0);
 
     setTimeout(() => {

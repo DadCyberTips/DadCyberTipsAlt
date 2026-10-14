@@ -107,19 +107,6 @@ class WindowManager{
     n.querySelector('.doc-content').textContent=text;
     return this.createWindow({key:'doc',title:'Documents.txt',icon:'doc',node:n,width:700,height:500,top:90,left:140});
   }
-
-  openSettingsWindow(){
-    let b=0;
-    for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);b+=k.length+localStorage.getItem(k).length;}
-    const done=localStorage.getItem('updatesComplete')==='true';
-    return this.createWindow({key:'settings',title:'Settings',icon:'gear',width:500,height:400,top:130,left:200,content:`
-      <div class="settings-content">
-        <div class="settings-item"><h4>💾 Storage</h4><p>Local storage usage: ${(b/1024).toFixed(1)} KB used</p></div>
-        <div class="settings-item"><h4>🖼️ Appearance</h4><p>Theme: Light</p></div>
-        <div class="settings-item"><h4>🔄 Windows Update</h4><p>Status: ${window.updateInProgress?'Installing updates':'Updates pending'}</p></div>
-        <div class="settings-item"><h4>ℹ️ Version</h4><p>Web Desktop Simulator v1.1.0</p></div>
-      </div>`});
-  }
 }
 
 const windowManager=new WindowManager();

@@ -53,13 +53,12 @@ function showBlockedMessage() {
     title: 'Access Blocked',
     content: `
       <div class="dialog">
-        <h2 style="color: #c42b1c;">⚠️ ${busy ? 'Updates in progress' : 'Action Required'}</h2>
+        <h2 style="color: #c42b1c;">⚠️ ${busy ? 'Updates in progress' : 'System update required'}</h2>
         <p>You cannot open this document at the moment.</p>
-        <p>${busy ? 'Windows is still installing KB13375069. Please wait.' : 'Security update KB13375069 must be installed to patch CVE-2026-31337 before you can access files.'}</p>
-        ${busy ? '' : '<button class="btn" onclick="startUpdateSimulation()">Install now</button>'}
+        <p>${busy ? 'Windows is still installing updates. Please wait.' : 'You need to run system updates to open this file.'}</p>
       </div>`,
     width: 450,
-    height: 320,
+    height: 280,
     top: 200,
     left: 100
   });
