@@ -6,6 +6,7 @@
 
   btn.addEventListener('pointerdown',e=>{e.stopPropagation();toggle();});
   btn.addEventListener('click',e=>{if(e.detail===0)toggle();});
+  $('search-button').addEventListener('pointerdown',e=>{e.stopPropagation();setOpen(true);menu.querySelector('input').focus();});
   menu.addEventListener('click',e=>{
     const t=e.target.closest('[data-app]');
     if(t){setOpen(false);launchApp(t.dataset.app);}

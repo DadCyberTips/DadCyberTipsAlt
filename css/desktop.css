@@ -35,12 +35,12 @@ svg use{pointer-events:none}
 #notification-icon:hover,.tray-clock:hover{background:rgba(255,255,255,.09)}
 .tray-clock{text-align:right;line-height:1.25}
 
-#start-menu{position:absolute;bottom:56px;left:50%;width:600px;max-width:calc(100% - 16px);max-height:calc(100% - 72px);overflow:hidden;display:flex;flex-direction:column;padding:24px 28px 0;background:rgba(40,40,40,.98);border:1px solid rgba(255,255,255,.08);border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:1001;opacity:0;visibility:hidden;transform:translate(-50%,10px);transition:opacity .1s,transform .1s,visibility 0s .1s}
+#start-menu{position:absolute;bottom:60px;left:50%;width:560px;height:620px;max-width:calc(100% - 16px);max-height:calc(100% - 68px);overflow:hidden;display:flex;flex-direction:column;padding:24px 28px 0;background:rgba(38,38,38,.98);border:1px solid rgba(255,255,255,.08);border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:1001;opacity:0;visibility:hidden;transform:translate(-50%,10px);transition:opacity .1s,transform .1s,visibility 0s .1s}
 #start-menu.open{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .1s,transform .1s}
-.start-search input{width:100%;padding:9px 14px;border:0;border-bottom:2px solid #4cc2ff;border-radius:6px;background:rgba(255,255,255,.08);color:#fff;font-size:14px;outline:0;user-select:text}
+.start-search input{width:100%;padding:10px 14px 10px 38px;border:1px solid rgba(255,255,255,.08);border-bottom:2px solid #4cc2ff;border-radius:20px;background:rgba(255,255,255,.08);color:#fff;font-size:14px;outline:0;user-select:text}
 .start-search input::placeholder{color:rgba(255,255,255,.55)}
 .start-section-title{font-size:13px;font-weight:600;margin:22px 0 10px}
-.start-pinned{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.start-pinned{flex:1;align-content:start;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
 .app-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border-radius:6px;font-size:12px;transition:background .08s}
 .app-tile svg{width:32px;height:32px}
 .start-rec{display:grid;grid-template-columns:1fr 1fr;gap:4px}
@@ -75,3 +75,12 @@ svg use{pointer-events:none}
 .update-container .update-percentage{font-size:13px;color:rgba(255,255,255,.7)}
 .about-container .btn{margin-top:16px}
 .shutdown-screen{position:absolute;inset:0;display:none;justify-content:center;align-items:center;background:#000;font-size:22px;z-index:10001}
+
+.start-search{position:relative}
+.start-search svg{position:absolute;left:14px;top:50%;width:16px;height:16px;margin-top:-8px;opacity:.75}
+.start-head{display:flex;justify-content:space-between;align-items:center;margin:22px 0 10px;font-size:13px}
+.start-head b{font-weight:600}
+.pill{padding:3px 10px;border-radius:4px;background:rgba(255,255,255,.08);font-size:12px}
+.tray-icons{display:flex;gap:10px;padding:8px 10px;border-radius:4px}
+.tray-icons:hover{background:rgba(255,255,255,.09)}
+.tray-icons svg{width:16px;height:16px}

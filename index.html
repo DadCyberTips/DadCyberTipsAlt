@@ -12,7 +12,11 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
 <symbol id="i-start" viewBox="0 0 24 24"><g fill="#4cc2ff"><rect x="2" y="2" width="9.5" height="9.5" rx="1"/><rect x="12.5" y="2" width="9.5" height="9.5" rx="1"/><rect x="2" y="12.5" width="9.5" height="9.5" rx="1"/><rect x="12.5" y="12.5" width="9.5" height="9.5" rx="1"/></g></symbol>
 <symbol id="i-doc" viewBox="0 0 48 48"><path d="M10 4h20l10 10v30H10z" fill="#fff" stroke="#b8b8b8"/><path d="M30 4v10h10z" fill="#dfe6ee"/><path d="M16 22h18M16 28h18M16 34h12" stroke="#4a8cf7" stroke-width="2"/></symbol>
-<symbol id="i-gear" viewBox="0 0 48 48"><circle cx="24" cy="24" r="17" fill="none" stroke="#8a96a8" stroke-width="6" stroke-dasharray="4 1.34"/><circle cx="24" cy="24" r="13" fill="#8a96a8"/><circle cx="24" cy="24" r="6" fill="#e8edf3"/></symbol>
+<linearGradient id="g-gear" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b3bdcc"/><stop offset="1" stop-color="#5b6779"/></linearGradient>
+<symbol id="i-gear" viewBox="0 0 48 48"><path fill="url(#g-gear)" fill-rule="evenodd" stroke="#4a5568" stroke-width=".6" d="M19.73 8.06L20.90 3.23L27.10 3.23L28.27 8.06A16.5 16.5 0 0 1 32.25 9.71L36.49 7.12L40.88 11.51L38.29 15.75A16.5 16.5 0 0 1 39.94 19.73L44.77 20.90L44.77 27.10L39.94 28.27A16.5 16.5 0 0 1 38.29 32.25L40.88 36.49L36.49 40.88L32.25 38.29A16.5 16.5 0 0 1 28.27 39.94L27.10 44.77L20.90 44.77L19.73 39.94A16.5 16.5 0 0 1 15.75 38.29L11.51 40.88L7.12 36.49L9.71 32.25A16.5 16.5 0 0 1 8.06 28.27L3.23 27.10L3.23 20.90L8.06 19.73A16.5 16.5 0 0 1 9.71 15.75L7.12 11.51L11.51 7.12L15.75 9.71A16.5 16.5 0 0 1 19.73 8.06ZM31 24a7 7 0 1 0 -14 0a7 7 0 1 0 14 0Z"/></symbol>
+<symbol id="i-search" viewBox="0 0 16 16"><circle cx="6.5" cy="6.5" r="4.5" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M10 10l4.5 4.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></symbol>
+<symbol id="i-wifi" viewBox="0 0 16 16"><path d="M1 6a10 10 0 0 1 14 0M3.5 8.8a6.5 6.5 0 0 1 9 0M6 11.5a3 3 0 0 1 4 0" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/><circle cx="8" cy="13.5" r="1" fill="#fff"/></symbol>
+<symbol id="i-vol" viewBox="0 0 16 16"><path d="M2 6h3l4-3v10l-4-3H2z" fill="#fff"/><path d="M11.5 5.5a3.5 3.5 0 0 1 0 5" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/></symbol>
 <symbol id="i-info" viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#4cc2ff"/><path d="M24 21v13M24 14v3" stroke="#fff" stroke-width="4"/></symbol>
 </defs></svg>
 
@@ -27,17 +31,16 @@
 <div id="desktop">
   <div id="wallpaper"></div>
   <div class="desktop-icon" id="doc-icon" data-app="doc" tabindex="0"><svg><use href="#i-doc"/></svg><span>Documents.txt</span></div>
-  <div class="desktop-icon" id="settings-icon" data-app="settings" tabindex="0"><svg><use href="#i-gear"/></svg><span>Settings</span></div>
 
   <div id="start-menu">
-    <div class="start-search"><input type="text" placeholder="Search for apps, settings, and documents"></div>
-    <div class="start-section-title">Pinned</div>
+    <div class="start-search"><svg><use href="#i-search"/></svg><input type="text" placeholder="Search for apps, settings, and documents"></div>
+    <div class="start-head"><b>Pinned</b><span class="pill">All apps ›</span></div>
     <div class="start-pinned">
       <div class="app-tile" data-app="doc"><svg><use href="#i-doc"/></svg>Documents</div>
       <div class="app-tile" data-app="settings"><svg><use href="#i-gear"/></svg>Settings</div>
       <div class="app-tile" data-app="about"><svg><use href="#i-info"/></svg>About</div>
     </div>
-    <div class="start-section-title">Recommended</div>
+    <div class="start-head"><b>Recommended</b><span class="pill">More ›</span></div>
     <div class="start-rec">
       <div class="rec-item" data-app="doc"><svg><use href="#i-doc"/></svg><span>Documents.txt<small>Recently added</small></span></div>
     </div>
@@ -50,10 +53,11 @@
   <div id="taskbar">
     <div id="taskbar-center">
       <button id="start-button" class="tb-btn" title="Start"><svg><use href="#i-start"/></svg></button>
+      <button id="search-button" class="tb-btn" title="Search"><svg><use href="#i-search"/></svg></button>
       <div id="taskbar-apps"></div>
     </div>
     <div class="system-tray">
-      <span id="notification-icon">🔔</span>
+      <div class="tray-icons"><svg><use href="#i-wifi"/></svg><svg><use href="#i-vol"/></svg></div>
       <div class="tray-clock"><div id="clock">12:00 PM</div><div id="date">10/14/2026</div></div>
     </div>
   </div>
