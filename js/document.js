@@ -3,32 +3,11 @@
  * Manages the secret text file and access logic
  */
 
-// Default secret message (edit this!)
-const DEFAULT_SECRET_MESSAGE = `Welcome to the Web Desktop Simulator!
+// The contents of Flag.txt
+const documentContent = 'You found the FLAG: {CTF}[I-L0VE-W1NDERS]';
 
-You've successfully completed the system updates.
-
-This is a demonstration project showing how to create
-interactive UI simulations in the browser using vanilla
-JavaScript, CSS, and HTML.
-
-Feel free to customize this message and the overall
-experience to match your needs!
-
-Created for educational purposes.
-Not affiliated with Microsoft Corporation.
-
----
-Version: 1.0.0
-Date: October 2026
-`;
-
-// Load or initialize document content
-let documentContent = localStorage.getItem('documentContent');
-if (!documentContent) {
-  documentContent = DEFAULT_SECRET_MESSAGE;
-  localStorage.setItem('documentContent', documentContent);
-}
+// Drop any text cached in the browser by earlier versions
+localStorage.removeItem('documentContent');
 
 function openDocument() {
   const updatesComplete = window.docUnlocked;
@@ -54,7 +33,7 @@ function showBlockedMessage() {
     content: `
       <div class="dialog">
         <h2 style="color: #c42b1c;">⚠️ ${busy ? 'Updates in progress' : 'System update required'}</h2>
-        <p>You cannot open this document at the moment.</p>
+        <p>You cannot open this file at the moment.</p>
         <p>${busy ? 'Windows is still installing updates. Please wait.' : 'You need to run system updates to open this file.'}</p>
       </div>`,
     width: 450,

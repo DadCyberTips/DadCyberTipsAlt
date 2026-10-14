@@ -105,7 +105,7 @@ class WindowManager{
     const n=document.createElement('div');
     n.innerHTML='<div class="menubar"><span>File</span><span>Edit</span><span>View</span></div><div class="doc-content"></div>';
     n.querySelector('.doc-content').textContent=text;
-    return this.createWindow({key:'doc',title:'Documents.txt',icon:'doc',node:n,width:700,height:500,top:90,left:140});
+    return this.createWindow({key:'doc',title:'Flag.txt',icon:'doc',node:n,width:700,height:500,top:90,left:140});
   }
 }
 
