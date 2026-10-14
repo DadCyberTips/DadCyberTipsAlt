@@ -46,3 +46,22 @@
 .settings-main .btn:hover{background:#1a78cc}
 .settings-main .progress-bar{margin:10px 0 4px;background:rgba(0,0,0,.12)}
 .settings-main .progress-fill{background:#0067c0}
+
+.ms{position:absolute;inset:0;display:flex;flex-direction:column;background:#c0c0c0;user-select:none}
+.ms-menubar{display:flex;background:#f0f0f0;border-bottom:1px solid #aaa;font-size:12px;position:relative}
+.ms-menubar span{padding:4px 10px}
+.ms-menubar span:hover,.ms-menubar span.on{background:#cde6f7}
+.ms-dd{display:none;position:absolute;top:100%;left:0;z-index:5;min-width:150px;padding:2px 0;background:#f2f2f2;border:1px solid #888;box-shadow:2px 2px 4px rgba(0,0,0,.3);font-size:12px}
+.ms-dd.open{display:block}
+.ms-dd div{padding:4px 22px}
+.ms-dd div:hover{background:#cde6f7}
+.ms-dd div.chk::before{content:'\2713';position:absolute;left:8px}
+.ms-panel{margin:6px;padding:6px;border:3px solid;border-color:#808080 #fff #fff #808080;align-self:center}
+.ms-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;padding:4px 6px;border:2px solid;border-color:#808080 #fff #fff #808080}
+.ms-led{min-width:50px;padding:0 4px;background:#000;color:#f00;font:700 24px/30px Consolas,'Courier New',monospace;text-align:center;letter-spacing:2px}
+.ms-face{width:34px;height:34px;font-size:20px;line-height:1;border:2px solid;border-color:#fff #808080 #808080 #fff;background:#c0c0c0}
+.ms-face:active{border-color:#808080 #c0c0c0 #c0c0c0 #808080}
+.ms-board{display:grid;border:3px solid;border-color:#808080 #fff #fff #808080}
+.ms-c{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font:700 15px/1 Consolas,'Courier New',monospace;background:#c0c0c0;border:3px solid;border-color:#fff #808080 #808080 #fff;touch-action:manipulation}
+.ms-c.o{border:1px solid #808080;border-color:#808080;background:#c0c0c0}
+.ms-c.x{background:#f00}

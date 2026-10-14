@@ -21,6 +21,8 @@
 <symbol id="i-vol-0" viewBox="0 0 16 16"><path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/><path d="M11 6l4 4M15 6l-4 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></symbol>
 <symbol id="i-vol-1" viewBox="0 0 16 16"><path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/><path d="M11.5 6a3 3 0 0 1 0 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></symbol>
 <symbol id="i-vol-2" viewBox="0 0 16 16"><path d="M2 6h3l4-3v10l-4-3H2z" fill="currentColor"/><path d="M11.5 6a3 3 0 0 1 0 4M13.3 4.3a5.5 5.5 0 0 1 0 7.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" fill="none"/></symbol>
+
+<symbol id="i-mine" viewBox="0 0 48 48"><rect x="5" y="5" width="38" height="38" rx="4" fill="#c0c0c0" stroke="#808080"/><circle cx="24" cy="24" r="9" fill="#111"/><path d="M24 10v6M24 32v6M10 24h6M32 24h6M14 14l4 4M30 30l4 4M34 14l-4 4M18 30l-4 4" stroke="#111" stroke-width="3" stroke-linecap="round"/><circle cx="21" cy="21" r="2.5" fill="#fff"/></symbol>
 </defs></svg>
 
 <div id="screen">
@@ -41,6 +43,7 @@
     <div class="start-pinned">
       <div class="app-tile" data-app="doc"><svg><use href="#i-doc"/></svg>Documents</div>
       <div class="app-tile" data-app="settings"><svg><use href="#i-gear"/></svg>Settings</div>
+      <div class="app-tile" data-app="mines"><svg><use href="#i-mine"/></svg>Minesweeper</div>
       <div class="app-tile" data-app="about"><svg><use href="#i-info"/></svg>About</div>
     </div>
     <div class="start-head"><b>Recommended</b><span class="pill">More ›</span></div>
@@ -112,6 +115,7 @@
 <script src="js/windowmanager.js"></script>
 <script src="js/update.js"></script>
 <script src="js/settings.js"></script>
+<script src="js/minesweeper.js"></script>
 <script src="js/document.js"></script>
 <script>
 const fit=()=>document.getElementById('screen').style.setProperty('--s',Math.min((innerWidth-24)/1024,(innerHeight-24)/768));
