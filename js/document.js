@@ -31,7 +31,7 @@ if (!documentContent) {
 }
 
 function openDocument() {
-  const updatesComplete = window.updateFinished;
+  const updatesComplete = window.docUnlocked;
   
   if (updatesComplete !== true) {
     // Block access with message
@@ -55,8 +55,8 @@ function showBlockedMessage() {
       <div class="dialog">
         <h2 style="color: #c42b1c;">⚠️ ${busy ? 'Updates in progress' : 'Action Required'}</h2>
         <p>You cannot open this document at the moment.</p>
-        <p>${busy ? 'Windows is still installing updates. Please wait until they finish.' : 'System updates must be installed before accessing files.'}</p>
-        ${busy ? '' : '<button class="btn" onclick="startUpdateSimulation()">Run Updates Now</button>'}
+        <p>${busy ? 'Windows is still installing KB13375069. Please wait.' : 'Security update KB13375069 must be installed to patch CVE-2026-31337 before you can access files.'}</p>
+        ${busy ? '' : '<button class="btn" onclick="startUpdateSimulation()">Install now</button>'}
       </div>`,
     width: 450,
     height: 320,

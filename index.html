@@ -66,12 +66,20 @@
 <div id="update-modal" class="window active" style="display:none;z-index:500;left:612px;top:150px;width:380px;min-height:0">
   <div class="title-bar"><svg class="icon"><use href="#i-gear"/></svg><span class="title">Windows Update</span></div>
   <div class="content update-body">
-    <div class="update-row">
-      <div class="spinning-loader"></div>
-      <div><h2 id="update-message">Working on updates</h2><p id="update-percent" class="update-percentage">0% complete</p></div>
+    <div id="update-pending">
+      <h2 class="up-h">⚠️ Security update required</h2>
+      <p class="up-kb">2026-10 Cumulative Security Update for Windows 11 (KB13375069)</p>
+      <p class="up-desc">This update fixes <b>CVE-2026-31337</b>, a critical Windows Kernel elevation of privilege vulnerability. Install it now to keep your device protected.</p>
+      <button id="update-install" class="btn" onclick="startUpdateSimulation()">Install now</button>
     </div>
-    <div class="progress-bar"><div id="update-progress" class="progress-fill" style="width:0%"></div></div>
-    <p class="update-note">Don't turn off your computer.</p>
+    <div id="update-running" style="display:none">
+      <div class="update-row">
+        <div class="spinning-loader"></div>
+        <div><h2 id="update-message">Installing KB13375069</h2><p id="update-percent" class="update-percentage">0% complete</p></div>
+      </div>
+      <div class="progress-bar"><div id="update-progress" class="progress-fill" style="width:0%"></div></div>
+      <p class="update-note">Don't turn off your computer.</p>
+    </div>
   </div>
 </div>
 
@@ -81,6 +89,7 @@
     <p>This is a web-based desktop simulation created for educational purposes.</p>
     <p><strong>Not affiliated with Microsoft Corporation.</strong></p>
     <p>Windows® is a registered trademark of Microsoft Corporation.</p>
+    <p>Update names, KB numbers, and CVE identifiers shown here are fictional.</p>
     <button class="btn" onclick="closeAbout()">Close</button>
   </div>
 </div>

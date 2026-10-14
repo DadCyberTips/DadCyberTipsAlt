@@ -1,12 +1,15 @@
 /**
  * Update Simulator
- * A non-blocking "Windows Update" panel whose progress wanders up and down
- * and parks at 99% after ~4 minutes. It never completes.
+ * A non-blocking "Windows Update" panel. The user starts it manually; progress
+ * wanders up and down and parks at 99% after ~4 minutes. It never completes,
+ * but the document unlocks 60 seconds after the install is started.
  */
 (function() {
   const DURATION = 240000; // ms until it sticks at 99%
+  const UNLOCK_AFTER = 60000; // ms after starting until the document can be opened
   const modal = document.getElementById('update-modal');
-  const messageEl = document.getElementById('update-message');
+  const pendingEl = document.getElementById('update-pending');
+  const runningEl = document.getElementById('update-running');
   const progressEl = document.getElementById('update-progress');
   const percentEl = document.getElementById('update-percent');
   const rnd = (a, b) => a + Math.random() * (b - a);
@@ -19,9 +22,9 @@
     percentEl.textContent = n + '% complete';
   }
 
-  // Start automatically shortly after the desktop appears
+  // Show the "update required" prompt shortly after the desktop appears
   window.checkUpdatesStatus = function() {
-    setTimeout(() => window.startUpdateSimulation(), 2500);
+    setTimeout(() => { if (!window.updateInProgress) modal.style.display = 'flex'; }, 2500);
   };
 
   window.startUpdateSimulation = async function() {
@@ -30,8 +33,14 @@
     if (typeof windowManager !== 'undefined') windowManager.closeWindow('blocked');
 
     modal.style.display = 'flex';
-    messageEl.textContent = 'Working on updates';
+    pendingEl.style.display = 'none';
+    runningEl.style.display = 'block';
     render(0);
+
+    setTimeout(() => {
+      window.docUnlocked = true;
+      if (typeof windowManager !== 'undefined') windowManager.closeWindow('blocked');
+    }, UNLOCK_AFTER);
 
     const t0 = performance.now();
     let shown = 0;
