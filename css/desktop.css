@@ -137,3 +137,14 @@ svg use{pointer-events:none}
 .cal-grid .dow{font-size:11px;color:rgba(255,255,255,.6)}
 .cal-grid .dim{color:rgba(255,255,255,.4)}
 .cal-grid .today{background:#4cc2ff;color:#000;font-weight:600}
+
+#bsod{position:absolute;inset:0;z-index:20000;display:flex;align-items:center;padding:0 90px;background:#0078d7;color:#fff;cursor:none}
+#bsod.off{background:#000}
+#bsod.off .bs-in{display:none}
+.bs-face{margin-bottom:24px;font-size:120px;line-height:1}
+.bs-msg{max-width:780px;margin-bottom:24px;font-size:24px;line-height:1.35}
+.bs-pct{margin-bottom:30px;font-size:24px}
+.bs-row{display:flex;align-items:flex-start;gap:18px}
+.bs-qr{flex:none;width:110px;height:110px;padding:5px;background:#fff}
+.bs-info{max-width:520px;font-size:13px;line-height:1.4}
+.bs-info p{margin-bottom:12px}
