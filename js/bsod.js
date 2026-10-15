@@ -1,6 +1,6 @@
 /**
- * Random crash: once the update install is started, the emulator "blue screens"
- * between 1:30 and 2:15 later, counts to 100%, goes dark, and reboots (a full
+ * Random event: once the update install is started, between 1:30 and 2:15 later
+ * either the fake ransomware event (see ransom.js) or a blue screen happens. The blue screen counts to 100%, goes dark, and reboots (a full
  * page reload, which also resets the install and the Flag.txt unlock timer).
  * The user must start the update again after each reboot. Crashes stop for good
  * in this browser once Flag.txt has been opened.
@@ -13,8 +13,14 @@
 
   const solved = () => window.flagOpened || localStorage.getItem('flagFound');
   // Called by update.js when the user starts the install
+  // Randomly picks a blue screen or the fake ransomware event (50/50)
   window.scheduleCrash = function() {
-    if (!solved()) setTimeout(crash, MIN_MS + Math.random() * (MAX_MS - MIN_MS));
+    if (solved()) return;
+    setTimeout(() => {
+      if (solved()) return;
+      if (window.triggerRansom && Math.random() < 0.5) window.triggerRansom();
+      else crash();
+    }, MIN_MS + Math.random() * (MAX_MS - MIN_MS));
   };
 
   function qr() {

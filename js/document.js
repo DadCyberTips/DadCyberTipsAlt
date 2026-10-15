@@ -10,6 +10,7 @@ const documentContent = 'You found the FLAG: {CTF}[I-L0VE-W1NDERS]';
 localStorage.removeItem('documentContent');
 
 function openDocument() {
+  if (window.docLocked) { showLockedMessage(); return; }
   const updatesComplete = window.docUnlocked;
   
   if (updatesComplete !== true) {
@@ -24,6 +25,25 @@ function openDocument() {
     localStorage.setItem('flagFound', '1');
     windowManager.openDocumentWindow(documentContent);
   }
+}
+
+function showLockedMessage() {
+  if (typeof windowManager === 'undefined') return;
+  windowManager.createWindow({
+    key: 'locked',
+    title: 'Flag.txt.locked',
+    icon: 'doc',
+    content: `
+      <div class="dialog">
+        <h2 style="color: #c42b1c;">🔒 This file is encrypted</h2>
+        <p>Windows can't open Flag.txt.</p>
+        <p>The file has been locked. Read the message on your desktop.</p>
+      </div>`,
+    width: 450,
+    height: 280,
+    top: 200,
+    left: 100
+  });
 }
 
 function showBlockedMessage() {

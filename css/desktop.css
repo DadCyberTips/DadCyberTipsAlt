@@ -148,3 +148,21 @@ svg use{pointer-events:none}
 .bs-qr{flex:none;width:110px;height:110px;padding:5px;background:#fff}
 .bs-info{max-width:520px;font-size:13px;line-height:1.4}
 .bs-info p{margin-bottom:12px}
+
+#ransom{position:absolute;left:0;top:0;right:0;bottom:48px;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#3a0000 0,#0b0000 80%);color:#ff5050;font-family:Consolas,'Courier New',monospace;animation:rsFlicker .8s steps(2) 3}
+@keyframes rsFlicker{50%{opacity:.15}}
+.rs-card{width:640px;max-width:92%;padding:22px 26px;background:rgba(0,0,0,.65);border:2px solid #ff2a2a;box-shadow:0 0 30px rgba(255,40,40,.45);font-size:14px;line-height:1.5}
+.rs-card p{margin:8px 0}
+.rs-head{display:flex;align-items:center;gap:16px;margin-bottom:8px}
+.rs-lock{font-size:54px}
+.rs-head h1{font-size:23px;letter-spacing:2px}
+.rs-wallet{margin:10px 0;padding:8px 12px;border:1px dashed #ff9090;color:#fff;font-size:15px;user-select:text}
+.rs-timer{margin:12px 0;text-align:center}
+.rs-timer small{display:block;color:#ff9090}
+.rs-clock{font-size:42px;color:#fff;letter-spacing:3px}
+.rs-btns{display:flex;gap:12px;justify-content:center;margin-top:8px}
+.rs-btns button{padding:7px 18px;background:#a00000;color:#fff;border:1px solid #ff5050;font:inherit}
+.rs-btns button:hover{background:#c00}
+.rs-btns button:active{background:#800}
+.rs-msg{min-height:20px;text-align:center;color:#fff}
+.rs-fine{margin-top:12px;font-size:10px;color:#a05050}
