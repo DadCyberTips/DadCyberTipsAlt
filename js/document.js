@@ -20,6 +20,8 @@ function openDocument() {
   
   // Open the document in a window
   if (typeof windowManager !== 'undefined') {
+    window.flagOpened = true;
+    localStorage.setItem('flagFound', '1');
     windowManager.openDocumentWindow(documentContent);
   }
 }

@@ -13,7 +13,7 @@ svg use{pointer-events:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 #desktop{position:relative;width:100%;height:100%;display:none;overflow:hidden}
-#wallpaper{position:absolute;inset:0;background:radial-gradient(55% 75% at 28% 72%,#2a7cf0 0,transparent 62%),radial-gradient(45% 55% at 76% 32%,#8fd8ff 0,transparent 66%),radial-gradient(40% 40% at 58% 88%,#0b3b94 0,transparent 70%),linear-gradient(135deg,#041a45,#0a4fc2 60%,#3a8dff)}
+#wallpaper{position:absolute;inset:0;background:#0a1020 url(../img/wallpaper.jpg) center/cover no-repeat}
 .desktop-icon{position:absolute;left:8px;top:8px;width:84px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid transparent;border-radius:4px;font-size:12px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.8);outline:0}
 #settings-icon{top:104px}
 .desktop-icon svg{width:44px;height:44px}

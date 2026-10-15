@@ -1,5 +1,7 @@
 /**
  * Random crash: each page load picks a moment between 1:30 and 4:30 after load.
+ * Crashes keep repeating (every reboot picks a new moment) until Flag.txt has
+ * been opened; after that they stop for good in this browser.
  * The emulator then "blue screens", counts to 100%, goes dark, and reboots
  * (a full page reload). Reloading also resets the update install and the
  * Flag.txt unlock timer back to zero.
@@ -10,7 +12,8 @@
                  'KERNEL_SECURITY_CHECK_FAILURE', 'PAGE_FAULT_IN_NONPAGED_AREA', 'MEMORY_MANAGEMENT'];
   const scr = document.getElementById('screen');
 
-  setTimeout(crash, MIN_MS + Math.random() * (MAX_MS - MIN_MS));
+  const solved = () => window.flagOpened || localStorage.getItem('flagFound');
+  if (!solved()) setTimeout(crash, MIN_MS + Math.random() * (MAX_MS - MIN_MS));
 
   function qr() {
     const n = 25, inFinder = (x, y) => (x < 8 || x >= n - 8) && y < 8 || x < 8 && y >= n - 8;
@@ -24,6 +27,7 @@
   }
 
   function crash() {
+    if (solved()) return;
     const code = CODES[(Math.random() * CODES.length) | 0];
     const b = document.createElement('div');
     b.id = 'bsod';
