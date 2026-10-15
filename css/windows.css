@@ -102,3 +102,17 @@
 .ex-name{display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap}
 .ex-name svg{width:18px;height:18px;flex:none}
 .ex-status{display:flex;justify-content:space-between;padding:4px 10px;border-top:1px solid #e5e5e5;color:#616161}
+
+.settings-item{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.settings-item h4{font-size:14px;font-weight:600}
+.si-r{flex:none;font-size:12px;color:#616161;white-space:nowrap}
+.si-slider{width:170px;accent-color:#0067c0}
+.tog{position:relative;display:inline-block;width:40px;height:20px;border:1px solid #777;border-radius:10px;vertical-align:middle}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;border-radius:50%;background:#555;transition:left .1s}
+.tog.on{background:#0067c0;border-color:#0067c0}
+.tog.on::after{left:23px;background:#fff}
+.swatch{display:inline-block;width:10px;height:10px;margin:0 2px;border-radius:50%;background:#0067c0;vertical-align:middle}
+.nav-user{display:flex;align-items:center;gap:10px;margin:2px 4px 12px;padding:6px 8px}
+.nav-user .avatar{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#c9d3e0;font-size:18px}
+.nav-user b{display:block;font-size:13px}
+.nav-user small{font-size:11px;color:#616161}
