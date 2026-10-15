@@ -1,13 +1,14 @@
 /**
  * Update Simulator
  * The user starts the update from Settings > Windows Update. A non-blocking
- * progress panel then appears; progress wanders up and down and parks at 99%
- * after ~4 minutes. It never completes, but the document unlocks 60 seconds
- * after the install is started.
+ * progress panel then appears; progress wanders up and down, shows exactly 23%
+ * at the moment Flag.txt unlocks, and parks at 99% after ~4 minutes.
+ * It never completes. Flag.txt unlocks 45s-1:15 after the install is started.
  */
 (function() {
-  const DURATION = 240000;    // ms until it sticks at 99%
-  const UNLOCK_AFTER = 60000; // ms after starting until the document can be opened
+  const DURATION = 240000;                     // ms until it sticks at 99%
+  const UNLOCK_MIN = 45000, UNLOCK_MAX = 75000; // unlock moment, after install starts
+  const AT_UNLOCK = 23;                         // % shown at the unlock moment
   const modal = document.getElementById('update-modal');
   const progressEl = document.getElementById('update-progress');
   const percentEl = document.getElementById('update-percent');
@@ -31,10 +32,17 @@
     modal.style.display = 'flex';
     render(0);
 
+    const unlockAt = rnd(UNLOCK_MIN, UNLOCK_MAX);
     setTimeout(() => {
-      window.docUnlocked = true;
+      render(AT_UNLOCK);
+      if (!window.docLocked) window.docUnlocked = true;
       if (typeof windowManager !== 'undefined') windowManager.closeWindow('blocked');
-    }, UNLOCK_AFTER);
+    }, unlockAt);
+
+    // Expected progress: 0 -> 23% by the unlock moment, then 23% -> 98% by DURATION
+    const target = t => t < unlockAt
+      ? AT_UNLOCK * (t / unlockAt)
+      : AT_UNLOCK + (98 - AT_UNLOCK) * Math.pow((t - unlockAt) / (DURATION - unlockAt), 0.85);
 
     const t0 = performance.now();
     let shown = 0;
@@ -42,10 +50,8 @@
       const t = performance.now() - t0;
       if (t >= DURATION) { render(99); break; }
 
-      const f = t / DURATION;
-      const target = 98 * Math.pow(f, 0.85);
-      const bias = f < 0.1 ? 2 : 0;
-      let next = Math.round(target + bias + rnd(-3.5, 4.5));
+      const bias = t < 10000 ? 2 : 0;
+      let next = Math.round(target(t) + bias + rnd(-3.5, 4.5));
       next = Math.max(0, Math.min(98, next));
       if (next === shown && Math.random() < 0.5) next = Math.max(0, Math.min(98, shown + (Math.random() < 0.5 ? -2 : 3)));
       shown = next;
