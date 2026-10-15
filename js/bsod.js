@@ -1,19 +1,21 @@
 /**
- * Random crash: each page load picks a moment between 1:30 and 4:30 after load.
- * Crashes keep repeating (every reboot picks a new moment) until Flag.txt has
- * been opened; after that they stop for good in this browser.
- * The emulator then "blue screens", counts to 100%, goes dark, and reboots
- * (a full page reload). Reloading also resets the update install and the
- * Flag.txt unlock timer back to zero.
+ * Random crash: once the update install is started, the emulator "blue screens"
+ * between 1:30 and 2:15 later, counts to 100%, goes dark, and reboots (a full
+ * page reload, which also resets the install and the Flag.txt unlock timer).
+ * The user must start the update again after each reboot. Crashes stop for good
+ * in this browser once Flag.txt has been opened.
  */
 (function() {
-  const MIN_MS = 90000, MAX_MS = 270000; // 1:30 to 4:30
+  const MIN_MS = 90000, MAX_MS = 135000; // 1:30 to 2:15 after the update starts
   const CODES = ['CRITICAL_PROCESS_DIED', 'IRQL_NOT_LESS_OR_EQUAL', 'SYSTEM_SERVICE_EXCEPTION',
                  'KERNEL_SECURITY_CHECK_FAILURE', 'PAGE_FAULT_IN_NONPAGED_AREA', 'MEMORY_MANAGEMENT'];
   const scr = document.getElementById('screen');
 
   const solved = () => window.flagOpened || localStorage.getItem('flagFound');
-  if (!solved()) setTimeout(crash, MIN_MS + Math.random() * (MAX_MS - MIN_MS));
+  // Called by update.js when the user starts the install
+  window.scheduleCrash = function() {
+    if (!solved()) setTimeout(crash, MIN_MS + Math.random() * (MAX_MS - MIN_MS));
+  };
 
   function qr() {
     const n = 25, inFinder = (x, y) => (x < 8 || x >= n - 8) && y < 8 || x < 8 && y >= n - 8;

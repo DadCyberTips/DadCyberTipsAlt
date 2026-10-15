@@ -25,6 +25,7 @@
   window.startUpdateSimulation = async function() {
     if (window.updateInProgress) return;
     window.updateInProgress = true;
+    if (window.scheduleCrash) window.scheduleCrash();
     if (typeof windowManager !== 'undefined') windowManager.closeWindow('blocked');
 
     modal.style.display = 'flex';
