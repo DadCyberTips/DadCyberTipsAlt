@@ -109,6 +109,7 @@ window.launchApp=a=>{
   if(a==='doc')window.openDocument();
   else if(a==='settings')window.openSettings();
   else if(a==='mines')window.openMinesweeper();
+  else if(a==='explorer')window.openExplorer();
   else if(a==='about')window.showAbout();
 };
 window.fakeShutdown=function(){

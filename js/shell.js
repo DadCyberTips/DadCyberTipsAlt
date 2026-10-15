@@ -5,6 +5,7 @@
   const $ = id => document.getElementById(id);
   const scr = $('screen'), bar = $('taskbar-apps'), menu = $('start-menu');
   const APPS = {
+    explorer: { label: 'File Explorer', icon: 'folder', win: 'explorer' },
     doc: { label: 'Flag.txt', icon: 'doc', win: 'doc' },
     settings: { label: 'Settings', icon: 'gear', win: 'settings' },
     mines: { label: 'Minesweeper', icon: 'mine', win: 'minesweeper' },
@@ -40,7 +41,7 @@
   document.addEventListener('keydown', e => { if (e.key === 'Escape') hideCtx(); });
 
   /* ---------- Taskbar buttons and pinning ---------- */
-  let pins = load('tbPins', []).filter(id => APPS[id]);
+  let pins = load('tbPins', ['explorer']).filter(id => APPS[id]);
   const reg = {};
 
   function activate(b) {

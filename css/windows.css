@@ -65,3 +65,40 @@
 .ms-c{width:24px;height:24px;display:flex;align-items:center;justify-content:center;font:700 15px/1 Consolas,'Courier New',monospace;background:#c0c0c0;border:3px solid;border-color:#fff #808080 #808080 #fff;touch-action:manipulation}
 .ms-c.o{border:1px solid #808080;border-color:#808080;background:#c0c0c0}
 .ms-c.x{background:#f00}
+
+.ex{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff;font-size:12px;color:#1b1b1b}
+.ex-tools{display:flex;align-items:center;gap:6px;padding:6px 8px;background:#f3f3f3;border-bottom:1px solid #e5e5e5}
+.ex-btn{width:28px;height:28px;border-radius:4px;font-size:15px}
+.ex-btn:hover:not(:disabled){background:rgba(0,0,0,.07)}
+.ex-btn:disabled{opacity:.3}
+.ex-addr,.ex-search{height:28px;padding:0 10px;border:1px solid #d0d0d0;border-radius:4px;background:#fff;font:inherit;outline:0;user-select:text;-webkit-user-select:text}
+.ex-addr{flex:1}
+.ex-addr:focus,.ex-search:focus{border-color:#0067c0}
+.ex-addr.bad{border-color:#c42b1c;background:#fff4f3}
+.ex-search{width:170px}
+.ex-cmd{position:relative;display:flex;padding:4px 8px;border-bottom:1px solid #e5e5e5}
+.ex-view{padding:5px 10px;border-radius:4px}
+.ex-view:hover{background:rgba(0,0,0,.06)}
+.ex-dd{display:none;position:absolute;top:100%;left:8px;z-index:5;min-width:170px;padding:4px;background:#fff;border:1px solid #ccc;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.ex-dd.open{display:block}
+.ex-dd div{position:relative;padding:6px 12px 6px 28px;border-radius:4px}
+.ex-dd div:hover{background:#eaf3fc}
+.ex-dd .on::before{content:'\2713';position:absolute;left:9px}
+.ex-body{flex:1;display:flex;min-height:0}
+.ex-tree{flex:none;width:210px;padding:6px 4px;overflow:auto;border-right:1px solid #e5e5e5}
+.tr{display:flex;align-items:center;gap:4px;padding:3px 4px;border-radius:4px;white-space:nowrap}
+.tr:hover{background:rgba(0,0,0,.05)}
+.tr.sel{background:#cce4f7}
+.tr .chev{width:14px;flex:none;text-align:center;font-size:10px;color:#666}
+.tr svg{width:16px;height:16px;flex:none}
+.tr .ico{font-size:13px}
+.ex-main{flex:1;overflow:auto;outline:0}
+.ex-head,.ex-row{display:grid;grid-template-columns:1fr 130px 130px 70px;align-items:center;padding:0 10px}
+.ex-head{position:sticky;top:0;height:26px;background:#fff;border-bottom:1px solid #eee;color:#616161}
+.ex-row{height:26px;margin:0 4px;border-radius:4px}
+.ex-row:hover{background:#eef5fc}
+.ex-row.sel{background:#cce4f7}
+.ex-row.hid{opacity:.55}
+.ex-name{display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap}
+.ex-name svg{width:18px;height:18px;flex:none}
+.ex-status{display:flex;justify-content:space-between;padding:4px 10px;border-top:1px solid #e5e5e5;color:#616161}
