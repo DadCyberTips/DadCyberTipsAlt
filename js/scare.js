@@ -104,8 +104,9 @@
 
     await wait(rnd(...CONFIG.freezeMs));
     if (over) return;
-    if (h) music = playMusic(h, rnd(...CONFIG.musicMs));
-    await wait(h ? rnd(...CONFIG.musicMs) : 0);
+    const musicMs = rnd(...CONFIG.musicMs);
+    if (h) music = playMusic(h, musicMs);
+    await wait(h ? musicMs : 0);
     if (over) return;
     if (music) music.stop();                       // cut to silence...
     await wait(rnd(...CONFIG.silenceMs));
