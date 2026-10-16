@@ -7,6 +7,7 @@
  * - hidden items only show after View > Hidden items is ticked (they can still
  *   be reached by typing their full path in the address bar).
  * - Files with no `content` say they can't be previewed.
+ * - scare: true on a file runs the jump scare when it is opened (see scare.js).
  * - Flag.txt on the Desktop uses open: 'doc', so it respects the update/lock logic.
  * - Replace the {CTF}[REPLACE-ME-n] placeholders below with your own keys.
  */
@@ -22,7 +23,7 @@ window.FS = {
           'todo.txt': { type: 'file', modified: '2026-10-02 07:55', content: '- update the PC (it keeps nagging me)\n- call mom\n- back up photos\n' }
         }},
         'Downloads': { type: 'dir', children: {
-          'setup.exe': { type: 'file', modified: '2026-09-15 11:03' }
+          'setup.exe': { type: 'file', scare: true, modified: '2026-09-15 11:03' }
         }},
         'Pictures': { type: 'dir', children: {} },
         'Music': { type: 'dir', children: {} },

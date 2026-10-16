@@ -7,6 +7,7 @@
  *   EmuAudio.track(el)      // make an existing media element follow the volume
  *   EmuAudio.connect(el)    // optional: route through Web Audio (needed on iOS, same-origin files only)
  *   EmuAudio.ding()         // the little chime played when the slider is released
+ *   EmuAudio.ctxOut()       // { ctx, out } to synthesize your own sounds through the master volume
  *   EmuAudio.vol / .muted   // current state (0-100 / boolean)
  */
 (function() {
@@ -55,6 +56,7 @@
       a.play().catch(() => {});
       return a;
     },
+    ctxOut() { const c = audioCtx(); return c ? { ctx: c, out: master } : null; }, // for custom synthesized sounds
     ding() {
       const c = audioCtx();
       if (!c) return;

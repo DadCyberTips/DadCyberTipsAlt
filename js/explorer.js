@@ -27,6 +27,7 @@
   const key = p => lc(p.join('\\'));
 
   function openFile(path, name, node) {
+    if (node.scare) { if (window.runJumpScare) window.runJumpScare(); return; }
     if (node.open === 'doc') { window.openDocument(); return; }
     const el = document.createElement('div');
     el.innerHTML = '<div class="menubar"><span>File</span><span>Edit</span><span>View</span></div><div class="doc-content"></div>';
