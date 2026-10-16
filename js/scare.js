@@ -17,7 +17,7 @@
     musicMs: [6500, 9500],     // length of the build-up
     silenceMs: [500, 900],     // black + silence right before the scare
     images: ['img/scare.jpg', 'img/scare.png', 'img/scare.webp'],
-    focus: ['50%', '40%']      // where the face is in your image (x, y); the zoom grows from here
+    focus: ['50%', '45%']      // where the face is in your image (x, y); the zoom grows from here
   };
   const scr = document.getElementById('screen');
   const rnd = (a, b) => a + Math.random() * (b - a);
@@ -61,7 +61,7 @@
     const t0 = ctx.currentTime, dur = ms / 1000, nodes = [], timers = [];
     const add = o => { nodes.push(o); return o; };
     const bus = ctx.createGain();
-    bus.gain.setValueAtTime(0, t0); bus.gain.linearRampToValueAtTime(0.55, t0 + 1.5); bus.connect(out);
+    bus.gain.setValueAtTime(0, t0); bus.gain.linearRampToValueAtTime(0.32, t0 + 1.5); bus.connect(out);
 
     // Echoing music box that speeds up, wobbles out of tune, and picks up a dissonant shadow voice
     const dly = ctx.createDelay(1), fb = ctx.createGain(), wet = ctx.createGain();
@@ -130,10 +130,12 @@
     const t = ctx.currentTime + 0.02, nodes = [];
     const bus = ctx.createGain(), shaper = ctx.createWaveShaper(), comp = ctx.createDynamicsCompressor();
     const curve = new Float32Array(256);
-    for (let i = 0; i < 256; i++) curve[i] = Math.tanh((i / 128 - 1) * 3);
+    for (let i = 0; i < 256; i++) curve[i] = Math.tanh((i / 128 - 1) * 4);
     shaper.curve = curve; shaper.oversample = '2x';
-    comp.threshold.value = -18; comp.ratio.value = 12;
-    bus.gain.value = 0.8; bus.connect(shaper); shaper.connect(comp); comp.connect(out);
+    comp.threshold.value = -10; comp.ratio.value = 20;
+    const lim = ctx.createDynamicsCompressor();             // brick-wall limiter: as loud as it gets, never beyond full scale
+    lim.threshold.value = -1; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001;
+    bus.gain.value = 1.0; bus.connect(shaper); shaper.connect(comp); comp.connect(lim); lim.connect(out);
 
     const hit = (at, size) => {
       const g = ctx.createGain();
@@ -145,14 +147,17 @@
         if (f1) o.frequency.exponentialRampToValueAtTime(f1, at + len);
         o.connect(g); o.start(at); o.stop(at + len + 0.05);
       };
+      const ck = ctx.createBufferSource(), cg = ctx.createGain(); nodes.push(ck);      // instant full-band transient
+      ck.buffer = noiseBuf(ctx, 0.05); cg.gain.setValueAtTime(1.5, at); cg.gain.exponentialRampToValueAtTime(0.001, at + 0.05);
+      ck.connect(cg); cg.connect(bus); ck.start(at);
       osc('sine', 80, 28, 1.2);                                               // chest-rattling boom
       [220, 233.08, 311.13, 440, 466.16].forEach(f => osc('sawtooth', f, 0, 1.1)); // dissonant cluster
       osc('sawtooth', 3200, 350, 0.7); osc('sawtooth', 2600, 300, 0.8);      // screech
       const nz = ctx.createBufferSource(); nodes.push(nz);
       nz.buffer = noiseBuf(ctx, 0.8); nz.connect(g); nz.start(at);
     };
-    hit(t, 0.9);
-    if (gapSec) hit(t + gapSec, 1.0);
+    hit(t, 1.0);
+    if (gapSec) hit(t + gapSec, 1.15);
     return { stop() { bus.gain.setValueAtTime(0, ctx.currentTime); nodes.forEach(o => { try { o.stop(); } catch (e) {} }); } };
   }
 
