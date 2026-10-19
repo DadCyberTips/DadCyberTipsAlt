@@ -38,6 +38,31 @@ function shoppingList(flag = DECOY_FLAG) {
   return ['SNACK RUN', '', ...names.map((n, i) => `[ ] ${n.padEnd(24)} {ctf}(${enc[i]})`)].join('\n') + '\n';
 }
 
+/**
+ * todo.txt hides a message as an acrostic: the FIRST CHARACTER of each item, read top to
+ * bottom (blank lines separate the words), spells  5N4CK 4774CK H4CK 7H3 PL4N37 1337.
+ * Items keep their meaning, but each is worded to start with the right character.
+ */
+function todoList() {
+  const words = [
+    [['5 minutes with the firewall off ("just for five minutes")'], ['Never reuse the same password on everything'],
+     ['4 weeks of photos to back up to the external drive'], ['Call mom back', 1], ['Keyboard needs charging before the con', 1]],
+    [['4 PM: pick up the dry cleaning'], ['7 AM: figure out why the PC freezes sometimes'], ['7 plants to water (again)'],
+     ["4 years of junk: clear out Temp, it's getting huge"], ['Change password from password123 (finally)'],
+     ["Kinda curious what's in the old backup drive"]],
+    [["Hunt down the thing I saved in a folder I can't see"], ['4 days left to install that Windows update before it nags again'],
+     ['Clean out AppData (hidden folder, ugh)'], ["Keep feeding the rooster (he's been staring at the monitor)"]],
+    [['7 PM: ask Dave why the printer says "Not Responding"'], ['Have a look at the hosts file, something looked odd'],
+     ['3 AM logins: figure out who keeps logging in at that hour']],
+    [["Please don't open setup.exe from Downloads again"], ['Library book is 2 weeks overdue, return it'],
+     ['4 weeks until the car registration expires, renew it'], ['Nag Dad to stop clicking on ads'],
+     ['3 virus scans skipped: update antivirus (it expired in 2019)'], ['7 nights running: unplug the router before bed']],
+    [['1 more night of whispering from the speakers, ignore it'], ['3 times now: why is the webcam light on?'],
+     ['3 messages from the SnackSpaceCon Syndicate: do NOT reply'], ['7 minutes to delete .hidden_note.txt before anyone finds it']]
+  ];
+  return 'TO DO\n\n' + words.map(g => g.map(([t, done]) => `[${done ? 'x' : ' '}] ${t}`).join('\n')).join('\n\n') + '\n';
+}
+
 window.FS = {
   'C:': { type: 'dir', label: 'Local Disk', children: {
     'Users': { type: 'dir', children: {
@@ -47,7 +72,7 @@ window.FS = {
         }},
         'Documents': { type: 'dir', children: {
           'shopping_list.txt': { type: 'file', modified: '2026-09-28 18:40', content: shoppingList() },
-          'todo.txt': { type: 'file', modified: '2026-10-02 07:55', content: '- update the PC (it keeps nagging me)\n- call mom\n- back up photos\n' }
+          'todo.txt': { type: 'file', modified: '2026-10-02 07:55', content: todoList() }
         }},
         'Downloads': { type: 'dir', children: {
           'setup.exe': { type: 'file', scare: true, modified: '2026-09-15 11:03' }
