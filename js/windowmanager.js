@@ -27,7 +27,7 @@ class WindowManager{
     });
 
     const btn=Taskbar.attach(id,{title:o.title||'',icon});
-    this.wins.set(id,{id,el,btn,min:false});
+    this.wins.set(id,{id,el,btn,min:false,front:!!o.front});
 
     el.addEventListener('pointerdown',()=>this.focus(id));
     el.querySelector('.minimize').onclick=()=>this.minimize(id);
@@ -39,6 +39,7 @@ class WindowManager{
 
     scr.appendChild(el);
     this.focus(id);
+    setTimeout(()=>{const w=this.wins.get(id);if(w&&!w.min)this.focus(id);},0); // wins over the click that opened it
     return el;
   }
 
@@ -49,7 +50,7 @@ class WindowManager{
     this.order=this.order.filter(x=>x!==id);this.order.push(id);
     this.order.forEach((x,i)=>{
       const w=this.wins.get(x),a=x===id;
-      w.el.style.zIndex=100+i;
+      w.el.style.zIndex=(w.front&&a?600:100)+i;   // 'front' windows jump above everything (even the update panel) while selected
       w.el.classList.toggle('active',a);
       w.btn.classList.toggle('active',a);
     });
@@ -65,6 +66,7 @@ class WindowManager{
   restore(id){
     const w=this.wins.get(id);if(!w)return;
     w.min=false;w.el.classList.remove('min');this.focus(id);
+    setTimeout(()=>{const x=this.wins.get(id);if(x&&!x.min)this.focus(id);},0);
   }
 
   toggleMaximize(el){el.classList.toggle('max');}
@@ -96,7 +98,7 @@ class WindowManager{
     const n=document.createElement('div');
     n.innerHTML='<div class="menubar"><span>File</span><span>Edit</span><span>View</span></div><div class="doc-content"></div>';
     n.querySelector('.doc-content').textContent=text;
-    return this.createWindow({key:'doc',title:'Flag.txt',icon:'doc',node:n,width:700,height:500,top:90,left:140});
+    return this.createWindow({key:'doc',title:'Flag.txt',icon:'doc',node:n,width:700,height:500,top:90,left:140,front:true});
   }
 }
 

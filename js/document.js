@@ -31,6 +31,7 @@ function showLockedMessage() {
   if (typeof windowManager === 'undefined') return;
   windowManager.createWindow({
     key: 'locked',
+    front: true,
     title: 'Flag.txt.locked',
     icon: 'doc',
     content: `
@@ -51,6 +52,7 @@ function showBlockedMessage() {
   const busy = window.updateInProgress;
   windowManager.createWindow({
     key: 'blocked',
+    front: true,
     title: 'Access Blocked',
     content: `
       <div class="dialog">

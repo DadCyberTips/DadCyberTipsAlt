@@ -32,7 +32,7 @@
     const el = document.createElement('div');
     el.innerHTML = '<div class="menubar"><span>File</span><span>Edit</span><span>View</span></div><div class="doc-content"></div>';
     el.querySelector('.doc-content').textContent = node.content ?? "This file can't be previewed in this simulation.";
-    windowManager.createWindow({ key: 'view:' + lc(path), title: name + ' - Notepad', icon: 'doc', node: el, width: 560, height: 380 });
+    windowManager.createWindow({ key: 'view:' + lc(path), title: name + ' - Notepad', icon: 'doc', node: el, width: 560, height: 380, front: true });
   }
 
   window.openExplorer = function() {
@@ -115,6 +115,9 @@
           const t = performance.now();
           if (lastN === n && t - lastT < 450) { lastN = null; openEntry(n, v); return; }
           lastN = n; lastT = t; selName = n;
+          // selecting a file that is already open brings its window to the front
+          const wid = v.open === 'doc' ? 'doc' : 'view:' + lc(toStr([...cur, n]));
+          if (v.type === 'file' && windowManager.wins.has(wid)) setTimeout(() => windowManager.restore(wid), 0);
           main.querySelectorAll('.ex-row').forEach(x => x.classList.toggle('sel', x === r));
           status();
         });
