@@ -5,7 +5,7 @@
 (function() {
   const TYPES = { txt: 'Text Document', log: 'Text Document', ini: 'Configuration settings', cfg: 'Configuration settings',
     tmp: 'TMP File', dat: 'DAT File', png: 'PNG File', jpg: 'JPG File', dll: 'Application extension', exe: 'Application',
-    sys: 'System file', key: 'KEY File', bak: 'BAK File', md: 'Markdown File', json: 'JSON File', csv: 'CSV File' };
+    sys: 'System file', key: 'KEY File', bak: 'BAK File', md: 'Markdown File', json: 'JSON File', csv: 'CSV File', xml: 'XML Document', db: 'Data Base File', ttf: 'TrueType font file', sam: 'SAM File', pf: 'PF File' };
   const lc = s => s.toLowerCase();
   const root = () => ({ type: 'dir', children: window.FS });
   const find = (dir, name) => { const k = Object.keys(dir.children || {}).find(x => lc(x) === lc(name)); return k ? [k, dir.children[k]] : null; };
@@ -19,16 +19,30 @@
     }
     return { node: n, parts: real };
   }
+  // The first protected folder along a path (the user may not enter it), or null
+  function blockedAt(parts) {
+    let n = root();
+    const real = [];
+    for (const p of parts) {
+      const c = n.type === 'dir' && find(n, p);
+      if (!c) return null;
+      real.push(c[0]); n = c[1];
+      if (n.protected) return real;
+    }
+    return null;
+  }
   const toStr = p => !p.length ? 'This PC' : p.length === 1 ? p[0] + '\\' : p.join('\\');
   const parse = s => { s = s.trim().replace(/\//g, '\\').replace(/\\+$/, ''); return !s || lc(s) === 'this pc' ? [] : s.split('\\').filter(Boolean); };
   const label = (n, v) => v.label ? `${v.label} (${n})` : n;
   const typeOf = (n, v) => v.type === 'dir' ? 'File folder' : TYPES[lc(n.split('.').pop())] || (n.includes('.') ? n.split('.').pop().toUpperCase() + ' File' : 'File');
-  const sizeOf = v => Math.max(1, Math.ceil((v.size ?? new Blob([v.content || '']).size) / 1024)) + ' KB';
+  const sizeOf = v => v.kb != null ? v.kb.toLocaleString() + ' KB' : Math.max(1, Math.ceil((v.size ?? new Blob([v.content || '']).size) / 1024)) + ' KB';
   const key = p => lc(p.join('\\'));
 
   function openFile(path, name, node) {
+    if (node.protected) { window.showAccessDenied(path, 'file'); return; }
     if (node.scare) { if (window.runJumpScare) window.runJumpScare(); return; }
     if (node.open === 'doc') { window.openDocument(); return; }
+    if (node.open) { window.launchApp(node.open); return; }
     const el = document.createElement('div');
     el.innerHTML = '<div class="menubar"><span>File</span><span>Edit</span><span>View</span></div><div class="doc-content"></div>';
     el.querySelector('.doc-content').textContent = node.content ?? "This file can't be previewed in this simulation.";
@@ -57,6 +71,8 @@
     const expanded = new Set();
 
     function go(parts, push = true) {
+      const b = blockedAt(parts);
+      if (b) { window.showAccessDenied(toStr(b), 'folder'); return false; }
       const r = resolve(parts);
       if (!r || r.node.type !== 'dir') return false;
       cur = r.parts;
@@ -141,7 +157,9 @@
     addr.addEventListener('input', () => addr.classList.remove('bad'));
     addr.addEventListener('keydown', e => {
       if (e.key !== 'Enter') return;
-      const r = resolve(parse(addr.value));
+      const parts = parse(addr.value), blk = blockedAt(parts);
+      if (blk) { window.showAccessDenied(toStr(blk), 'folder'); return; }
+      const r = resolve(parts);
       if (!r) { addr.classList.add('bad'); return; }
       if (r.node.type === 'dir') go(r.parts);
       else { openFile(toStr(r.parts), r.parts[r.parts.length - 1], r.node); addr.value = toStr(cur); }
@@ -164,5 +182,36 @@
     }, true);
 
     go(['C:', 'Users', 'Guest']);
+  };
+
+  // Used by Start menu search and Notepad
+  window.fsSearch = (q, max = 6) => {
+    q = lc(q);
+    const out = [];
+    (function walk(n, p) {
+      for (const [k, v] of Object.entries(n.children || {})) {
+        if (out.length >= max) return;
+        if (v.hidden || v.protected) continue;
+        const np = [...p, k];
+        if (v.type === 'file' && lc(k).includes(q)) out.push({ name: k, path: toStr(np) });
+        else if (v.type === 'dir') walk(v, np);
+      }
+    })(root(), []);
+    return out;
+  };
+  window.fsOpen = path => {
+    const parts = parse(path), b = blockedAt(parts);
+    if (b) { window.showAccessDenied(toStr(b), 'folder'); return; }
+    const r = resolve(parts);
+    if (r && r.node.type === 'file') openFile(toStr(r.parts), r.parts[r.parts.length - 1], r.node);
+  };
+  window.fsRead = path => {
+    const parts = parse(path), b = blockedAt(parts);
+    if (b) { window.showAccessDenied(toStr(b), 'folder'); return null; }
+    const r = resolve(parts);
+    if (!r || r.node.type !== 'file') return { error: `Windows cannot find '${path}'. Make sure you typed the name correctly, and then try again.` };
+    if (r.node.protected) { window.showAccessDenied(toStr(r.parts), 'file'); return null; }
+    if (r.node.open === 'doc') { window.openDocument(); return null; }
+    return { content: r.node.content ?? "(This file can't be read as text.)" };
   };
 })();

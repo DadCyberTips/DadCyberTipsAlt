@@ -112,6 +112,10 @@ window.launchApp=a=>{
   else if(a==='settings')window.openSettings();
   else if(a==='mines')window.openMinesweeper();
   else if(a==='explorer')window.openExplorer();
+  else if(a==='calc')window.openCalculator();
+  else if(a==='notepad')window.openNotepad();
+  else if(a==='taskmgr')window.openTaskManager();
+  else if(a.startsWith('stub:'))window.openStub(a.slice(5));
   else if(a==='about')window.showAbout();
 };
 window.fakeShutdown=function(){

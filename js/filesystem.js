@@ -63,56 +63,100 @@ function todoList() {
   return 'TO DO\n\n' + words.map(g => g.map(([t, done]) => `[${done ? 'x' : ' '}] ${t}`).join('\n')).join('\n\n') + '\n';
 }
 
-window.FS = {
-  'C:': { type: 'dir', label: 'Local Disk', children: {
-    'Users': { type: 'dir', children: {
-      'Guest': { type: 'dir', children: {
-        'Desktop': { type: 'dir', children: {
-          'Flag.txt': { type: 'file', open: 'doc', modified: '2026-10-10 09:12' }
-        }},
-        'Documents': { type: 'dir', children: {
-          'shopping_list.txt': { type: 'file', modified: '2026-09-28 18:40', content: shoppingList() },
-          'todo.txt': { type: 'file', modified: '2026-10-02 07:55', content: todoList() }
-        }},
-        'Downloads': { type: 'dir', children: {
-          'setup.exe': { type: 'file', scare: true, modified: '2026-09-15 11:03' }
-        }},
-        'Pictures': { type: 'dir', children: {} },
-        'Music': { type: 'dir', children: {} },
-        'Videos': { type: 'dir', children: {} },
-        'AppData': { type: 'dir', hidden: true, children: {
-          'Local': { type: 'dir', children: {
-            'Temp': { type: 'dir', children: {
-              '~cache_0042.tmp': { type: 'file', modified: '2026-10-01 03:14', content: 'session=0x4F2A\nKEY: {CTF}[REPLACE-ME-1]\n' }
-            }}
-          }},
-          'Roaming': { type: 'dir', children: {} }
-        }}
-      }},
-      'Public': { type: 'dir', children: {} }
-    }},
-    'Windows': { type: 'dir', children: {
-      'System32': { type: 'dir', children: {
-        'drivers': { type: 'dir', children: {
-          'etc': { type: 'dir', children: {
-            'hosts': { type: 'file', modified: '2026-08-12 10:00', content: '127.0.0.1   localhost\n# {CTF}[REPLACE-ME-2]\n' }
-          }}
-        }}
-      }}
-    }},
-    'Program Files': { type: 'dir', children: {} },
-    'ProgramData': { type: 'dir', hidden: true, children: {
-      'SnackSync': { type: 'dir', children: {
-        'config.ini': { type: 'file', modified: '2026-09-20 16:30', content: '[sync]\nserver=snack.local\napikey={CTF}[REPLACE-ME-3]\n' }
-      }}
-    }},
-    'Temp': { type: 'dir', children: {
-      '.hidden_note.txt': { type: 'file', hidden: true, modified: '2026-10-05 23:59', content: '{CTF}[REPLACE-ME-4]\n' }
-    }}
-  }},
-  'D:': { type: 'dir', label: 'Backup', children: {
-    'Old': { type: 'dir', children: {
-      'notes_2025.txt': { type: 'file', modified: '2025-12-31 22:10', content: 'nothing to see here...\n{CTF}[REPLACE-ME-5]\n' }
-    }}
-  }}
-};
+/**
+ * The big fake Windows tree. Builders keep it short:
+ *   D(children, opts)        a folder          F(opts)               a file
+ *   files('a.dll b.exe')     many files        dirs('One|Two words') many empty folders
+ * Options: hidden (only with View > Hidden items), protected (opening it shows the
+ * "you don't have permission" pop-up), label (drive name), content (text), open, kb, modified.
+ * Add your own files anywhere below; the placeholder keys are {CTF}[REPLACE-ME-n].
+ */
+window.FS = (() => {
+  const _h = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const _date = n => `2026-0${1 + _h(n) % 9}-${String(1 + _h(n + 'd') % 28).padStart(2, '0')} ${String(8 + _h(n + 't') % 12).padStart(2, '0')}:${String(_h(n + 'm') % 60).padStart(2, '0')}`;
+  const D = (children = {}, o = {}) => ({ type: 'dir', children, ...o });
+  const F = (o = {}) => ({ type: 'file', ...o });
+  const files = (names, o = {}) => Object.fromEntries(names.split(' ').map(n => [n, F({ kb: 4 + _h(n) % 2400, modified: _date(n), ...o })]));
+  const dirs = (names, o = {}) => Object.fromEntries(names.split('|').map(n => [n, D({}, { modified: _date(n), ...o })]));
+  const LOCKED = { protected: true };
+  const HIDDEN_LOCKED = { hidden: true, protected: true };
+
+  const SYS32 = files('advapi32.dll bcrypt.dll calc.exe cmd.exe combase.dll comctl32.dll comdlg32.dll cscript.exe d3d11.dll dwm.exe dxgi.dll gdi32.dll imm32.dll kernel32.dll kernelbase.dll lsass.exe msvcrt.dll net.exe netsh.exe notepad.exe ntdll.dll ntoskrnl.exe ole32.dll powershell.exe reg.exe rpcrt4.dll services.exe shell32.dll shutdown.exe smss.exe svchost.exe taskkill.exe tasklist.exe taskmgr.exe user32.dll wininit.exe winlogon.exe wuauclt.exe wuaueng.dll ws2_32.dll xcopy.exe');
+  SYS32['notepad.exe'].open = 'notepad'; SYS32['taskmgr.exe'].open = 'taskmgr'; SYS32['calc.exe'].open = 'calc';
+  Object.assign(SYS32, dirs('en-US|spool|wbem|Tasks|LogFiles|winevt|WindowsPowerShell|catroot'), {
+    config: D({}, { ...LOCKED, modified: _date('config') }),
+    catroot2: D({}, LOCKED),
+    DriverStore: D({}, LOCKED),
+    drivers: D({
+      etc: D({ hosts: F({ kb: 1, modified: '2026-08-12 10:00', content: '127.0.0.1   localhost\n# {CTF}[REPLACE-ME-2]\n' }), ...files('lmhosts.sam networks protocol services') }),
+      ...files('disk.sys ndis.sys tcpip.sys volmgr.sys')
+    })
+  });
+
+  const WINDOWS = D({
+    ...dirs('addins|appcompat|apppatch|assembly|Boot|Branding|Cursors|debug|diagnostics|DigitalLocker|en-US|Globalization|Help|IME|INF|InputMethod|L2Schemas|Logs|Media|Microsoft.NET|Offline Web Pages|Panther|Performance|PLA|PolicyDefinitions|Prefetch|PrintDialog|Provisioning|Registration|Resources|schemas|security|ServiceProfiles|servicing|Setup|ShellComponents|ShellExperiences|SKB|Speech|System|SystemApps|SystemResources|SysWOW64|TAPI|Tasks|tracing|Vss|WaaS|Web|WinSxS'),
+    CSC: D({}, LOCKED),
+    Fonts: D(files('arial.ttf calibri.ttf consola.ttf segoeui.ttf tahoma.ttf times.ttf verdana.ttf')),
+    Temp: D(files('MpCmdRun.log wct4A21.tmp')),
+    System32: D(SYS32),
+    ...files('bfsvc.exe explorer.exe HelpPane.exe hh.exe regedit.exe splwow64.exe system.ini win.ini WindowsUpdate.log write.exe')
+  });
+  WINDOWS.children['explorer.exe'].open = 'explorer';
+
+  const GUEST = D({
+    Desktop: D({ 'Flag.txt': F({ open: 'doc', kb: 1, modified: '2026-10-10 09:12' }) }),
+    Documents: D({
+      'shopping_list.txt': F({ kb: 1, modified: '2026-09-28 18:40', content: shoppingList() }),
+      'todo.txt': F({ kb: 1, modified: '2026-10-02 07:55', content: todoList() })
+    }),
+    Downloads: D({ 'setup.exe': F({ scare: true, kb: 48210, modified: '2026-09-15 11:03' }) }),
+    ...dirs('Pictures|Music|Videos|Contacts|Favorites|Links|Searches|3D Objects|OneDrive|Saved Games'),
+    AppData: D({
+      Local: D({
+        Temp: D({ '~cache_0042.tmp': F({ kb: 1, modified: '2026-10-01 03:14', content: 'session=0x4F2A\nKEY: {CTF}[REPLACE-ME-1]\n' }) }),
+        ...dirs('Microsoft|Packages|Programs|ConnectedDevices|D3DSCache')
+      }),
+      LocalLow: D(),
+      Roaming: D(dirs('Microsoft'))
+    }, { hidden: true }),
+    'ntuser.ini': F({ kb: 1, hidden: true, modified: '2026-09-01 12:00' }),
+    'NTUSER.DAT': F({ kb: 1536, ...HIDDEN_LOCKED })
+  });
+
+  const C = D({
+    Users: D({
+      Guest: GUEST,
+      Public: D(dirs('Desktop|Documents|Downloads|Music|Pictures|Videos')),
+      Administrator: D({}, LOCKED),
+      Default: D(dirs('AppData|Desktop|Documents|Downloads|Music|Pictures|Videos'), { hidden: true })
+    }),
+    Windows: WINDOWS,
+    'Program Files': D({
+      ...dirs('Common Files|Internet Explorer|Microsoft Update Health Tools|Uninstall Information|Windows Defender|Windows Mail|Windows Media Player|Windows NT|Windows Photo Viewer|WindowsPowerShell'),
+      WindowsApps: D({}, HIDDEN_LOCKED)
+    }),
+    'Program Files (x86)': D(dirs('Common Files|Internet Explorer|Microsoft|Windows Defender|Windows Mail|Windows Media Player|Windows NT|WindowsPowerShell')),
+    ProgramData: D({
+      SnackSync: D({ 'config.ini': F({ kb: 1, modified: '2026-09-20 16:30', content: '[sync]\nserver=snack.local\napikey={CTF}[REPLACE-ME-3]\n' }) }),
+      Microsoft: D({ ...dirs('Windows|Windows Defender|Network|User Account Pictures'), Crypto: D({}, LOCKED) }),
+      'Package Cache': D()
+    }, { hidden: true }),
+    PerfLogs: D(),
+    Temp: D({ '.hidden_note.txt': F({ hidden: true, kb: 1, modified: '2026-10-05 23:59', content: '{CTF}[REPLACE-ME-4]\n' }) }),
+    '$Recycle.Bin': D({}, HIDDEN_LOCKED),
+    'System Volume Information': D({}, HIDDEN_LOCKED),
+    Recovery: D({}, HIDDEN_LOCKED),
+    'Documents and Settings': D({}, HIDDEN_LOCKED),
+    'pagefile.sys': F({ kb: 4194304, ...HIDDEN_LOCKED }),
+    'hiberfil.sys': F({ kb: 6553600, ...HIDDEN_LOCKED }),
+    'swapfile.sys': F({ kb: 16384, ...HIDDEN_LOCKED }),
+    'DumpStack.log.tmp': F({ kb: 8, ...HIDDEN_LOCKED })
+  }, { label: 'Local Disk' });
+
+  const E = D({
+    Old: D({ 'notes_2025.txt': F({ kb: 1, modified: '2025-12-31 22:10', content: 'nothing to see here...\n{CTF}[REPLACE-ME-5]\n' }) }),
+    'System Volume Information': D({}, HIDDEN_LOCKED)
+  }, { label: 'Backup' });
+
+  return { 'C:': C, 'D:': E };
+})();

@@ -6,6 +6,9 @@
   const scr = $('screen'), bar = $('taskbar-apps'), menu = $('start-menu');
   const APPS = {
     explorer: { label: 'File Explorer', icon: 'folder', win: 'explorer' },
+    calc: { label: 'Calculator', icon: 'calc', win: 'calc' },
+    notepad: { label: 'Notepad', icon: 'notepad', win: 'notepad' },
+    taskmgr: { label: 'Task Manager', icon: 'taskmgr', win: 'taskmgr' },
     doc: { label: 'Flag.txt', icon: 'doc', win: 'doc' },
     settings: { label: 'Settings', icon: 'gear', win: 'settings' },
     mines: { label: 'Minesweeper', icon: 'mine', win: 'minesweeper' },
@@ -109,13 +112,87 @@
     if (items.length) showCtx(e, items);
   }
 
+  /* ---------- Start menu: All apps, search, Recommended files ---------- */
+  const ALL = [
+    ['About', 'info', 'about'], ['Calculator', 'calc', 'calc'], ['Calendar', '📅', 'stub:Calendar'], ['Camera', '📷', 'stub:Camera'], ['Clock', '⏰', 'stub:Clock'],
+    ['File Explorer', 'folder', 'explorer'], ['Mail', '✉️', 'stub:Mail'], ['Microsoft Edge', '🌐', 'stub:Microsoft Edge'], ['Microsoft Store', '🛍️', 'stub:Microsoft Store'],
+    ['Minesweeper', 'mine', 'mines'], ['Movies & TV', '🎬', 'stub:Movies & TV'], ['Notepad', 'notepad', 'notepad'], ['Paint', '🎨', 'stub:Paint'],
+    ['Phone Link', '📱', 'stub:Phone Link'], ['Photos', '🖼️', 'stub:Photos'], ['Settings', 'gear', 'settings'], ['Task Manager', 'taskmgr', 'taskmgr'],
+    ['Windows Security', '🛡️', 'stub:Windows Security']
+  ];
+  const iconHtml = ic => /^[a-z]+$/.test(ic) ? `<svg><use href="#i-${ic}"/></svg>` : `<span class="emo">${ic}</span>`;
+  const sa = menu.querySelector('.start-all');
+  let lastLetter = '';
+  ALL.slice().sort((a, b) => a[0].localeCompare(b[0])).forEach(([label, ic, app]) => {
+    const L = label[0].toUpperCase();
+    if (L !== lastLetter) { const h = document.createElement('div'); h.className = 'sa-letter'; h.textContent = L; sa.appendChild(h); lastLetter = L; }
+    const r = document.createElement('div');
+    r.className = 'sa-row'; r.dataset.app = app;
+    r.innerHTML = iconHtml(ic) + '<span></span>';
+    r.lastChild.textContent = label;
+    sa.appendChild(r);
+  });
+
+  const pillAll = menu.querySelector('.pill-all'), titlePin = menu.querySelector('.hd-pin b');
+  const input = menu.querySelector('.start-search input'), results = menu.querySelector('.start-results');
+  const setMode = m => {
+    menu.classList.toggle('mode-all', m === 'all');
+    menu.classList.toggle('mode-search', m === 'search');
+    titlePin.textContent = m === 'all' ? 'All apps' : 'Pinned';
+    pillAll.textContent = m === 'all' ? '‹ Back' : 'All apps ›';
+  };
+  pillAll.addEventListener('pointerdown', () => { input.value = ''; setMode(menu.classList.contains('mode-all') ? '' : 'all'); });
+  menu.querySelector('.pill-more').addEventListener('pointerdown', () => { closeStartMenu(); launchApp('explorer'); });
+  new MutationObserver(() => { if (!menu.classList.contains('open')) { setMode(''); input.value = ''; } }).observe(menu, { attributes: true, attributeFilter: ['class'] });
+
+  input.addEventListener('input', () => {
+    const q = input.value.trim().toLowerCase();
+    if (!q) { setMode(''); return; }
+    setMode('search');
+    results.textContent = '';
+    const sec = t => { const h = document.createElement('div'); h.className = 'sa-letter'; h.textContent = t; results.appendChild(h); };
+    const row = (ic, label, attrs, sub) => {
+      const r = document.createElement('div');
+      r.className = 'sa-row'; Object.assign(r.dataset, attrs);
+      r.innerHTML = iconHtml(ic) + '<span></span>' + (sub ? '<small></small>' : '');
+      r.children[1].textContent = label;
+      if (sub) r.lastChild.textContent = sub;
+      results.appendChild(r);
+    };
+    const apps = ALL.filter(a => a[0].toLowerCase().includes(q)).slice(0, 5);
+    const fl = window.fsSearch ? fsSearch(q, 6) : [];
+    if (apps.length) { sec('Apps'); apps.forEach(([l, ic, app]) => row(ic, l, { app })); }
+    if (fl.length) { sec('Documents and files'); fl.forEach(f => row('doc', f.name, { file: f.path }, f.path)); }
+    if (!apps.length && !fl.length) sec('No results found');
+  });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') { const f = results.querySelector('.sa-row'); if (f) f.click(); } });
+  menu.addEventListener('click', e => {
+    const f = e.target.closest('[data-file]');
+    if (f) { closeStartMenu(); fsOpen(f.dataset.file); }
+  });
+
+  /* ---------- Widgets panel ---------- */
+  const wd = $('widgets'), wbtn = $('widgets-btn');
+  const wOpen = o => {
+    wd.classList.toggle('open', o); wbtn.classList.toggle('active', o);
+    if (!o) return;
+    const now = new Date(), h = now.getHours();
+    wd.querySelector('.wd-greet').textContent = (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', Guest';
+    wd.querySelector('.wd-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    wd.querySelectorAll('.fd').forEach((el, i) => { const d = new Date(now); d.setDate(now.getDate() + i + 1); el.textContent = d.toLocaleDateString('en-US', { weekday: 'short' }); });
+  };
+  wbtn.addEventListener('pointerdown', () => { closeStartMenu(); wOpen(!wd.classList.contains('open')); });
+  wbtn.addEventListener('click', e => { if (e.detail === 0) wOpen(!wd.classList.contains('open')); });
+  document.addEventListener('pointerdown', e => { if (!wd.contains(e.target) && !wbtn.contains(e.target)) wOpen(false); }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') wOpen(false); });
+
   // Right-click on Start tiles, recommended items and desktop icons
   document.querySelectorAll('[data-app]').forEach(el => el.addEventListener('contextmenu', e => {
     e.preventDefault(); e.stopPropagation();
     const id = el.dataset.app;
     showCtx(e, [
       { label: 'Open', act: () => { closeStartMenu(); launchApp(id); } },
-      pins.includes(id) ? { label: 'Unpin from taskbar', act: () => unpin(id) } : { label: 'Pin to taskbar', act: () => pin(id) }
+      ...(APPS[id] ? [pins.includes(id) ? { label: 'Unpin from taskbar', act: () => unpin(id) } : { label: 'Pin to taskbar', act: () => pin(id) }] : [])
     ]);
   }));
   $('wallpaper').addEventListener('contextmenu', e => {
