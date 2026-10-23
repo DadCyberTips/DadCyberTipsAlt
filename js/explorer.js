@@ -43,6 +43,7 @@
     if (node.scare) { if (window.runJumpScare) window.runJumpScare(); return; }
     if (node.open === 'doc') { window.openDocument(); return; }
     if (node.open) { window.launchApp(node.open); return; }
+    if (/\.exe$/i.test(name) && !node.scare) { window.showUAC(name, 'app', path); return; }   // programs that are not built out
     const el = document.createElement('div');
     el.innerHTML = '<div class="menubar"><span>File</span><span>Edit</span><span>View</span></div><div class="doc-content"></div>';
     el.querySelector('.doc-content').textContent = node.content ?? "This file can't be previewed in this simulation.";
@@ -72,9 +73,11 @@
 
     function go(parts, push = true) {
       const b = blockedAt(parts);
-      if (b) { window.showAccessDenied(toStr(b), 'folder'); return false; }
+      if (b) { addr.value = toStr(cur); window.showAccessDenied(toStr(b), 'folder'); return false; }
       const r = resolve(parts);
       if (!r || r.node.type !== 'dir') return false;
+      // folders with nothing built out in them ask for admin permission
+      if (!Object.keys(r.node.children || {}).length) { addr.value = toStr(cur); window.showUAC(r.parts[r.parts.length - 1], 'folder', toStr(r.parts)); return false; }
       cur = r.parts;
       if (push) { hist = hist.slice(0, hi + 1); hist.push(cur); hi = hist.length - 1; }
       for (let i = 1; i <= cur.length; i++) expanded.add(key(cur.slice(0, i)));

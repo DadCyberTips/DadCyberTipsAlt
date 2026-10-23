@@ -159,3 +159,24 @@
 .tm-row.h{position:sticky;top:0;background:#fff;border-bottom:1px solid #e5e5e5;color:#616161;font-weight:600}
 .tm-row.g{background:#f7fbff;color:#0067c0;font-weight:600}
 .tm-row.sel{background:#cce4f7}
+
+#uac{position:absolute;inset:0;z-index:12000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6)}
+.uac-box{width:470px;max-width:94%;background:#fff;color:#1b1b1b;font-size:13px;box-shadow:0 10px 50px rgba(0,0,0,.6)}
+.uac-bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0b5cad;color:#fff}
+.uac-bar.warn{background:#c77700}
+.uac-bar span{font-size:20px}
+.uac-body{padding:18px 20px 8px}
+.uac-body h2{margin-bottom:14px;font-size:17px;font-weight:600;color:#003a75}
+.uac-app{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.uac-ico{font-size:34px}
+.uac-app small{display:block;max-width:340px;overflow:hidden;color:#555;text-overflow:ellipsis;white-space:nowrap}
+.uac-msg{margin-bottom:10px;color:#333}
+.uac-cred input{display:block;width:100%;margin-bottom:8px;padding:7px 9px;border:1px solid #888;font:13px 'Segoe UI',system-ui,sans-serif;user-select:text;-webkit-user-select:text}
+.uac-cred input:focus{outline:2px solid #0067c0;outline-offset:-1px}
+.uac-err{min-height:16px;color:#c42b1c}
+.uac-btns{display:flex;gap:8px;margin-top:6px;padding:12px 20px 18px;background:#f0f0f0}
+.uac-btns button{flex:1;padding:8px;background:#e6e6e6;border:1px solid #adadad}
+.uac-btns button:hover{background:#d9ebf9;border-color:#0067c0}
+.uac-btns button:active{background:#c4e0f5}
+.uac-box.shake{animation:uacShake .3s}
+@keyframes uacShake{25%{transform:translateX(-8px)}50%{transform:translateX(8px)}75%{transform:translateX(-5px)}}

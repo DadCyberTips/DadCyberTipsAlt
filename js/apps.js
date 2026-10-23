@@ -26,18 +26,47 @@
     if (proc) { h.textContent = 'Unable to end process'; tx.textContent = 'Access is denied.'; pth.style.display = 'none'; btn('OK', close); return; }
     h.textContent = `You don't currently have permission to ${file ? 'open this file' : 'access this folder'}.`;
     tx.textContent = `Click Continue to try to get access to this ${what}.`;
-    btn('Continue', () => {
-      h.textContent = 'Access is denied';
-      tx.textContent = `You've been denied permission to ${file ? 'open this file' : 'access this folder'}. Contact your administrator to request access.`;
-      bt.textContent = ''; btn('OK', close);
-    });
+    btn('Continue', () => { close(); window.showUAC(path.split('\\').pop() || path, file ? 'file' : 'folder', path); });
     btn('Cancel', close);
   };
 
-  /* ---------- Placeholder apps ---------- */
-  window.openStub = function(name) {
-    windowManager.createWindow({ key: 'stub:' + name.replace(/\W+/g, '-'), title: name, icon: 'info', width: 420, height: 230, top: 180, left: 240, front: true,
-      content: `<div class="dialog"><h2>${esc(name)}</h2><p>This app isn't available in the simulation.</p></div>` });
+  /* ---------- Apps that are not built out ---------- */
+  window.openStub = function(name) { window.showUAC(name, 'app'); };
+
+
+  /* ---------- UAC prompt: always ends in "no permission" ---------- */
+  window.showUAC = function(name, kind, path) {
+    const old = document.getElementById('uac'); if (old) old.remove();
+    const scr = document.getElementById('screen');
+    const app = kind === 'app', what = app ? 'run this app' : kind === 'file' ? 'open this file' : 'open this folder';
+    const ov = document.createElement('div');
+    ov.id = 'uac';
+    ov.innerHTML = `<div class="uac-box">
+      <div class="uac-bar${app ? ' warn' : ''}"><span>🛡️</span><b>User Account Control</b></div>
+      <div class="uac-body">
+        <h2>You don't have permission to ${what}</h2>
+        <div class="uac-app"><span class="uac-ico">${app ? '❓' : kind === 'file' ? '📄' : '📁'}</span><div><b class="uac-name"></b><small class="uac-pub"></small></div></div>
+        <p class="uac-msg">Guest User doesn't have permission to do this. To continue, type an administrator user name and password.</p>
+        <div class="uac-cred"><input class="uac-un" placeholder="User name" spellcheck="false" autocomplete="off"><input class="uac-pw" type="password" placeholder="Password" autocomplete="off"><p class="uac-err"></p></div>
+      </div>
+      <div class="uac-btns"><button class="uac-yes">Yes</button><button class="uac-no">No</button></div></div>`;
+    ov.querySelector('.uac-name').textContent = name;
+    ov.querySelector('.uac-pub').textContent = app ? 'Publisher: Unknown' : (path || 'Windows Explorer') + '  ·  Verified publisher: Microsoft Windows';
+    scr.appendChild(ov);
+    const box = ov.querySelector('.uac-box'), un = ov.querySelector('.uac-un'), pw = ov.querySelector('.uac-pw'), err = ov.querySelector('.uac-err');
+    const close = () => { ov.remove(); document.removeEventListener('keydown', onKey, true); };
+    const yes = () => {
+      err.textContent = !un.value.trim() || !pw.value ? 'Enter an administrator user name and password.' : 'The user name or password is incorrect.';
+      pw.value = ''; box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
+    };
+    const onKey = e => {
+      if (e.key === 'Escape') { e.stopPropagation(); close(); }
+      else if (e.key === 'Enter') { e.preventDefault(); yes(); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    ov.querySelector('.uac-yes').addEventListener('click', yes);
+    ov.querySelector('.uac-no').addEventListener('click', close);
+    un.focus();
   };
 
   /* ---------- Calculator ---------- */
@@ -84,7 +113,7 @@
     g.addEventListener('click', e => { const b = e.target.closest('.cb'); if (b && e.detail === 0) press(b.dataset.k); });
     const map = { '*': '×', '/': '÷', '-': '−', Enter: '=', Backspace: '⌫', Escape: 'C', Delete: 'CE' };
     document.addEventListener('keydown', e => {
-      if (!n.isConnected) return;
+      if (!n.isConnected || (e.target.closest && e.target.closest('input,textarea'))) return;
       const wm = windowManager;
       if (wm.order[wm.order.length - 1] !== 'calc' || wm.wins.get('calc').min) return;
       const k = map[e.key] ?? e.key;
