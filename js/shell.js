@@ -9,6 +9,9 @@
     calc: { label: 'Calculator', icon: 'calc', win: 'calc' },
     notepad: { label: 'Notepad', icon: 'notepad', win: 'notepad' },
     taskmgr: { label: 'Task Manager', icon: 'taskmgr', win: 'taskmgr' },
+    clock: { label: 'Clock', icon: 'clock', win: 'clock' },
+    cmd: { label: 'Command Prompt', icon: 'cmd', win: 'cmd' },
+    ps: { label: 'Windows PowerShell', icon: 'ps', win: 'ps' },
     doc: { label: 'Flag.txt', icon: 'doc', win: 'doc' },
     settings: { label: 'Settings', icon: 'gear', win: 'settings' },
     mines: { label: 'Minesweeper', icon: 'mine', win: 'minesweeper' },
@@ -114,11 +117,11 @@
 
   /* ---------- Start menu: All apps, search, Recommended files ---------- */
   const ALL = [
-    ['About', 'info', 'about'], ['Calculator', 'calc', 'calc'], ['Calendar', '📅', 'stub:Calendar'], ['Camera', '📷', 'stub:Camera'], ['Clock', '⏰', 'stub:Clock'],
+    ['About', 'info', 'about'], ['Calculator', 'calc', 'calc'], ['Calendar', '📅', 'stub:Calendar'], ['Camera', '📷', 'stub:Camera'], ['Clock', 'clock', 'clock'], ['Command Prompt', 'cmd', 'cmd'],
     ['File Explorer', 'folder', 'explorer'], ['Mail', '✉️', 'stub:Mail'], ['Microsoft Edge', '🌐', 'stub:Microsoft Edge'], ['Microsoft Store', '🛍️', 'stub:Microsoft Store'],
     ['Minesweeper', 'mine', 'mines'], ['Movies & TV', '🎬', 'stub:Movies & TV'], ['Notepad', 'notepad', 'notepad'], ['Paint', '🎨', 'stub:Paint'],
     ['Phone Link', '📱', 'stub:Phone Link'], ['Photos', '🖼️', 'stub:Photos'], ['Settings', 'gear', 'settings'], ['Task Manager', 'taskmgr', 'taskmgr'],
-    ['Windows Security', '🛡️', 'stub:Windows Security']
+    ['Windows PowerShell', 'ps', 'ps'], ['Windows Security', '🛡️', 'stub:Windows Security']
   ];
   const iconHtml = ic => /^[a-z]+$/.test(ic) ? `<svg><use href="#i-${ic}"/></svg>` : `<span class="emo">${ic}</span>`;
   const sa = menu.querySelector('.start-all');
@@ -251,10 +254,14 @@
     }
     cg.innerHTML = h;
   }
+  let calTimer = null;
+  const calTime = () => { cal.querySelector('.cal-time').textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' }); };
   const calOpen = o => {
     cal.classList.toggle('open', o); clock.classList.toggle('active', o);
-    if (o) { view = new Date(); view.setDate(1); drawCal(); }
+    clearInterval(calTimer);
+    if (o) { view = new Date(); view.setDate(1); drawCal(); calTime(); calTimer = setInterval(calTime, 1000); }
   };
+  cal.querySelector('.cal-clock').addEventListener('click', () => { calOpen(false); launchApp('clock'); });
   clock.addEventListener('pointerdown', () => { closeStartMenu(); calOpen(!cal.classList.contains('open')); });
   cal.querySelector('.cal-prev').addEventListener('click', () => { view.setMonth(view.getMonth() - 1); drawCal(); });
   cal.querySelector('.cal-next').addEventListener('click', () => { view.setMonth(view.getMonth() + 1); drawCal(); });

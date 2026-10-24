@@ -225,3 +225,10 @@ svg use{pointer-events:none}
 .wd-st{display:flex;justify-content:space-between;padding:4px 0}
 .wd-st .up{color:#6ccb5f}
 .wd-st .dn{color:#ff6b6b}
+
+.cal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;padding-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08)}
+#calendar .cal-date{margin:0;padding:0;border:0;font-size:13px;font-weight:400;color:rgba(255,255,255,.7)}
+.cal-time{font-size:34px;font-weight:300;line-height:1.1}
+.cal-clock{padding:5px 10px;background:rgba(255,255,255,.08);border-radius:4px;font-size:12px}
+.cal-clock:hover{background:rgba(255,255,255,.14)}
+.cal-clock:active{background:rgba(255,255,255,.05)}

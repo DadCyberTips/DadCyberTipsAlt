@@ -10,7 +10,7 @@
   const rnd = (a, b) => a + Math.random() * (b - a);
 
   /* ---------- "You don't have permission" dialogs ---------- */
-  window.showAccessDenied = function(path, kind) {
+  window.showAccessDenied = function(path, kind, headline) {
     windowManager.closeWindow('denied');
     const proc = kind === 'process', file = kind === 'file', what = file ? 'file' : 'folder';
     const n = document.createElement('div');
@@ -23,7 +23,7 @@
     const close = () => windowManager.closeWindow('denied');
     const btn = (t, f) => { const b = document.createElement('button'); b.textContent = t; b.addEventListener('click', f); bt.appendChild(b); };
     pth.textContent = path;
-    if (proc) { h.textContent = 'Unable to end process'; tx.textContent = 'Access is denied.'; pth.style.display = 'none'; btn('OK', close); return; }
+    if (proc) { h.textContent = headline || 'Unable to end process'; tx.textContent = 'Access is denied.'; pth.style.display = 'none'; btn('OK', close); return; }
     h.textContent = `You don't currently have permission to ${file ? 'open this file' : 'access this folder'}.`;
     tx.textContent = `Click Continue to try to get access to this ${what}.`;
     btn('Continue', () => { close(); window.showUAC(path.split('\\').pop() || path, file ? 'file' : 'folder', path); });
@@ -140,8 +140,8 @@
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
     setTimeout(() => inp.select(), 0);
   }
-  window.openNotepad = function() {
-    if (already('notepad')) return;
+  window.openNotepad = function(init) {
+    if (already('notepad')) { if (init) windowManager.wins.get('notepad').el.__np(init.text, init.name); return; }
     const n = document.createElement('div');
     n.className = 'np';
     n.innerHTML = `<div class="np-menu"><span class="np-file">File</span><span>Edit</span><span>View</span>
@@ -158,6 +158,8 @@
     ta.addEventListener('input', () => { localStorage.setItem('notepad.text', ta.value); upd(); });
     ['keyup', 'click'].forEach(ev => ta.addEventListener(ev, upd));
     upd();
+    win.__np = (text, name) => { ta.value = text; localStorage.setItem('notepad.text', text); title(name); upd(); };
+    if (init) win.__np(init.text, init.name);
     fm.addEventListener('pointerdown', e => { e.stopPropagation(); dd.classList.toggle('open'); });
     dd.addEventListener('click', e => {
       const a = e.target.dataset.a; if (!a) return;
@@ -170,7 +172,7 @@
     document.addEventListener('pointerdown', e => { if (n.isConnected && !dd.contains(e.target) && e.target !== fm) dd.classList.remove('open'); }, true);
   };
 
-  /* ---------- Task Manager ---------- */
+  /* ---------- Task Manager (opens on Services; has a Processes tab too) ---------- */
   const BG = [['System', 0.6, 0.1, 0.2, 0], ['Registry', 0, 5, 0, 0], ['Service Host: Local System', 0.4, 42, 0.1, 0], ['Windows Explorer', 0.7, 96, 0.1, 0],
     ['Antimalware Service Executable', 1.2, 118, 0.3, 0], ['Desktop Window Manager', 1.1, 64, 0, 0], ['Windows Audio Device Graph Isolation', 0.2, 8, 0, 0],
     ['Runtime Broker', 0, 12, 0, 0], ['Search Indexer', 0.1, 26, 0.1, 0], ['Service Host: Network Service', 0.1, 9, 0, 0.1],
@@ -178,12 +180,14 @@
   window.openTaskManager = function() {
     if (already('taskmgr')) return;
     const n = document.createElement('div');
-    n.className = 'tm';
+    n.className = 'tm'; n.dataset.tab = 'svc';
     n.innerHTML = `<div class="tm-sum"><div>CPU<b class="t-cpu">0%</b></div><div>Memory<b class="t-mem">0%</b></div><div>Disk<b class="t-disk">0%</b></div><div>Network<b class="t-net">0 Mbps</b></div></div>
-      <div class="tm-tools"><button class="tm-end" disabled>End task</button></div><div class="tm-body"></div>`;
-    windowManager.createWindow({ key: 'taskmgr', title: 'Task Manager', icon: 'taskmgr', node: n, width: 680, height: 440, left: 110, top: 70 });
-    const $ = q => n.querySelector(q), body = $('.tm-body'), end = $('.tm-end');
-    let sel = null, iv = null;
+      <div class="tm-tabs"><span data-t="proc">Processes</span><span data-t="svc" class="on">Services</span></div>
+      <div class="tm-tools"><span class="tm-pb"><button class="tm-end" disabled>End task</button></span><span class="tm-sb"><button data-s="Start" disabled>Start</button><button data-s="Stop" disabled>Stop</button><button data-s="Restart" disabled>Restart</button></span></div>
+      <div class="tm-body"></div><div class="tm-svc"></div>`;
+    windowManager.createWindow({ key: 'taskmgr', title: 'Task Manager', icon: 'taskmgr', node: n, width: 700, height: 460, left: 110, top: 60 });
+    const $ = q => n.querySelector(q), body = $('.tm-body'), svcBody = $('.tm-svc'), end = $('.tm-end'), sbtn = n.querySelectorAll('.tm-sb button');
+    let tab = 'svc', sel = null, selSvc = null, iv = null;
     function tick() {
       if (!n.isConnected) { clearInterval(iv); return; }
       const apps = [...windowManager.wins].map(([id, w]) => ({ id, name: w.el.querySelector('.title').textContent,
@@ -195,18 +199,36 @@
       $('.t-mem').textContent = Math.round(36 + tot('mem') / 120) + '%';
       $('.t-disk').textContent = Math.min(99, Math.round(tot('disk'))) + '%';
       $('.t-net').textContent = tot('net').toFixed(1) + ' Mbps';
-      const heat = v => `style="background:rgba(255,196,0,${Math.min(0.55, v / 40).toFixed(2)})"`;
-      const row = r => `<div class="tm-row${r.id === sel ? ' sel' : ''}" data-id="${esc(r.id)}"><span>${esc(r.name)}</span><span ${heat(r.cpu)}>${r.cpu.toFixed(1)}%</span><span ${heat(r.mem / 8)}>${r.mem.toFixed(1)} MB</span><span>${r.disk.toFixed(1)} MB/s</span><span>${r.net.toFixed(1)} Mbps</span></div>`;
-      body.innerHTML = '<div class="tm-row h"><span>Name</span><span>CPU</span><span>Memory</span><span>Disk</span><span>Network</span></div>' +
-        `<div class="tm-row g"><span>Apps (${apps.length})</span></div>` + apps.map(row).join('') +
-        `<div class="tm-row g"><span>Background processes (${bg.length})</span></div>` + bg.map(row).join('');
-      end.disabled = !sel;
+      if (tab === 'proc') {
+        const heat = v => `style="background:rgba(255,196,0,${Math.min(0.55, v / 40).toFixed(2)})"`;
+        const row = r => `<div class="tm-row${r.id === sel ? ' sel' : ''}" data-id="${esc(r.id)}"><span>${esc(r.name)}</span><span ${heat(r.cpu)}>${r.cpu.toFixed(1)}%</span><span ${heat(r.mem / 8)}>${r.mem.toFixed(1)} MB</span><span>${r.disk.toFixed(1)} MB/s</span><span>${r.net.toFixed(1)} Mbps</span></div>`;
+        body.innerHTML = '<div class="tm-row h"><span>Name</span><span>CPU</span><span>Memory</span><span>Disk</span><span>Network</span></div>' +
+          `<div class="tm-row g"><span>Apps (${apps.length})</span></div>` + apps.map(row).join('') +
+          `<div class="tm-row g"><span>Background processes (${bg.length})</span></div>` + bg.map(row).join('');
+        end.disabled = !sel;
+      } else {
+        const sv = SYS.services().sort((a, b) => b.running - a.running || a.name.localeCompare(b.name));
+        svcBody.innerHTML = '<div class="tm-srow h"><span>Name</span><span>PID</span><span>Description</span><span>Status</span><span>Startup</span></div>' +
+          sv.map(s => `<div class="tm-srow${s.name === selSvc ? ' sel' : ''}" data-s="${esc(s.name)}"><span>${esc(s.name)}</span><span>${s.running && s.pid ? s.pid : ''}</span><span>${esc(s.display)}</span><span class="${s.running ? 'run' : ''}">${s.running ? 'Running' : 'Stopped'}</span><span>${s.start.replace('_START', '').toLowerCase()}</span></div>`).join('');
+        sbtn.forEach(b => { b.disabled = !selSvc; });
+      }
     }
+    n.querySelectorAll('.tm-tabs span').forEach(t => t.addEventListener('pointerdown', () => {
+      tab = t.dataset.t; n.dataset.tab = tab;
+      n.querySelectorAll('.tm-tabs span').forEach(x => x.classList.toggle('on', x === t));
+      tick();
+    }));
     body.addEventListener('pointerdown', e => {
       const r = e.target.closest('.tm-row[data-id]'); if (!r) return;
       sel = r.dataset.id; end.disabled = false;
       body.querySelectorAll('.tm-row').forEach(x => x.classList.toggle('sel', x === r));
     });
+    svcBody.addEventListener('pointerdown', e => {
+      const r = e.target.closest('.tm-srow[data-s]'); if (!r) return;
+      selSvc = r.dataset.s; sbtn.forEach(b => { b.disabled = false; });
+      svcBody.querySelectorAll('.tm-srow').forEach(x => x.classList.toggle('sel', x === r));
+    });
+    sbtn.forEach(b => b.addEventListener('click', () => { if (selSvc) window.showAccessDenied(selSvc, 'process', `Unable to ${b.dataset.s.toLowerCase()} service`); }));
     end.addEventListener('click', () => {
       if (!sel) return;
       if (sel.startsWith('bg:')) window.showAccessDenied(sel.slice(3), 'process'); else windowManager.closeWindow(sel);
@@ -214,5 +236,65 @@
     });
     iv = setInterval(tick, 1500);
     tick();
+  };
+
+  /* ---------- Clock: world clock, timer, stopwatch ---------- */
+  window.openClock = function() {
+    if (already('clock')) return;
+    const n = document.createElement('div');
+    n.className = 'clk';
+    n.innerHTML = '<div class="clk-tabs"><span data-t="w" class="on">World clock</span><span data-t="t">Timer</span><span data-t="s">Stopwatch</span></div><div class="clk-pane"></div>';
+    windowManager.createWindow({ key: 'clock', title: 'Clock', icon: 'clock', node: n, width: 480, height: 430, left: 260, top: 60 });
+    const pane = n.querySelector('.clk-pane');
+    const CITIES = [['Local time', undefined], ['New York', 'America/New_York'], ['Los Angeles', 'America/Los_Angeles'], ['London', 'Europe/London'], ['Tokyo', 'Asia/Tokyo'], ['Sydney', 'Australia/Sydney']];
+    const T = { run: false, left: 5 * 60000, end: 0, done: false }, W = { run: false, start: 0, el: 0, laps: [] };
+    let tab = 'w', iv = null;
+    const p2 = v => String(v).padStart(2, '0');
+    const fmt = (ms, cs) => { const t = Math.max(0, Math.floor(ms / 10)); return p2(Math.floor(t / 6000)) + ':' + p2(Math.floor(t / 100) % 60) + (cs ? '.' + p2(t % 100) : ''); };
+    const btn = (id, t, cls) => `<button class="clk-b ${cls || ''}" data-a="${id}">${t}</button>`;
+    function draw() {
+      if (tab === 'w') {
+        pane.innerHTML = CITIES.map(([c, tz], i) => `<div class="clk-city"><div><b>${esc(c)}</b><small class="cd${i}"></small></div><span class="ct${i}"></span></div>`).join('');
+      } else if (tab === 't') {
+        pane.innerHTML = `<div class="clk-big t-d"></div><div class="clk-set"><input type="number" min="0" max="99" value="${p2(Math.floor(T.left / 60000))}" class="t-m"> min <input type="number" min="0" max="59" value="${p2(Math.floor(T.left / 1000) % 60)}" class="t-s"> sec</div>
+          <div class="clk-btns">${btn('tstart', T.run ? 'Pause' : 'Start', 'pri')}${btn('treset', 'Reset')}</div>`;
+      } else {
+        pane.innerHTML = `<div class="clk-big s-d"></div><div class="clk-btns">${btn('sstart', W.run ? 'Stop' : 'Start', 'pri')}${btn('slap', 'Lap')}${btn('sreset', 'Reset')}</div><div class="clk-laps">${W.laps.map((l, i) => `<div><span>Lap ${W.laps.length - i}</span><span>${fmt(l, true)}</span></div>`).join('')}</div>`;
+      }
+      tick();
+    }
+    function tick() {
+      if (!n.isConnected) { clearInterval(iv); return; }
+      const now = new Date();
+      if (tab === 'w') CITIES.forEach(([c, tz], i) => {
+        const o = tz ? { timeZone: tz } : {};
+        const t = n.querySelector('.ct' + i), d = n.querySelector('.cd' + i);
+        if (t) { t.textContent = now.toLocaleTimeString('en-US', { ...o, hour: 'numeric', minute: '2-digit', second: '2-digit' }); d.textContent = now.toLocaleDateString('en-US', { ...o, weekday: 'long', month: 'short', day: 'numeric' }); }
+      });
+      if (T.run) { T.left = T.end - Date.now(); if (T.left <= 0) { T.left = 0; T.run = false; T.done = true; [0, 450, 900].forEach(ms => setTimeout(() => window.EmuAudio && EmuAudio.ding(), ms)); if (tab === 't') draw(); } }
+      if (W.run) W.el = Date.now() - W.start;
+      const td = n.querySelector('.t-d'); if (td) td.textContent = T.done && !T.run ? "Time's up!" : fmt(T.left, false);
+      const sd = n.querySelector('.s-d'); if (sd) sd.textContent = fmt(W.el, true);
+    }
+    pane.addEventListener('click', e => {
+      const a = e.target.dataset.a; if (!a) return;
+      if (a === 'tstart') {
+        if (T.run) { T.run = false; } else {
+          if (T.done || !T.left) T.left = 0;
+          const m = +n.querySelector('.t-m').value || 0, s = +n.querySelector('.t-s').value || 0;
+          if (!T.run && (T.done || T.left === 0 || true)) T.left = (m * 60 + s) * 1000 || T.left;
+          if (T.left > 0) { T.done = false; T.end = Date.now() + T.left; T.run = true; }
+        }
+      } else if (a === 'treset') { T.run = false; T.done = false; T.left = 5 * 60000; }
+      else if (a === 'sstart') { if (W.run) W.run = false; else { W.start = Date.now() - W.el; W.run = true; } }
+      else if (a === 'slap') { if (W.run) W.laps.unshift(W.el); }
+      else if (a === 'sreset') { W.run = false; W.el = 0; W.laps = []; }
+      draw();
+    });
+    n.querySelectorAll('.clk-tabs span').forEach(t => t.addEventListener('pointerdown', () => {
+      tab = t.dataset.t; n.querySelectorAll('.clk-tabs span').forEach(x => x.classList.toggle('on', x === t)); draw();
+    }));
+    iv = setInterval(tick, 100);
+    draw();
   };
 })();

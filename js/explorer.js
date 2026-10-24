@@ -184,7 +184,14 @@
       if (node.isConnected && !dd.contains(e.target) && !e.target.classList.contains('ex-view')) dd.classList.remove('open');
     }, true);
 
+    win.__go = parts => go(parts);
     go(['C:', 'Users', 'Guest']);
+  };
+  // open Explorer (or reuse it) and jump to a path, e.g. from the command line
+  window.explorerGo = path => {
+    window.openExplorer();
+    const el = document.getElementById('explorer');
+    if (el && el.__go) el.__go(parse(path));
   };
 
   // Used by Start menu search and Notepad

@@ -9,6 +9,14 @@ const documentContent = 'You found the FLAG: {CTF}[I-L0VE-W1NDERS]';
 // Drop any text cached in the browser by earlier versions
 localStorage.removeItem('documentContent');
 
+// Command-line reads of Flag.txt follow the same rules as opening it from the desktop
+window.readFlagForTerminal = function() {
+  if (window.docUnlocked !== true || window.docLocked) return null;
+  window.flagOpened = true;
+  localStorage.setItem('flagFound', '1');
+  return documentContent;
+};
+
 function openDocument() {
   if (window.docLocked) { showLockedMessage(); return; }
   const updatesComplete = window.docUnlocked;

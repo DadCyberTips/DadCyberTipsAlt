@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Web Desktop Simulator</title>
-<link rel="stylesheet" href="css/desktop.css?v=1019c">
+<link rel="stylesheet" href="css/desktop.css?v=1019d">
 <link rel="prefetch" href="img/scare.jpg">
-<link rel="stylesheet" href="css/windows.css?v=1019c">
+<link rel="stylesheet" href="css/windows.css?v=1019d">
 <meta name="robots" content="noindex, nofollow, noarchive, noai, noimageai">
 <meta name="googlebot" content="noindex, nofollow, noarchive">
 </head>
@@ -33,6 +33,10 @@
 <symbol id="i-calc" viewBox="0 0 48 48"><rect x="8" y="4" width="32" height="40" rx="4" fill="#3b4a5a"/><rect x="12" y="9" width="24" height="9" rx="2" fill="#bfe6ff"/><g fill="#e8edf3"><rect x="12" y="22" width="6" height="5" rx="1"/><rect x="21" y="22" width="6" height="5" rx="1"/><rect x="30" y="22" width="6" height="5" rx="1"/><rect x="12" y="30" width="6" height="5" rx="1"/><rect x="21" y="30" width="6" height="5" rx="1"/><rect x="30" y="30" width="6" height="12" rx="1" fill="#4cc2ff"/><rect x="12" y="38" width="15" height="4" rx="1"/></g></symbol>
 <symbol id="i-notepad" viewBox="0 0 48 48"><rect x="10" y="6" width="28" height="36" rx="3" fill="#fff" stroke="#9aa5b4"/><rect x="10" y="6" width="28" height="7" rx="3" fill="#4a8cf7"/><path d="M15 20h18M15 26h18M15 32h12" stroke="#9aa5b4" stroke-width="2"/></symbol>
 <symbol id="i-taskmgr" viewBox="0 0 48 48"><rect x="5" y="8" width="38" height="32" rx="3" fill="#1f3a2e"/><path d="M9 32l6-8 6 4 7-12 7 8 4-4" fill="none" stroke="#5be08a" stroke-width="2.5" stroke-linejoin="round"/></symbol>
+
+<symbol id="i-cmd" viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="32" rx="4" fill="#0c0c0c" stroke="#8a8a8a"/><path d="M12 18l8 6-8 6" fill="none" stroke="#fff" stroke-width="3"/><path d="M24 32h12" stroke="#fff" stroke-width="3"/></symbol>
+<symbol id="i-ps" viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="32" rx="4" fill="#012456" stroke="#5a7fb5"/><path d="M12 18l8 6-8 6" fill="none" stroke="#fff" stroke-width="3"/><path d="M24 32h12" stroke="#fff" stroke-width="3"/></symbol>
+<symbol id="i-clock" viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#fff" stroke="#4a8cf7" stroke-width="3"/><path d="M24 12v13l9 5" fill="none" stroke="#1b1b1b" stroke-width="3" stroke-linecap="round"/></symbol>
 </defs></svg>
 
 <div id="screen">
@@ -60,7 +64,7 @@
       <div class="app-tile" data-app="notepad"><svg><use href="#i-notepad"/></svg>Notepad</div>
       <div class="app-tile" data-app="stub:Paint"><span class="emo">🎨</span>Paint</div>
       <div class="app-tile" data-app="explorer"><svg><use href="#i-folder"/></svg>File Explorer</div>
-      <div class="app-tile" data-app="stub:Clock"><span class="emo">⏰</span>Clock</div>
+      <div class="app-tile" data-app="clock"><svg><use href="#i-clock"/></svg>Clock</div>
       <div class="app-tile" data-app="calc"><svg><use href="#i-calc"/></svg>Calculator</div>
       <div class="app-tile" data-app="stub:Camera"><span class="emo">📷</span>Camera</div>
       <div class="app-tile" data-app="taskmgr"><svg><use href="#i-taskmgr"/></svg>Task Manager</div>
@@ -95,7 +99,7 @@
   </div>
 
   <div id="calendar">
-    <div class="cal-date"></div>
+    <div class="cal-head"><div><div class="cal-time"></div><div class="cal-date"></div></div><button class="cal-clock" title="Open the Clock app">Clock ›</button></div>
     <div class="cal-bar"><b class="cal-title"></b><span><button class="cal-prev">▲</button><button class="cal-next">▼</button></span></div>
     <div class="cal-grid"></div>
   </div>
@@ -153,25 +157,27 @@
 
 </div>
 
-<script src="js/guard.js?v=1019c"></script>
-<script src="js/wallpaper.js?v=1019c"></script>
-<script src="js/boot.js?v=1019c"></script>
-<script src="js/clock.js?v=1019c"></script>
-<script src="js/startmenu.js?v=1019c"></script>
-<script src="js/audio.js?v=1019c"></script>
-<script src="js/tray.js?v=1019c"></script>
-<script src="js/windowmanager.js?v=1019c"></script>
-<script src="js/update.js?v=1019c"></script>
-<script src="js/settings.js?v=1019c"></script>
-<script src="js/apps.js?v=1019c"></script>
-<script src="js/minesweeper.js?v=1019c"></script>
-<script src="js/filesystem.js?v=1019c"></script>
-<script src="js/explorer.js?v=1019c"></script>
-<script src="js/scare.js?v=1019c"></script>
-<script src="js/shell.js?v=1019c"></script>
-<script src="js/bsod.js?v=1019c"></script>
-<script src="js/ransom.js?v=1019c"></script>
-<script src="js/document.js?v=1019c"></script>
+<script src="js/guard.js?v=1019d"></script>
+<script src="js/wallpaper.js?v=1019d"></script>
+<script src="js/boot.js?v=1019d"></script>
+<script src="js/clock.js?v=1019d"></script>
+<script src="js/startmenu.js?v=1019d"></script>
+<script src="js/audio.js?v=1019d"></script>
+<script src="js/tray.js?v=1019d"></script>
+<script src="js/windowmanager.js?v=1019d"></script>
+<script src="js/update.js?v=1019d"></script>
+<script src="js/settings.js?v=1019d"></script>
+<script src="js/sysdata.js?v=1019d"></script>
+<script src="js/apps.js?v=1019d"></script>
+<script src="js/terminal.js?v=1019d"></script>
+<script src="js/minesweeper.js?v=1019d"></script>
+<script src="js/filesystem.js?v=1019d"></script>
+<script src="js/explorer.js?v=1019d"></script>
+<script src="js/scare.js?v=1019d"></script>
+<script src="js/shell.js?v=1019d"></script>
+<script src="js/bsod.js?v=1019d"></script>
+<script src="js/ransom.js?v=1019d"></script>
+<script src="js/document.js?v=1019d"></script>
 <script>
 const fit=()=>document.getElementById('screen').style.setProperty('--s',Math.min((innerWidth-24)/1024,(innerHeight-24)/768));
 fit();addEventListener('resize',fit);

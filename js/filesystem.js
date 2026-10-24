@@ -82,7 +82,7 @@ window.FS = (() => {
   const HIDDEN_LOCKED = { hidden: true, protected: true };
 
   const SYS32 = files('advapi32.dll bcrypt.dll calc.exe cmd.exe combase.dll comctl32.dll comdlg32.dll cscript.exe d3d11.dll dwm.exe dxgi.dll gdi32.dll imm32.dll kernel32.dll kernelbase.dll lsass.exe msvcrt.dll net.exe netsh.exe notepad.exe ntdll.dll ntoskrnl.exe ole32.dll powershell.exe reg.exe rpcrt4.dll services.exe shell32.dll shutdown.exe smss.exe svchost.exe taskkill.exe tasklist.exe taskmgr.exe user32.dll wininit.exe winlogon.exe wuauclt.exe wuaueng.dll ws2_32.dll xcopy.exe');
-  SYS32['notepad.exe'].open = 'notepad'; SYS32['taskmgr.exe'].open = 'taskmgr'; SYS32['calc.exe'].open = 'calc';
+  SYS32['cmd.exe'].open = 'cmd'; SYS32['powershell.exe'].open = 'ps'; SYS32['notepad.exe'].open = 'notepad'; SYS32['taskmgr.exe'].open = 'taskmgr'; SYS32['calc.exe'].open = 'calc';
   Object.assign(SYS32, dirs('en-US|spool|wbem|Tasks|LogFiles|winevt|WindowsPowerShell|catroot'), {
     config: D({}, { ...LOCKED, modified: _date('config') }),
     catroot2: D({}, LOCKED),
