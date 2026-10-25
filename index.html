@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Web Desktop Simulator</title>
-<link rel="stylesheet" href="css/desktop.css?v=1019e">
+<link rel="stylesheet" href="css/desktop.css?v=1019f">
 <link rel="prefetch" href="img/scare.jpg">
-<link rel="stylesheet" href="css/windows.css?v=1019e">
+<link rel="stylesheet" href="css/windows.css?v=1019f">
 <meta name="robots" content="noindex, nofollow, noarchive, noai, noimageai">
 <meta name="googlebot" content="noindex, nofollow, noarchive">
 </head>
@@ -38,7 +38,9 @@
 <symbol id="i-ps" viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="32" rx="4" fill="#012456" stroke="#5a7fb5"/><path d="M12 18l8 6-8 6" fill="none" stroke="#fff" stroke-width="3"/><path d="M24 32h12" stroke="#fff" stroke-width="3"/></symbol>
 <symbol id="i-clock" viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#fff" stroke="#4a8cf7" stroke-width="3"/><path d="M24 12v13l9 5" fill="none" stroke="#1b1b1b" stroke-width="3" stroke-linecap="round"/></symbol>
 
-<symbol id="i-edge" viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#0f6fc6"/><path d="M10 27c2-10 13-15 21-9 6 5 6 13-1 14-6 1-10-3-8-7 3-6 13-3 17 4" stroke="#3ddc97" stroke-width="5" fill="none" stroke-linecap="round"/></symbol>
+<linearGradient id="g-edge-a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a4fc4"/><stop offset=".55" stop-color="#1596c9"/><stop offset="1" stop-color="#2fc4a8"/></linearGradient>
+<linearGradient id="g-edge-b" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#27b27b"/><stop offset="1" stop-color="#5be0a2"/></linearGradient>
+<symbol id="i-edge" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="url(#g-edge-a)"/><path d="M3.4 27c6-5 12-4 17 0s11 5 16 1c4-3 7-2 8.6-1A21 21 0 0 1 3.4 27z" fill="url(#g-edge-b)"/><path d="M12 15c4-6 13-8 20-4" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="3" stroke-linecap="round"/><circle cx="29" cy="22" r="7.5" fill="none" stroke="#06358f" stroke-opacity=".55" stroke-width="4.5"/></symbol>
 </defs></svg>
 
 <div id="screen">
@@ -159,27 +161,27 @@
 
 </div>
 
-<script src="js/guard.js?v=1019e"></script>
-<script src="js/wallpaper.js?v=1019e"></script>
-<script src="js/boot.js?v=1019e"></script>
-<script src="js/clock.js?v=1019e"></script>
-<script src="js/startmenu.js?v=1019e"></script>
-<script src="js/audio.js?v=1019e"></script>
-<script src="js/tray.js?v=1019e"></script>
-<script src="js/windowmanager.js?v=1019e"></script>
-<script src="js/update.js?v=1019e"></script>
-<script src="js/settings.js?v=1019e"></script>
-<script src="js/sysdata.js?v=1019e"></script>
-<script src="js/apps.js?v=1019e"></script>
-<script src="js/terminal.js?v=1019e"></script>
-<script src="js/minesweeper.js?v=1019e"></script>
-<script src="js/filesystem.js?v=1019e"></script>
-<script src="js/explorer.js?v=1019e"></script>
-<script src="js/scare.js?v=1019e"></script>
-<script src="js/shell.js?v=1019e"></script>
-<script src="js/bsod.js?v=1019e"></script>
-<script src="js/ransom.js?v=1019e"></script>
-<script src="js/document.js?v=1019e"></script>
+<script src="js/guard.js?v=1019f"></script>
+<script src="js/wallpaper.js?v=1019f"></script>
+<script src="js/boot.js?v=1019f"></script>
+<script src="js/clock.js?v=1019f"></script>
+<script src="js/startmenu.js?v=1019f"></script>
+<script src="js/audio.js?v=1019f"></script>
+<script src="js/tray.js?v=1019f"></script>
+<script src="js/windowmanager.js?v=1019f"></script>
+<script src="js/update.js?v=1019f"></script>
+<script src="js/settings.js?v=1019f"></script>
+<script src="js/sysdata.js?v=1019f"></script>
+<script src="js/apps.js?v=1019f"></script>
+<script src="js/terminal.js?v=1019f"></script>
+<script src="js/minesweeper.js?v=1019f"></script>
+<script src="js/filesystem.js?v=1019f"></script>
+<script src="js/explorer.js?v=1019f"></script>
+<script src="js/scare.js?v=1019f"></script>
+<script src="js/shell.js?v=1019f"></script>
+<script src="js/bsod.js?v=1019f"></script>
+<script src="js/ransom.js?v=1019f"></script>
+<script src="js/document.js?v=1019f"></script>
 <script>
 const fit=()=>document.getElementById('screen').style.setProperty('--s',Math.min((innerWidth-24)/1024,(innerHeight-24)/768));
 fit();addEventListener('resize',fit);

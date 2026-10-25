@@ -299,7 +299,7 @@
   };
 
   /* ---------- Microsoft Edge: loads the page, then crashes on the first interaction ---------- */
-  const EDGE_HOME = 'https://snackspace.com/';   // the page Edge loads (set window.EDGE_HOME to override)
+  const EDGE_HOME = 'https://snackspacecon.com/';   // the page Edge loads (set window.EDGE_HOME to override)
   function appCrashDialog(appName, key, onClose) {
     windowManager.closeWindow(key + '-crash');
     const d = document.createElement('div');
@@ -326,7 +326,7 @@
     const finish = () => {
       if (loaded) return;
       loaded = true; n.classList.add('done'); rl.textContent = '⟳';
-      tt.textContent = 'SnackSpace'; title.textContent = 'SnackSpace - Microsoft Edge';
+      tt.textContent = 'SNACK_CON // SEASON 2'; title.textContent = 'SNACK_CON // SEASON 2 - Microsoft Edge';
     };
     frame.addEventListener('load', finish);
     setTimeout(finish, 6000);            // in case the page never reports that it loaded
