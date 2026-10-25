@@ -12,6 +12,7 @@
     clock: { label: 'Clock', icon: 'clock', win: 'clock' },
     cmd: { label: 'Command Prompt', icon: 'cmd', win: 'cmd' },
     ps: { label: 'Windows PowerShell', icon: 'ps', win: 'ps' },
+    edge: { label: 'Microsoft Edge', icon: 'edge', win: 'edge' },
     doc: { label: 'Flag.txt', icon: 'doc', win: 'doc' },
     settings: { label: 'Settings', icon: 'gear', win: 'settings' },
     mines: { label: 'Minesweeper', icon: 'mine', win: 'minesweeper' },
@@ -118,7 +119,7 @@
   /* ---------- Start menu: All apps, search, Recommended files ---------- */
   const ALL = [
     ['About', 'info', 'about'], ['Calculator', 'calc', 'calc'], ['Calendar', '📅', 'stub:Calendar'], ['Camera', '📷', 'stub:Camera'], ['Clock', 'clock', 'clock'], ['Command Prompt', 'cmd', 'cmd'],
-    ['File Explorer', 'folder', 'explorer'], ['Mail', '✉️', 'stub:Mail'], ['Microsoft Edge', '🌐', 'stub:Microsoft Edge'], ['Microsoft Store', '🛍️', 'stub:Microsoft Store'],
+    ['File Explorer', 'folder', 'explorer'], ['Mail', '✉️', 'stub:Mail'], ['Microsoft Edge', 'edge', 'edge'], ['Microsoft Store', '🛍️', 'stub:Microsoft Store'],
     ['Minesweeper', 'mine', 'mines'], ['Movies & TV', '🎬', 'stub:Movies & TV'], ['Notepad', 'notepad', 'notepad'], ['Paint', '🎨', 'stub:Paint'],
     ['Phone Link', '📱', 'stub:Phone Link'], ['Photos', '🖼️', 'stub:Photos'], ['Settings', 'gear', 'settings'], ['Task Manager', 'taskmgr', 'taskmgr'],
     ['Windows PowerShell', 'ps', 'ps'], ['Windows Security', '🛡️', 'stub:Windows Security']
@@ -176,13 +177,36 @@
 
   /* ---------- Widgets panel ---------- */
   const wd = $('widgets'), wbtn = $('widgets-btn');
+  // Weather for Cape Canaveral, FL: live from Open-Meteo (free, no key); these numbers are used while offline
+  const WX = { temp: 82, icon: '⛅', desc: 'Partly cloudy', hi: 86, lo: 74, days: [['⛅', 85], ['🌦️', 84], ['☀️', 87], ['⛅', 86], ['🌦️', 83]] };
+  const wxName = c => c === 0 ? ['☀️', 'Clear'] : c === 1 ? ['🌤️', 'Mostly clear'] : c === 2 ? ['⛅', 'Partly cloudy'] : c === 3 ? ['☁️', 'Overcast'] : c <= 48 ? ['🌫️', 'Fog'] :
+    c <= 57 ? ['🌦️', 'Drizzle'] : c <= 67 ? ['🌧️', 'Rain'] : c <= 77 ? ['🌨️', 'Snow'] : c <= 82 ? ['🌦️', 'Showers'] : ['⛈️', 'Thunderstorms'];
+  function renderWx() {
+    wbtn.querySelector('.wd-ic').textContent = WX.icon;
+    wbtn.querySelector('.wd-t').textContent = Math.round(WX.temp) + '°F';
+    wbtn.querySelector('.wd-d').textContent = WX.desc;
+    wd.querySelector('.wd-big').textContent = Math.round(WX.temp) + '°F';
+    wd.querySelector('.wd-desc').textContent = WX.desc;
+    wd.querySelector('.wd-sub').textContent = `H ${Math.round(WX.hi)}° · L ${Math.round(WX.lo)}° · ${SYS.place}`;
+    wd.querySelectorAll('.wd-fc > div').forEach((el, i) => { el.querySelector('.fi').textContent = WX.days[i][0]; el.querySelector('.ft').textContent = Math.round(WX.days[i][1]) + '°'; });
+  }
+  async function loadWx() {
+    try {
+      const r = await fetch('https://api.open-meteo.com/v1/forecast?latitude=28.3922&longitude=-80.6077&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=America%2FNew_York&forecast_days=6');
+      const j = await r.json(), cur = wxName(j.current.weather_code);
+      Object.assign(WX, { temp: j.current.temperature_2m, icon: cur[0], desc: cur[1], hi: j.daily.temperature_2m_max[0], lo: j.daily.temperature_2m_min[0],
+        days: [1, 2, 3, 4, 5].map(i => [wxName(j.daily.weather_code[i])[0], j.daily.temperature_2m_max[i]]) });
+      renderWx();
+    } catch (e) { /* offline: keep the fallback numbers */ }
+  }
+  renderWx(); loadWx(); setInterval(loadWx, 600000);
   const wOpen = o => {
     wd.classList.toggle('open', o); wbtn.classList.toggle('active', o);
     if (!o) return;
-    const now = new Date(), h = now.getHours();
+    const now = new Date(), h = SYS.today().h;
     wd.querySelector('.wd-greet').textContent = (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', Guest';
-    wd.querySelector('.wd-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-    wd.querySelectorAll('.fd').forEach((el, i) => { const d = new Date(now); d.setDate(now.getDate() + i + 1); el.textContent = d.toLocaleDateString('en-US', { weekday: 'short' }); });
+    wd.querySelector('.wd-date').textContent = now.toLocaleDateString('en-US', { timeZone: SYS.tz, weekday: 'long', month: 'long', day: 'numeric' });
+    wd.querySelectorAll('.fd').forEach((el, i) => { el.textContent = new Date(now.getTime() + (i + 1) * 864e5).toLocaleDateString('en-US', { timeZone: SYS.tz, weekday: 'short' }); });
   };
   wbtn.addEventListener('pointerdown', () => { closeStartMenu(); wOpen(!wd.classList.contains('open')); });
   wbtn.addEventListener('click', e => { if (e.detail === 0) wOpen(!wd.classList.contains('open')); });
@@ -241,25 +265,25 @@
   const cal = $('calendar'), cg = cal.querySelector('.cal-grid'), clock = $('tray-clock');
   let view;
   function drawCal() {
-    const now = new Date();
-    cal.querySelector('.cal-date').textContent = now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    const now = new Date(), T = SYS.today();
+    cal.querySelector('.cal-date').textContent = now.toLocaleDateString('en-US', { timeZone: SYS.tz, weekday: 'long', month: 'long', day: 'numeric' });
     cal.querySelector('.cal-title').textContent = view.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
     const start = new Date(view.getFullYear(), view.getMonth(), 1);
     start.setDate(1 - start.getDay());
     let h = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => `<span class="dow">${d}</span>`).join('');
     for (let i = 0; i < 42; i++) {
       const d = new Date(start); d.setDate(start.getDate() + i);
-      const cls = (d.getMonth() !== view.getMonth() ? 'dim ' : '') + (d.toDateString() === now.toDateString() ? 'today' : '');
+      const cls = (d.getMonth() !== view.getMonth() ? 'dim ' : '') + (d.getFullYear() === T.y && d.getMonth() + 1 === T.m && d.getDate() === T.d ? 'today' : '');
       h += `<span class="${cls}">${d.getDate()}</span>`;
     }
     cg.innerHTML = h;
   }
   let calTimer = null;
-  const calTime = () => { cal.querySelector('.cal-time').textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit' }); };
+  const calTime = () => { cal.querySelector('.cal-time').textContent = new Date().toLocaleTimeString('en-US', { timeZone: SYS.tz, hour: 'numeric', minute: '2-digit', second: '2-digit' }); };
   const calOpen = o => {
     cal.classList.toggle('open', o); clock.classList.toggle('active', o);
     clearInterval(calTimer);
-    if (o) { view = new Date(); view.setDate(1); drawCal(); calTime(); calTimer = setInterval(calTime, 1000); }
+    if (o) { const T = SYS.today(); view = new Date(T.y, T.m - 1, 1); drawCal(); calTime(); calTimer = setInterval(calTime, 1000); }
   };
   cal.querySelector('.cal-clock').addEventListener('click', () => { calOpen(false); launchApp('clock'); });
   clock.addEventListener('pointerdown', () => { closeStartMenu(); calOpen(!cal.classList.contains('open')); });

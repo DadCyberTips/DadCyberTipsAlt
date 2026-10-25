@@ -246,7 +246,7 @@
     n.innerHTML = '<div class="clk-tabs"><span data-t="w" class="on">World clock</span><span data-t="t">Timer</span><span data-t="s">Stopwatch</span></div><div class="clk-pane"></div>';
     windowManager.createWindow({ key: 'clock', title: 'Clock', icon: 'clock', node: n, width: 480, height: 430, left: 260, top: 60 });
     const pane = n.querySelector('.clk-pane');
-    const CITIES = [['Local time', undefined], ['New York', 'America/New_York'], ['Los Angeles', 'America/Los_Angeles'], ['London', 'Europe/London'], ['Tokyo', 'Asia/Tokyo'], ['Sydney', 'Australia/Sydney']];
+    const CITIES = [['Cape Canaveral, FL', 'America/New_York'], ['Chicago', 'America/Chicago'], ['Los Angeles', 'America/Los_Angeles'], ['London', 'Europe/London'], ['Tokyo', 'Asia/Tokyo'], ['Sydney', 'Australia/Sydney']];
     const T = { run: false, left: 5 * 60000, end: 0, done: false }, W = { run: false, start: 0, el: 0, laps: [] };
     let tab = 'w', iv = null;
     const p2 = v => String(v).padStart(2, '0');
@@ -296,5 +296,53 @@
     }));
     iv = setInterval(tick, 100);
     draw();
+  };
+
+  /* ---------- Microsoft Edge: loads the page, then crashes on the first interaction ---------- */
+  const EDGE_HOME = 'https://snackspace.com/';   // the page Edge loads (set window.EDGE_HOME to override)
+  function appCrashDialog(appName, key, onClose) {
+    windowManager.closeWindow(key + '-crash');
+    const d = document.createElement('div');
+    d.className = 'perm';
+    d.innerHTML = '<div class="perm-body"><span class="perm-ic">⚠️</span><div><h3></h3><p class="perm-txt">A problem caused the program to stop working correctly. Please close the program.</p></div></div><div class="perm-btns"><button>Close the program</button></div>';
+    d.querySelector('h3').textContent = appName + ' has stopped working';
+    shrink(windowManager.createWindow({ key: key + '-crash', title: appName, icon: key, node: d, width: 470, height: 215, top: 210, left: 260, front: true }));
+    if (window.EmuAudio) EmuAudio.ding();
+    d.querySelector('button').addEventListener('click', () => { windowManager.closeWindow(key + '-crash'); onClose(); });
+  }
+  window.openEdge = function() {
+    if (already('edge')) return;
+    const home = window.EDGE_HOME || EDGE_HOME, host = (home.match(/^https?:\/\/([^/]+)/i) || [0, 'about:blank'])[1].replace(/^www\./, '');
+    const n = document.createElement('div');
+    n.className = 'eg'; n.tabIndex = 0;
+    n.innerHTML = `<div class="eg-tabs"><div class="eg-tab"><span class="eg-fav">🍿</span><span class="eg-tt">Loading…</span><span class="eg-x">✕</span></div><span class="eg-plus">+</span></div>
+      <div class="eg-bar"><button>←</button><button>→</button><button class="eg-rl">✕</button><div class="eg-addr"><span>🔒</span><span class="eg-url"></span></div><button>☆</button><button>⋯</button></div>
+      <div class="eg-load"></div>
+      <div class="eg-view"><iframe class="eg-frame" title="page" referrerpolicy="no-referrer" sandbox="allow-scripts allow-same-origin allow-forms"></iframe><div class="eg-shield"></div></div>`;
+    const win = windowManager.createWindow({ key: 'edge', title: 'New tab - Microsoft Edge', icon: 'edge', node: n, width: 900, height: 600, left: 60, top: 30 });
+    const frame = n.querySelector('.eg-frame'), tt = n.querySelector('.eg-tt'), rl = n.querySelector('.eg-rl'), title = win.querySelector('.title');
+    n.querySelector('.eg-url').textContent = host;
+    let loaded = false, crashed = false;
+    const finish = () => {
+      if (loaded) return;
+      loaded = true; n.classList.add('done'); rl.textContent = '⟳';
+      tt.textContent = 'SnackSpace'; title.textContent = 'SnackSpace - Microsoft Edge';
+    };
+    frame.addEventListener('load', finish);
+    setTimeout(finish, 6000);            // in case the page never reports that it loaded
+    frame.src = home;
+
+    // Once the page has loaded, ANY interaction with Edge crashes it
+    const hit = () => {
+      if (!loaded || crashed) return;
+      crashed = true;
+      win.classList.add('nr'); n.classList.add('hung');
+      title.textContent += ' (Not Responding)';
+      setTimeout(() => { if (windowManager.wins.has('edge')) appCrashDialog('Microsoft Edge', 'edge', () => windowManager.closeWindow('edge')); }, rnd(1200, 2600));
+    };
+    ['pointerdown', 'keydown', 'touchstart'].forEach(t => n.addEventListener(t, hit, true));
+    n.addEventListener('wheel', hit, { capture: true, passive: true });
+    win.__edge = () => ({ loaded, crashed });   // used by tests
+    n.focus();
   };
 })();

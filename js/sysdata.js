@@ -4,7 +4,7 @@
  */
 window.SYS = (() => {
   const h = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
-  const net = { host: 'DESKTOP-SNACK01', user: 'Guest', ip: '192.168.1.42', mask: '255.255.255.0', gw: '192.168.1.1', dns: '192.168.1.1', mac: '00-1A-2B-3C-4D-5E', suffix: 'lan' };
+  const net = { host: 'DESKTOP-SNACK01', user: 'Guest', ip: '127.0.0.1', mask: '255.255.255.0', gw: '192.168.1.1', dns: '192.168.1.1', mac: '00-1A-2B-3C-4D-5E', suffix: 'lan' };
 
   // image name, pid, session name, memory (KB)
   const procs = [
@@ -36,9 +36,17 @@ window.SYS = (() => {
   ];
 
   // window key -> process image shown while that app is open
-  const APPIMG = { notepad: 'notepad.exe', calc: 'CalculatorApp.exe', taskmgr: 'Taskmgr.exe', settings: 'SystemSettings.exe', minesweeper: 'Minesweeper.exe',
+  const APPIMG = { notepad: 'notepad.exe', calc: 'CalculatorApp.exe', taskmgr: 'Taskmgr.exe', settings: 'SystemSettings.exe', minesweeper: 'Minesweeper.exe', edge: 'msedge.exe',
     cmd: 'cmd.exe', ps: 'powershell.exe', clock: 'Time.exe', explorer: null };
 
+  // The machine lives at Cape Canaveral, FL (US Eastern time)
+  const tz = 'America/New_York', place = 'Cape Canaveral, FL';
+  const today = () => {
+    const o = {};
+    new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', hourCycle: 'h23' })
+      .formatToParts(new Date()).forEach(p => { o[p.type] = p.value; });
+    return { y: +o.year, m: +o.month, d: +o.day, h: +o.hour, min: +o.minute };
+  };
   const services = () => SVC.map(([name, display, pid, run, start, bin]) => {
     const updating = !!window.updateInProgress && (name === 'wuauserv' || name === 'TrustedInstaller');
     const running = run === 1 || updating;
@@ -50,5 +58,5 @@ window.SYS = (() => {
     if (window.updateInProgress) a.push({ img: 'TrustedInstaller.exe', pid: 3300, ses: 'Services', mem: 142000, sys: true });
     return a.concat(apps());
   };
-  return { net, procs, services, apps, all, h, APPIMG };
+  return { net, procs, services, apps, all, h, APPIMG, tz, place, today };
 })();

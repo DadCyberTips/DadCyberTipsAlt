@@ -214,3 +214,22 @@
 .clk-b.pri:hover{background:#1a78cc}
 .clk-laps{margin-top:14px}
 .clk-laps div{display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid #eee;font-variant-numeric:tabular-nums}
+
+.eg{position:absolute;inset:0;display:flex;flex-direction:column;background:#fff;color:#1b1b1b;font-size:13px;outline:0}
+.eg-tabs{display:flex;align-items:flex-end;gap:2px;padding:6px 8px 0;background:#dfe6f0}
+.eg-tab{display:flex;align-items:center;gap:8px;width:220px;padding:7px 10px;background:#fff;border-radius:8px 8px 0 0;font-size:12px}
+.eg-tt{flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.eg-x,.eg-plus{color:#666;font-size:12px}
+.eg-plus{padding:6px 10px;font-size:16px}
+.eg-bar{display:flex;align-items:center;gap:4px;padding:6px 8px;border-bottom:1px solid #e3e3e3}
+.eg-bar button{width:30px;height:30px;border-radius:50%;font-size:14px;color:#444}
+.eg-bar button:hover{background:#eee}
+.eg-addr{flex:1;display:flex;align-items:center;gap:8px;height:32px;padding:0 14px;background:#f1f3f4;border-radius:16px;color:#333}
+.eg-load{height:2px;background:linear-gradient(90deg,#0f6fc6 30%,transparent 30%);background-size:200% 100%;animation:egLoad 1s linear infinite}
+.eg.done .eg-load{animation:none;opacity:0}
+@keyframes egLoad{to{background-position:-200% 0}}
+.eg-view{position:relative;flex:1;background:#fff}
+.eg-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.eg-shield{position:absolute;inset:0}
+.eg.hung{cursor:wait}
+.eg.hung::after{content:'';position:absolute;inset:0;cursor:wait}

@@ -116,6 +116,7 @@ window.launchApp=a=>{
   else if(a==='notepad')window.openNotepad();
   else if(a==='taskmgr')window.openTaskManager();
   else if(a==='clock')window.openClock();
+  else if(a==='edge')window.openEdge();
   else if(a==='cmd')window.openTerminal('cmd');
   else if(a==='ps')window.openTerminal('ps');
   else if(a.startsWith('stub:'))window.openStub(a.slice(5));

@@ -115,7 +115,7 @@
     if (l.includes('.')) return '198.51.100.' + (1 + SYS.h(l) % 250);
     return null;
   }
-  const dateStr = (d = new Date()) => d.toLocaleDateString('en-US', { weekday: 'short' }) + ' ' + String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0') + '/' + d.getFullYear();
+  const dateStr = (d = new Date()) => d.toLocaleDateString('en-US', { timeZone: SYS.tz, weekday: 'short' }) + ' ' + d.toLocaleDateString('en-US', { timeZone: SYS.tz, month: '2-digit', day: '2-digit', year: 'numeric' });
   const SID = [['Everyone', 'Well-known group', 'S-1-1-0'], ['BUILTIN\\Users', 'Alias', 'S-1-5-32-545'], ['NT AUTHORITY\\INTERACTIVE', 'Well-known group', 'S-1-5-4'], ['CONSOLE LOGON', 'Well-known group', 'S-1-2-1'],
     ['NT AUTHORITY\\Authenticated Users', 'Well-known group', 'S-1-5-11'], ['NT AUTHORITY\\This Organization', 'Well-known group', 'S-1-5-15'], ['LOCAL', 'Well-known group', 'S-1-2-0'], ['Mandatory Label\\Medium Mandatory Level', 'Label', 'S-1-16-8192']];
   const UNBUILT = 'mspaint regedit mmc msconfig control eventvwr compmgmt diskmgmt devmgmt mstsc snippingtool wordpad osk charmap perfmon resmon msinfo32 dxdiag winver cleanmgr gpedit secpol lusrmgr';
@@ -132,7 +132,7 @@
   Network     ipconfig [/all]   ping [-n]   tracert   nslookup   netstat [-an | -ano]   arp -a   getmac
   Accounts    net user [name]   net localgroup [name]   net share   net use
   Tools       certutil -hashfile <file> [SHA256]   color [xy]   title   cls   exit
-  Launch      notepad [file]   calc   taskmgr   explorer [path]   winmine   start <app>   powershell   cmd`;
+  Launch      notepad [file]   calc   taskmgr   explorer [path]   winmine   msedge   start <app>   powershell   cmd`;
   const PSHELP = `Cmdlets and aliases available in this PowerShell (native commands like ipconfig, ping, whoami, netstat, tasklist also work):
 
   Get-ChildItem (ls, dir, gci) [-Force] [-Recurse]     Get-Content (cat, type, gc)     Set-Location (cd)     Get-Location (pwd)
@@ -156,7 +156,7 @@
   def('color', (a, c) => c.S.setColor(a[0]));
   def('path', (a, c) => c.emit('PATH=' + c.S.env.PATH));
   def('date', (a, c) => c.emit(a.some(x => lc(x) === '/t') ? dateStr() : 'The current date is: ' + dateStr()));
-  def('time', (a, c) => { const d = new Date(); c.emit(a.some(x => lc(x) === '/t') ? d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : 'The current time is: ' + d.toTimeString().slice(0, 8) + '.00'); });
+  def('time', (a, c) => { const d = new Date(); c.emit(a.some(x => lc(x) === '/t') ? d.toLocaleTimeString('en-US', { timeZone: SYS.tz, hour: 'numeric', minute: '2-digit' }) : 'The current time is: ' + d.toLocaleTimeString('en-GB', { timeZone: SYS.tz }) + '.00'); });
   def('set', (a, c) => {
     const s = a.join(' '), env = c.S.env;
     if (!s) { Object.keys(env).sort().forEach(k => c.emit(k + '=' + env[k])); return; }
@@ -178,7 +178,7 @@
     'OS Configuration:          Standalone Workstation', 'Registered Owner:          Guest', 'Original Install Date:     9/1/2026, 12:00:00 PM', 'System Manufacturer:       SnackSpaceCon Systems', 'System Model:              SnackBox 13',
     'System Type:               x64-based PC', 'Processor(s):              1 Processor(s) Installed.', '                           [01]: Intel64 Family 6 Model 165 ~2904 Mhz', 'BIOS Version:              SSC 1.3.37, 8/1/2026',
     'Windows Directory:         C:\\Windows', 'System Directory:          C:\\Windows\\system32', 'Boot Device:              \\Device\\HarddiskVolume1', 'System Locale:            en-us;English (United States)',
-    'Time Zone:                 ' + (Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local'), 'Total Physical Memory:     16,384 MB', 'Available Physical Memory: 9,812 MB', 'Hotfix(s):                 2 Hotfix(s) Installed.',
+    'Time Zone:                 (UTC-05:00) Eastern Time (US & Canada)', 'Total Physical Memory:     16,384 MB', 'Available Physical Memory: 9,812 MB', 'Hotfix(s):                 2 Hotfix(s) Installed.',
     '                           [01]: KB5030001', '                           [02]: KB5031002', 'Network Card(s):           1 NIC(s) Installed.', '                           [01]: Intel(R) Ethernet Connection (7) I219-V',
     '                                 Connection Name: Ethernet', '                                 DHCP Enabled:    Yes', `                                 IP address(es)`, `                                 [01]: ${NET.ip}`));
 
@@ -444,6 +444,7 @@
     window.openNotepad({ text: r.text, name: r.path.split('\\').pop() });
   };
   def('notepad', (a, c) => notepadWith(a.filter(x => x[0] !== '/').join(' '), c));
+  def('msedge edge', () => window.launchApp('edge'));
   def('calc', () => window.launchApp('calc'));
   def('taskmgr', () => window.launchApp('taskmgr'));
   def('winmine minesweeper', () => window.launchApp('mines'));
@@ -455,7 +456,7 @@
     if (!rest.length) { c.emit('Usage: start <program or document>'); return; }
     const t = rest[0];
     if (/^ms-settings:/i.test(t)) { window.launchApp('settings'); return; }
-    if (/^https?:/i.test(t)) { window.showUAC('msedge.exe', 'app'); return; }
+    if (/^https?:/i.test(t)) { window.launchApp('edge'); return; }
     if (t === '.') { window.explorerGo(pathStr(c.S.cwd)); return; }
     await runCmd(rest, c.emit, null, c.S);
   });
@@ -496,7 +497,7 @@
   def('get-location pwd gl', (a, c) => c.emit('', 'Path', '----', pathStr(c.S.cwd), ''), PSCMD);
   def('clear-host', (a, c) => c.S.clear(), PSCMD);
   def('write-host write-output echo', (a, c) => c.emit(a.join(' ')), PSCMD);
-  def('get-date', (a, c) => c.emit('', new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + new Date().toLocaleTimeString('en-US'), ''), PSCMD);
+  def('get-date', (a, c) => c.emit('', new Date().toLocaleDateString('en-US', { timeZone: SYS.tz, weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ' ' + new Date().toLocaleTimeString('en-US', { timeZone: SYS.tz }), ''), PSCMD);
   def('get-process ps gps', (a, c) => {
     const name = psArg(a, ['-name']);
     const list = SYS.all().filter(p => p.pid && (!name || lc(p.img.replace(/\.exe$/, '')) === lc(name.replace(/\.exe$/, ''))));

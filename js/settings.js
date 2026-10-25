@@ -53,7 +53,7 @@
       row('📱 Phone Link', 'Not set up', '›'),
     network: () =>
       row('Ethernet', 'Connected · Private network', 'Connected') +
-      row('IP address (IPv4)', '192.168.1.42 · Gateway 192.168.1.1 · DNS 192.168.1.1') +
+      row('IP address (IPv4)', `${SYS.net.ip} · Gateway ${SYS.net.gw} · DNS ${SYS.net.dns}`) +
       row('Physical address (MAC)', '00-1A-2B-3C-4D-5E · Link speed 1000/1000 (Mbps)') +
       row('Wi-Fi', 'No wireless adapter in use', tog(0)) +
       row('Airplane mode', 'Stop all wireless communication', tog(0)) +
@@ -83,7 +83,7 @@
       row('Windows backup', 'Not signed in', '›'),
     time: () =>
       row('Set time automatically', 'Synchronized with time.windows.com (simulated)', tog(1)) +
-      row('Time zone', tz, '›') +
+      row('Time zone', '(UTC-05:00) Eastern Time (US & Canada) · Cape Canaveral, FL', '›') +
       row('Adjust for daylight saving time automatically', '', tog(1)) +
       row('Language', 'English (United States)', '›') +
       row('Region', 'United States · Regional format: English (United States)', '›') +

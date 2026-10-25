@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Web Desktop Simulator</title>
-<link rel="stylesheet" href="css/desktop.css?v=1019d">
+<link rel="stylesheet" href="css/desktop.css?v=1019e">
 <link rel="prefetch" href="img/scare.jpg">
-<link rel="stylesheet" href="css/windows.css?v=1019d">
+<link rel="stylesheet" href="css/windows.css?v=1019e">
 <meta name="robots" content="noindex, nofollow, noarchive, noai, noimageai">
 <meta name="googlebot" content="noindex, nofollow, noarchive">
 </head>
@@ -37,6 +37,8 @@
 <symbol id="i-cmd" viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="32" rx="4" fill="#0c0c0c" stroke="#8a8a8a"/><path d="M12 18l8 6-8 6" fill="none" stroke="#fff" stroke-width="3"/><path d="M24 32h12" stroke="#fff" stroke-width="3"/></symbol>
 <symbol id="i-ps" viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="32" rx="4" fill="#012456" stroke="#5a7fb5"/><path d="M12 18l8 6-8 6" fill="none" stroke="#fff" stroke-width="3"/><path d="M24 32h12" stroke="#fff" stroke-width="3"/></symbol>
 <symbol id="i-clock" viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#fff" stroke="#4a8cf7" stroke-width="3"/><path d="M24 12v13l9 5" fill="none" stroke="#1b1b1b" stroke-width="3" stroke-linecap="round"/></symbol>
+
+<symbol id="i-edge" viewBox="0 0 48 48"><circle cx="24" cy="24" r="19" fill="#0f6fc6"/><path d="M10 27c2-10 13-15 21-9 6 5 6 13-1 14-6 1-10-3-8-7 3-6 13-3 17 4" stroke="#3ddc97" stroke-width="5" fill="none" stroke-linecap="round"/></symbol>
 </defs></svg>
 
 <div id="screen">
@@ -55,7 +57,7 @@
     <div class="start-search"><svg><use href="#i-search"/></svg><input type="text" placeholder="Search for apps, settings, and documents"></div>
     <div class="start-head hd-pin"><b>Pinned</b><span class="pill pill-all">All apps ›</span></div>
     <div class="start-pinned">
-      <div class="app-tile" data-app="stub:Microsoft Edge"><span class="emo">🌐</span>Edge</div>
+      <div class="app-tile" data-app="edge"><svg><use href="#i-edge"/></svg>Edge</div>
       <div class="app-tile" data-app="stub:Microsoft Store"><span class="emo">🛍️</span>Store</div>
       <div class="app-tile" data-app="stub:Photos"><span class="emo">🖼️</span>Photos</div>
       <div class="app-tile" data-app="settings"><svg><use href="#i-gear"/></svg>Settings</div>
@@ -91,8 +93,8 @@
   <div id="widgets">
     <h3 class="wd-greet">Good evening, Guest</h3>
     <p class="wd-date"></p>
-    <div class="wd-card"><div class="wd-w"><span class="wd-big">72°F</span><div><b>Mostly sunny</b><br><small>H 78° · L 61° · Your location</small></div></div>
-      <div class="wd-fc"><div><span class="fd"></span><br>☀️<br>76°</div><div><span class="fd"></span><br>⛅<br>74°</div><div><span class="fd"></span><br>🌦️<br>68°</div><div><span class="fd"></span><br>☁️<br>66°</div><div><span class="fd"></span><br>☀️<br>73°</div></div></div>
+    <div class="wd-card"><div class="wd-w"><span class="wd-big">82°F</span><div><b class="wd-desc">Partly cloudy</b><br><small class="wd-sub">H 86° · L 74° · Cape Canaveral, FL</small></div></div>
+      <div class="wd-fc"><div><span class="fd"></span><br><span class="fi">⛅</span><br><span class="ft">85°</span></div><div><span class="fd"></span><br><span class="fi">⛅</span><br><span class="ft">85°</span></div><div><span class="fd"></span><br><span class="fi">⛅</span><br><span class="ft">85°</span></div><div><span class="fd"></span><br><span class="fi">⛅</span><br><span class="ft">85°</span></div><div><span class="fd"></span><br><span class="fi">⛅</span><br><span class="ft">85°</span></div></div></div>
     <div class="wd-card wd-news"><b>Top stories</b><div>SnackSpaceCon announces record snack supply for this year's CTF</div><div>Local dad's firewall holds against persistent rooster</div><div>Study finds most passwords are still "password123"</div><div>Router unplugged nightly; mystery remains unsolved</div></div>
     <div class="wd-card"><b>Calendar</b><div class="wd-ev"><span>Today</span> SnackSpaceCon CTF</div><div class="wd-ev"><span>Fri</span> Dentist, 3:30 PM</div><div class="wd-ev"><span>Sun</span> Back up photos</div></div>
     <div class="wd-card"><b>Stocks</b><div class="wd-st"><span>SNCK</span><span>41.37</span><span class="up">▲ 1.3%</span></div><div class="wd-st"><span>H4CK</span><span>13.37</span><span class="dn">▼ 0.4%</span></div></div>
@@ -114,7 +116,7 @@
   </div>
 
   <div id="taskbar">
-    <button id="widgets-btn" class="wd-btn" title="Widgets"><span class="wd-ic">⛅</span><span class="wd-tx"><b>72°F</b><small>Mostly sunny</small></span></button>
+    <button id="widgets-btn" class="wd-btn" title="Widgets"><span class="wd-ic">⛅</span><span class="wd-tx"><b class="wd-t">82°F</b><small class="wd-d">Partly cloudy</small></span></button>
     <div id="taskbar-center">
       <button id="start-button" class="tb-btn" title="Start"><svg><use href="#i-start"/></svg></button>
       <button id="search-button" class="tb-btn" title="Search"><svg><use href="#i-search"/></svg></button>
@@ -157,27 +159,27 @@
 
 </div>
 
-<script src="js/guard.js?v=1019d"></script>
-<script src="js/wallpaper.js?v=1019d"></script>
-<script src="js/boot.js?v=1019d"></script>
-<script src="js/clock.js?v=1019d"></script>
-<script src="js/startmenu.js?v=1019d"></script>
-<script src="js/audio.js?v=1019d"></script>
-<script src="js/tray.js?v=1019d"></script>
-<script src="js/windowmanager.js?v=1019d"></script>
-<script src="js/update.js?v=1019d"></script>
-<script src="js/settings.js?v=1019d"></script>
-<script src="js/sysdata.js?v=1019d"></script>
-<script src="js/apps.js?v=1019d"></script>
-<script src="js/terminal.js?v=1019d"></script>
-<script src="js/minesweeper.js?v=1019d"></script>
-<script src="js/filesystem.js?v=1019d"></script>
-<script src="js/explorer.js?v=1019d"></script>
-<script src="js/scare.js?v=1019d"></script>
-<script src="js/shell.js?v=1019d"></script>
-<script src="js/bsod.js?v=1019d"></script>
-<script src="js/ransom.js?v=1019d"></script>
-<script src="js/document.js?v=1019d"></script>
+<script src="js/guard.js?v=1019e"></script>
+<script src="js/wallpaper.js?v=1019e"></script>
+<script src="js/boot.js?v=1019e"></script>
+<script src="js/clock.js?v=1019e"></script>
+<script src="js/startmenu.js?v=1019e"></script>
+<script src="js/audio.js?v=1019e"></script>
+<script src="js/tray.js?v=1019e"></script>
+<script src="js/windowmanager.js?v=1019e"></script>
+<script src="js/update.js?v=1019e"></script>
+<script src="js/settings.js?v=1019e"></script>
+<script src="js/sysdata.js?v=1019e"></script>
+<script src="js/apps.js?v=1019e"></script>
+<script src="js/terminal.js?v=1019e"></script>
+<script src="js/minesweeper.js?v=1019e"></script>
+<script src="js/filesystem.js?v=1019e"></script>
+<script src="js/explorer.js?v=1019e"></script>
+<script src="js/scare.js?v=1019e"></script>
+<script src="js/shell.js?v=1019e"></script>
+<script src="js/bsod.js?v=1019e"></script>
+<script src="js/ransom.js?v=1019e"></script>
+<script src="js/document.js?v=1019e"></script>
 <script>
 const fit=()=>document.getElementById('screen').style.setProperty('--s',Math.min((innerWidth-24)/1024,(innerHeight-24)/768));
 fit();addEventListener('resize',fit);
