@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Web Desktop Simulator</title>
-<link rel="stylesheet" href="css/desktop.css?v=1019f">
+<link rel="stylesheet" href="css/desktop.css?v=1019g">
 <link rel="prefetch" href="img/scare.jpg">
-<link rel="stylesheet" href="css/windows.css?v=1019f">
+<link rel="stylesheet" href="css/windows.css?v=1019g">
 <meta name="robots" content="noindex, nofollow, noarchive, noai, noimageai">
 <meta name="googlebot" content="noindex, nofollow, noarchive">
 </head>
@@ -41,6 +41,8 @@
 <linearGradient id="g-edge-a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a4fc4"/><stop offset=".55" stop-color="#1596c9"/><stop offset="1" stop-color="#2fc4a8"/></linearGradient>
 <linearGradient id="g-edge-b" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#27b27b"/><stop offset="1" stop-color="#5be0a2"/></linearGradient>
 <symbol id="i-edge" viewBox="0 0 48 48"><circle cx="24" cy="24" r="21" fill="url(#g-edge-a)"/><path d="M3.4 27c6-5 12-4 17 0s11 5 16 1c4-3 7-2 8.6-1A21 21 0 0 1 3.4 27z" fill="url(#g-edge-b)"/><path d="M12 15c4-6 13-8 20-4" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="3" stroke-linecap="round"/><circle cx="29" cy="22" r="7.5" fill="none" stroke="#06358f" stroke-opacity=".55" stroke-width="4.5"/></symbol>
+
+<symbol id="i-pinball" viewBox="0 0 48 48"><rect x="4" y="4" width="40" height="40" rx="8" fill="#0d1233"/><circle cx="24" cy="24" r="10" fill="#4cc2ff"/><ellipse cx="24" cy="24" rx="19" ry="5.5" fill="none" stroke="#ffd56b" stroke-width="2.5" transform="rotate(-20 24 24)"/><circle cx="35" cy="13" r="2" fill="#fff"/></symbol>
 </defs></svg>
 
 <div id="screen">
@@ -73,7 +75,7 @@
       <div class="app-tile" data-app="stub:Camera"><span class="emo">📷</span>Camera</div>
       <div class="app-tile" data-app="taskmgr"><svg><use href="#i-taskmgr"/></svg>Task Manager</div>
       <div class="app-tile" data-app="mines"><svg><use href="#i-mine"/></svg>Minesweeper</div>
-      <div class="app-tile" data-app="stub:Movies &amp; TV"><span class="emo">🎬</span>Movies &amp; TV</div>
+      <div class="app-tile" data-app="pinball"><svg><use href="#i-pinball"/></svg>Pinball</div>
       <div class="app-tile" data-app="stub:Phone Link"><span class="emo">📱</span>Phone Link</div>
       <div class="app-tile" data-app="doc"><svg><use href="#i-doc"/></svg>Flag.txt</div>
       <div class="app-tile" data-app="about"><svg><use href="#i-info"/></svg>About</div>
@@ -161,27 +163,29 @@
 
 </div>
 
-<script src="js/guard.js?v=1019f"></script>
-<script src="js/wallpaper.js?v=1019f"></script>
-<script src="js/boot.js?v=1019f"></script>
-<script src="js/clock.js?v=1019f"></script>
-<script src="js/startmenu.js?v=1019f"></script>
-<script src="js/audio.js?v=1019f"></script>
-<script src="js/tray.js?v=1019f"></script>
-<script src="js/windowmanager.js?v=1019f"></script>
-<script src="js/update.js?v=1019f"></script>
-<script src="js/settings.js?v=1019f"></script>
-<script src="js/sysdata.js?v=1019f"></script>
-<script src="js/apps.js?v=1019f"></script>
-<script src="js/terminal.js?v=1019f"></script>
-<script src="js/minesweeper.js?v=1019f"></script>
-<script src="js/filesystem.js?v=1019f"></script>
-<script src="js/explorer.js?v=1019f"></script>
-<script src="js/scare.js?v=1019f"></script>
-<script src="js/shell.js?v=1019f"></script>
-<script src="js/bsod.js?v=1019f"></script>
-<script src="js/ransom.js?v=1019f"></script>
-<script src="js/document.js?v=1019f"></script>
+<script src="js/guard.js?v=1019g"></script>
+<script src="js/wallpaper.js?v=1019g"></script>
+<script src="js/boot.js?v=1019g"></script>
+<script src="js/clock.js?v=1019g"></script>
+<script src="js/startmenu.js?v=1019g"></script>
+<script src="js/audio.js?v=1019g"></script>
+<script src="js/tray.js?v=1019g"></script>
+<script src="js/windowmanager.js?v=1019g"></script>
+<script src="js/update.js?v=1019g"></script>
+<script src="js/settings.js?v=1019g"></script>
+<script src="js/sysdata.js?v=1019g"></script>
+<script src="js/apps.js?v=1019g"></script>
+<script src="js/terminal.js?v=1019g"></script>
+<script src="js/minesweeper.js?v=1019g"></script>
+<script src="js/pinball-engine.js?v=1019g"></script>
+<script src="js/pinball.js?v=1019g"></script>
+<script src="js/filesystem.js?v=1019g"></script>
+<script src="js/explorer.js?v=1019g"></script>
+<script src="js/scare.js?v=1019g"></script>
+<script src="js/shell.js?v=1019g"></script>
+<script src="js/bsod.js?v=1019g"></script>
+<script src="js/ransom.js?v=1019g"></script>
+<script src="js/document.js?v=1019g"></script>
 <script>
 const fit=()=>document.getElementById('screen').style.setProperty('--s',Math.min((innerWidth-24)/1024,(innerHeight-24)/768));
 fit();addEventListener('resize',fit);

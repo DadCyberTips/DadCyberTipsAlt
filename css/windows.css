@@ -233,3 +233,8 @@
 .eg-shield{position:absolute;inset:0}
 .eg.hung{cursor:wait}
 .eg.hung::after{content:'';position:absolute;inset:0;cursor:wait}
+
+.pb{position:absolute;inset:0;display:flex;flex-direction:column;background:#05061a;color:#cfe8ff;user-select:none}
+.pb-hud{display:flex;justify-content:space-between;align-items:center;flex:none;height:28px;padding:0 12px;background:#0a0f33;border-bottom:1px solid #1d2a66;font-size:11px;font-weight:600;letter-spacing:.06em}
+.pb-hud b{margin-left:4px;color:#ffd56b;font-size:13px}
+.pb-cv{display:block;flex:none;touch-action:none}

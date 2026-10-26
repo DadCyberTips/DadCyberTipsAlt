@@ -111,6 +111,7 @@ window.launchApp=a=>{
   if(a==='doc')window.openDocument();
   else if(a==='settings')window.openSettings();
   else if(a==='mines')window.openMinesweeper();
+  else if(a==='pinball')window.openPinball();
   else if(a==='explorer')window.openExplorer();
   else if(a==='calc')window.openCalculator();
   else if(a==='notepad')window.openNotepad();
