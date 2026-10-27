@@ -24,7 +24,7 @@
     const gl = Math.hypot(-38, 22);
     seg(410, 222, 372, 244, { e: 0.2, gate: true, one: { nx: -22 / gl, ny: -38 / gl } });
     // slingshots (solid triangles, kicker on the slanted side)
-    const sling = (A, B, C) => { seg(...A, ...C, { e: 0.6, kick: 300, sling: true }); seg(...A, ...B, { e: 0.3 }); seg(...B, ...C, { e: 0.3 }); };
+    const sling = (A, B, C) => { seg(...A, ...C, { e: 0.6, kick: 300, sling: true }); seg(...A, ...B, { e: 0.3, rubber: true }); seg(...B, ...C, { e: 0.3, rubber: true }); };
     sling([52, 420], [52, 482], [98, 482]); sling([330, 420], [330, 482], [284, 482]);
     // standup target banks
     const banks = { L: [], R: [] };
@@ -37,13 +37,13 @@
     flippers.push({ side: 'R', px: 268, py: 556, len: 62, rest: Math.PI - 0.49, act: Math.PI + 0.49, ang: Math.PI - 0.49, om: 0, down: false });
 
     const S = { W, H, R, score: 0, hi: 0, balls: 3, ballNo: 1, mult: 1, state: 'launch', charge: 0, pulling: false,
-      ball: { x: 391, y: 621, vx: 0, vy: 0 }, events: [], paused: false, still: 0 };
-    const ev = e => S.events.push(e);
+      ball: { x: 391, y: 621, vx: 0, vy: 0 }, events: [], fx: [], t: 0, saveUntil: 0, saveAvail: true, autoAt: 0, paused: false, still: 0 };
+    const ev = (e, x, y) => { S.events.push(e); if (x !== undefined) { S.fx.push({ k: e, x, y }); if (S.fx.length > 200) S.fx.shift(); } };
     const add = n => { S.score += n * S.mult; if (S.score > S.hi) S.hi = S.score; };
 
     function newBall() { S.ball = { x: 391, y: 621, vx: 0, vy: 0 }; S.state = 'launch'; S.charge = 0; S.still = 0; }
     function newGame() {
-      S.score = 0; S.balls = 3; S.ballNo = 1; S.mult = 1; S.events.length = 0;
+      S.score = 0; S.balls = 3; S.ballNo = 1; S.mult = 1; S.events.length = 0; S.fx.length = 0; S.saveUntil = 0; S.saveAvail = true; S.autoAt = 0;
       banks.L.concat(banks.R).forEach(s => { s.lit = false; }); sensors.forEach(s => { s.lit = false; s.inside = false; });
       newBall();
     }
@@ -85,12 +85,14 @@
 
     function hitTarget(s) {
       if (s.lit) { add(50); return; }
-      s.lit = true; add(250); ev('target');
+      const mx = (s.x1 + s.x2) / 2, my = (s.y1 + s.y2) / 2;
+      s.lit = true; add(250); ev('target', mx, my);
       const bank = banks[s.target];
-      if (bank.every(x => x.lit)) { add(5000); ev('bank'); bank.forEach(x => { x.lit = false; }); }
+      if (bank.every(x => x.lit)) { add(5000); ev('bank', mx, my); bank.forEach(x => { x.lit = false; }); }
     }
 
     function sub() {
+      S.t += DT;
       if (S.pulling && S.state === 'launch') S.charge = Math.min(1, S.charge + DT / 1.1);
       flippers.forEach(f => {
         const old = f.ang, target = f.down ? f.act : f.rest, sp = (f.down ? 24 : 14) * DT;
@@ -100,6 +102,7 @@
       bumpers.forEach(c => { c.lit = Math.max(0, c.lit - DT); c.cool = Math.max(0, c.cool - DT); });
       segs.forEach(s => { if (s.hit > 0) s.hit -= DT; });
       if (S.state === 'over') return;
+      if (S.state === 'launch' && S.autoAt && S.t >= S.autoAt) { S.autoAt = 0; launch(0.88, true); }
 
       const b = S.ball;
       b.vy += G * DT;
@@ -112,7 +115,7 @@
           const imp = collideSeg(b, s);
           if (imp > 60) {
             if (s.target) { hitTarget(s); s.hit = 0.15; }
-            else if (s.sling && s.kick) { add(10); ev('sling'); s.hit = 0.12; }
+            else if (s.sling && s.kick) { add(10); ev('sling', b.x, b.y); s.hit = 0.12; }
           }
         }
         flippers.forEach(f => collideFlipper(b, f));
@@ -124,7 +127,7 @@
           const vn = b.vx * nx + b.vy * ny;
           if (vn < 0) { b.vx -= 1.6 * vn * nx; b.vy -= 1.6 * vn * ny; }
           b.vx += nx * 220; b.vy += ny * 220;
-          if (c.cool <= 0) { add(100); ev('bump'); c.lit = 0.15; c.cool = 0.05; }
+          if (c.cool <= 0) { add(100); ev('bump', c.x, c.y); c.lit = 0.15; c.cool = 0.05; }
         }
       }
 
@@ -132,8 +135,8 @@
       sensors.forEach(s => {
         const inside = Math.hypot(b.x - s.x, b.y - s.y) < s.r;
         if (inside && !s.inside && !s.lit) {
-          s.lit = true; add(100); ev('rollover');
-          if (sensors.every(x => x.lit)) { add(1000); S.mult = Math.min(5, S.mult + 1); ev('bonus'); sensors.forEach(x => { x.lit = false; }); }
+          s.lit = true; add(100); ev('rollover', s.x, s.y);
+          if (sensors.every(x => x.lit)) { add(1000); S.mult = Math.min(5, S.mult + 1); ev('bonus', 190, 120); sensors.forEach(x => { x.lit = false; }); }
         }
         s.inside = inside;
       });
@@ -146,9 +149,20 @@
       if (S.still > 2) { b.vy = -380; b.vx = (Math.random() - 0.5) * 300; S.still = 0; ev('rescue'); }
 
       if (b.y > H + 25) {
-        ev('drain');
-        if (S.balls > 1) { S.balls--; S.ballNo++; S.mult = 1; newBall(); } else { S.state = 'over'; ev('over'); }
+        if (S.state === 'play' && S.t < S.saveUntil) {         // ball save: a quick drain after launch is given back
+          S.saveUntil = 0; newBall(); S.autoAt = S.t + 1.3; ev('saved', 391, 600);
+        } else {
+          ev('drain', b.x, H - 10);
+          if (S.balls > 1) { S.balls--; S.ballNo++; S.mult = 1; S.saveAvail = true; newBall(); } else { S.state = 'over'; ev('over'); }
+        }
       }
+    }
+
+    function launch(charge, auto) {
+      S.ball.vy = -(650 + 850 * charge); S.ball.vx = 0; S.state = 'play';
+      // one ball save per ball: the first player launch earns 10 seconds of protection
+      if (!auto && S.saveAvail) { S.saveUntil = S.t + 10; S.saveAvail = false; } else S.saveUntil = 0;
+      ev('launch', 391, 600);
     }
 
     let acc = 0;
@@ -159,7 +173,7 @@
       pull(down) {
         if (down) { S.pulling = true; return; }
         S.pulling = false;
-        if (S.state === 'launch' && S.charge > 0.05) { S.ball.vy = -(650 + 850 * S.charge); S.ball.vx = 0; S.state = 'play'; ev('launch'); }
+        if (S.state === 'launch' && S.charge > 0.05) launch(S.charge, false);
         S.charge = 0;
       },
       newGame
