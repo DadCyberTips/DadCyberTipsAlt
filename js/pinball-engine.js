@@ -1,14 +1,39 @@
 /**
  * Pinball physics + rules, with no drawing code (so it can be tested on its own).
- * An original table: arch, plunger lane with a one-way gate, three pop bumpers,
- * two slingshots, two flippers, two banks of standup targets, and three top rollovers.
+ * An original table: arch, plunger lane with a one-way gate, three pop bumpers, two slingshots,
+ * two flippers, two standup-target banks, a drop-target bank, a spinner, a kick-out saucer,
+ * three top rollovers, two orbit loops and a centre ramp (balls ride those on scripted paths),
+ * and a mission mode that cycles through shots and ranks you up.
  */
 (function(root) {
   const W = 420, H = 640, R = 9, FR = 7, G = 900, DT = 1 / 240, VMAX = 1700;
   const clamp01 = t => Math.max(0, Math.min(1, t));
 
+  // Catmull-Rom smoothing for the ramp / orbit paths
+  function spline(pts, per = 12) {
+    const out = [];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[Math.max(0, i - 1)], p1 = pts[i], p2 = pts[i + 1], p3 = pts[Math.min(pts.length - 1, i + 2)];
+      for (let k = 0; k < per; k++) {
+        const t = k / per, t2 = t * t, t3 = t2 * t, f = j => 0.5 * (2 * p1[j] + (-p0[j] + p2[j]) * t + (2 * p0[j] - 5 * p1[j] + 4 * p2[j] - p3[j]) * t2 + (-p0[j] + 3 * p1[j] - 3 * p2[j] + p3[j]) * t3);
+        out.push([f(0), f(1)]);
+      }
+    }
+    out.push(pts[pts.length - 1]);
+    return out;
+  }
+  const MISSIONS = [
+    { key: 'orbit', need: 3, name: 'ORBIT RUN', hint: 'SHOOT THE ORBITS' },
+    { key: 'ramp', need: 2, name: 'SKYWAY', hint: 'SHOOT THE RAMP' },
+    { key: 'bump', need: 20, name: 'REACTOR', hint: 'HIT THE BUMPERS' },
+    { key: 'drop', need: 2, name: 'SHIELDS', hint: 'CLEAR THE DROP BANK' },
+    { key: 'spin', need: 40, name: 'WARP DRIVE', hint: 'SPIN THE SPINNER' },
+    { key: 'saucer', need: 2, name: 'DOCKING', hint: 'SHOOT THE SAUCER' }
+  ];
+  const RANKS = ['DOCK HAND', 'PILOT', 'NAVIGATOR', 'COMMANDER', 'STARLORD'];
+
   function createEngine() {
-    const segs = [], bumpers = [], sensors = [], flippers = [];
+    const segs = [], bumpers = [], sensors = [], flippers = [], lanes = [], drops = [];
     const seg = (x1, y1, x2, y2, o = {}) => { const s = { x1, y1, x2, y2, e: 0.45, kick: 0, hit: 0, ...o }; segs.push(s); return s; };
 
     // outer walls, lane, slopes
@@ -30,21 +55,54 @@
     const banks = { L: [], R: [] };
     [[250, 278], [292, 320], [334, 362]].forEach(([a, b], i) => banks.L.push(seg(15, a, 15, b, { e: 0.3, target: 'L', idx: i, lit: false })));
     [[300, 328], [342, 370], [384, 412]].forEach(([a, b], i) => banks.R.push(seg(367, a, 367, b, { e: 0.3, target: 'R', idx: i, lit: false })));
+    // drop-target bank: knocked flat by a firm hit, pops back up after the bank is cleared
+    [[262, 282], [286, 306], [310, 330]].forEach(([a, b], i) => drops.push(seg(300, a, 300, b, { e: 0.3, drop: true, down: false, idx: i })));
+
     // bumpers, rollovers, flippers
     [[145, 215], [235, 175], [205, 258]].forEach(([x, y]) => bumpers.push({ x, y, r: 20, lit: 0, cool: 0 }));
-    [[140, 70], [190, 50], [240, 70]].forEach(([x, y]) => sensors.push({ x, y, r: 14, lit: false, inside: false }));
+    [[140, 112], [190, 94], [240, 112]].forEach(([x, y]) => sensors.push({ x, y, r: 14, lit: false, inside: false }));
     flippers.push({ side: 'L', px: 112, py: 556, len: 62, rest: 0.49, act: -0.49, ang: 0.49, om: 0, down: false });
     flippers.push({ side: 'R', px: 268, py: 556, len: 62, rest: Math.PI - 0.49, act: Math.PI + 0.49, ang: Math.PI - 0.49, om: 0, down: false });
 
-    const S = { W, H, R, score: 0, hi: 0, balls: 3, ballNo: 1, mult: 1, state: 'launch', charge: 0, pulling: false,
-      ball: { x: 391, y: 621, vx: 0, vy: 0 }, events: [], fx: [], t: 0, saveUntil: 0, saveAvail: true, autoAt: 0, paused: false, still: 0 };
-    const ev = (e, x, y) => { S.events.push(e); if (x !== undefined) { S.fx.push({ k: e, x, y }); if (S.fx.length > 200) S.fx.shift(); } };
-    const add = n => { S.score += n * S.mult; if (S.score > S.hi) S.hi = S.score; };
+    // ramp + orbit loops: a ball that enters fast enough in the right direction rides a scripted path
+    const mkLane = o => {
+      const pts = spline(o.path), cum = [0];
+      for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+      return { ...o, pts, cum, len: cum[cum.length - 1] };
+    };
+    lanes.push(mkLane({ id: 'orbitL', key: 'orbit', entry: { x: 40, y: 345, r: 20 }, dir: { x: 0, y: -1 }, minSpeed: 400, rideSpeed: 560, exit: { vx: -40, vy: 360 },
+      path: [[40, 345], [32, 260], [44, 172], [88, 102], [150, 62], [210, 48], [270, 62], [332, 102], [352, 160]] }));
+    lanes.push(mkLane({ id: 'orbitR', key: 'orbit', entry: { x: 342, y: 345, r: 20 }, dir: { x: 0, y: -1 }, minSpeed: 400, rideSpeed: 560, exit: { vx: 40, vy: 360 },
+      path: [[342, 345], [350, 260], [338, 172], [294, 102], [232, 62], [172, 48], [112, 62], [50, 102], [30, 160]] }));
+    lanes.push(mkLane({ id: 'ramp', key: 'ramp', entry: { x: 190, y: 392, r: 20 }, dir: { x: 0, y: -1 }, minSpeed: 440, rideSpeed: 520, exit: { vx: 50, vy: 260 },
+      path: [[190, 392], [192, 330], [202, 262], [218, 196], [246, 140], [292, 108]] }));
+    const saucer = { x: 72, y: 235, r: 13, holdFor: 1.0 };
+    const spinner = { x1: 270, x2: 312, y1: 152, ang: 0, om: 0, turns: 0 };
 
-    function newBall() { S.ball = { x: 391, y: 621, vx: 0, vy: 0 }; S.state = 'launch'; S.charge = 0; S.still = 0; }
+    const S = { W, H, R, score: 0, hi: 0, balls: 3, ballNo: 1, mult: 1, state: 'launch', charge: 0, pulling: false,
+      ball: { x: 391, y: 621, vx: 0, vy: 0 }, events: [], fx: [], t: 0, saveUntil: 0, saveAvail: true, autoAt: 0, paused: false, still: 0,
+      ride: null, hold: null, dropReset: 0, mi: 0, have: 0, rank: 0, done: 0, wizard: 0, mission: { ...MISSIONS[0], have: 0 } };
+    const ev = (e, x, y) => { S.events.push(e); if (x !== undefined) { S.fx.push({ k: e, x, y }); if (S.fx.length > 200) S.fx.shift(); } };
+    const add = n => { S.score += n * S.mult * (S.wizard > 0 ? 2 : 1); if (S.score > S.hi) S.hi = S.score; };
+
+    // mission mode: do the current shot enough times, earn points and a rank; after all six, warp mode (x2) for 20s
+    function shot(key) {
+      const m = MISSIONS[S.mi];
+      if (m.key !== key) return;
+      S.have++; S.mission.have = S.have;
+      if (S.have < m.need) { ev('progress'); return; }
+      S.lastReward = 10000 * (S.rank + 1); add(S.lastReward); S.rank = Math.min(RANKS.length - 1, S.rank + 1); S.done++;
+      S.mi = (S.mi + 1) % MISSIONS.length; S.have = 0; S.mission = { ...MISSIONS[S.mi], have: 0 };
+      ev('mission', 190, 300);
+      if (S.done % MISSIONS.length === 0) { S.wizard = 20; ev('wizard', 190, 300); }
+    }
+
+    function newBall() { S.ball = { x: 391, y: 621, vx: 0, vy: 0 }; S.state = 'launch'; S.charge = 0; S.still = 0; S.ride = null; S.hold = null; }
     function newGame() {
       S.score = 0; S.balls = 3; S.ballNo = 1; S.mult = 1; S.events.length = 0; S.fx.length = 0; S.saveUntil = 0; S.saveAvail = true; S.autoAt = 0;
-      banks.L.concat(banks.R).forEach(s => { s.lit = false; }); sensors.forEach(s => { s.lit = false; s.inside = false; });
+      S.mi = 0; S.have = 0; S.rank = 0; S.done = 0; S.wizard = 0; S.dropReset = 0; S.mission = { ...MISSIONS[0], have: 0 };
+      banks.L.concat(banks.R).forEach(s => { s.lit = false; }); drops.forEach(d => { d.down = false; });
+      sensors.forEach(s => { s.lit = false; s.inside = false; }); spinner.ang = 0; spinner.om = 0; spinner.turns = 0;
       newBall();
     }
 
@@ -90,6 +148,18 @@
       const bank = banks[s.target];
       if (bank.every(x => x.lit)) { add(5000); ev('bank', mx, my); bank.forEach(x => { x.lit = false; }); }
     }
+    function hitDrop(s) {
+      s.down = true; s.hit = 0.15; add(300); ev('drop', s.x1, (s.y1 + s.y2) / 2);
+      if (drops.every(d => d.down)) { add(2000); ev('dropbank', 300, 296); shot('drop'); S.dropReset = S.t + 1.4; }
+    }
+
+    const pointAt = (L, d) => {
+      const c = L.cum; let i = 1;
+      while (i < c.length - 1 && c[i] < d) i++;
+      const t = (d - c[i - 1]) / ((c[i] - c[i - 1]) || 1), a = L.pts[i - 1], b = L.pts[i];
+      const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+      return [a[0] + dx * t, a[1] + dy * t, dx / l, dy / l];
+    };
 
     function sub() {
       S.t += DT;
@@ -101,20 +171,44 @@
       });
       bumpers.forEach(c => { c.lit = Math.max(0, c.lit - DT); c.cool = Math.max(0, c.cool - DT); });
       segs.forEach(s => { if (s.hit > 0) s.hit -= DT; });
+      if (S.wizard > 0) S.wizard = Math.max(0, S.wizard - DT);
+      if (S.dropReset && S.t >= S.dropReset) { drops.forEach(d => { d.down = false; }); S.dropReset = 0; ev('dropup', 300, 296); }
+      spinner.ang += spinner.om * DT; spinner.om *= 1 - 1.6 * DT; if (spinner.om < 0.6) spinner.om = 0;
+      const turns = Math.floor(spinner.ang / Math.PI);
+      if (turns > spinner.turns) {
+        for (let i = spinner.turns; i < turns; i++) { add(50); shot('spin'); }
+        spinner.turns = turns; ev('spin', (spinner.x1 + spinner.x2) / 2, spinner.y1);
+      }
       if (S.state === 'over') return;
       if (S.state === 'launch' && S.autoAt && S.t >= S.autoAt) { S.autoAt = 0; launch(0.88, true); }
 
       const b = S.ball;
+      if (S.hold) {                                           // sitting in the saucer
+        S.hold.t += DT;
+        if (S.hold.t >= saucer.holdFor) { b.x = saucer.x + 16; b.y = saucer.y - 2; b.vx = 480; b.vy = -80; S.hold = null; ev('eject', saucer.x, saucer.y); }
+        return;
+      }
+      if (S.ride) {                                           // riding a ramp / orbit on its scripted path
+        const r = S.ride, L = r.lane;
+        r.d += r.speed * DT;
+        if (r.d >= L.len) { const p = L.pts[L.pts.length - 1]; b.x = p[0]; b.y = p[1]; b.vx = L.exit.vx; b.vy = L.exit.vy; S.ride = null; ev('rideEnd'); }
+        else { const q = pointAt(L, r.d); b.x = q[0]; b.y = q[1]; b.vx = q[2] * r.speed; b.vy = q[3] * r.speed; }
+        return;
+      }
+
+      const py = b.y;
       b.vy += G * DT;
-      const sp = Math.hypot(b.vx, b.vy);
-      if (sp > VMAX) { b.vx *= VMAX / sp; b.vy *= VMAX / sp; }
+      const sp0 = Math.hypot(b.vx, b.vy);
+      if (sp0 > VMAX) { b.vx *= VMAX / sp0; b.vy *= VMAX / sp0; }
       b.x += b.vx * DT; b.y += b.vy * DT;
 
       for (let it = 0; it < 2; it++) {
         for (const s of segs) {
+          if (s.drop && s.down) continue;
           const imp = collideSeg(b, s);
           if (imp > 60) {
             if (s.target) { hitTarget(s); s.hit = 0.15; }
+            else if (s.drop) hitDrop(s);
             else if (s.sling && s.kick) { add(10); ev('sling', b.x, b.y); s.hit = 0.12; }
           }
         }
@@ -127,10 +221,12 @@
           const vn = b.vx * nx + b.vy * ny;
           if (vn < 0) { b.vx -= 1.6 * vn * nx; b.vy -= 1.6 * vn * ny; }
           b.vx += nx * 220; b.vy += ny * 220;
-          if (c.cool <= 0) { add(100); ev('bump', c.x, c.y); c.lit = 0.15; c.cool = 0.05; }
+          if (c.cool <= 0) { add(100); ev('bump', c.x, c.y); shot('bump'); c.lit = 0.15; c.cool = 0.05; }
         }
       }
 
+      // spinner: a ball crossing it sets it spinning
+      if ((py - spinner.y1) * (b.y - spinner.y1) < 0 && b.x > spinner.x1 - 6 && b.x < spinner.x2 + 6) spinner.om = Math.min(55, spinner.om + Math.abs(b.vy) * 0.05 + 4);
       // top rollovers
       sensors.forEach(s => {
         const inside = Math.hypot(b.x - s.x, b.y - s.y) < s.r;
@@ -140,9 +236,25 @@
         }
         s.inside = inside;
       });
+      // ramp / orbit entrances: fast enough and heading the right way
+      const speed = Math.hypot(b.vx, b.vy);
+      for (const L of lanes) {
+        const e = L.entry, dx = b.x - e.x, dy = b.y - e.y;
+        if (dx * dx + dy * dy < e.r * e.r && speed >= L.minSpeed && (b.vx * L.dir.x + b.vy * L.dir.y) / speed > 0.6) {
+          S.ride = { lane: L, d: 0, speed: Math.max(L.rideSpeed, Math.min(speed, 900)) };
+          add(L.key === 'ramp' ? 1500 : 500); ev(L.key, e.x, e.y); shot(L.key);
+          b.x = e.x; b.y = e.y;
+          return;
+        }
+      }
+      // kick-out saucer: a ball that rolls in is held for a moment, then fired back out
+      if (speed < 900 && Math.hypot(b.x - saucer.x, b.y - saucer.y) < saucer.r - 2) {
+        S.hold = { t: 0 }; b.x = saucer.x; b.y = saucer.y; b.vx = 0; b.vy = 0;
+        add(1000); ev('saucer', saucer.x, saucer.y); shot('saucer');
+        return;
+      }
 
       // ball fell back into the lane: ready to launch again
-      const speed = Math.hypot(b.vx, b.vy);
       if (S.state === 'play' && b.x > 372 && b.y > 600 && speed < 25) { S.state = 'launch'; S.charge = 0; }
       // rescue a ball that has stopped somewhere it cannot roll out of
       S.still = (speed < 10 && b.y < 500 && S.state === 'play') ? S.still + DT : 0;
@@ -167,7 +279,7 @@
 
     let acc = 0;
     return {
-      S, geo: { segs, bumpers, sensors, flippers, banks },
+      S, geo: { segs, bumpers, sensors, flippers, banks, lanes, drops, saucer, spinner, missions: MISSIONS, ranks: RANKS },
       step(dt) { acc += Math.min(dt, 0.05); let n = 0; while (acc >= DT && n++ < 30) { acc -= DT; sub(); } },
       setFlipper(side, down) { flippers.forEach(f => { if (f.side === side) f.down = !!down; }); },
       pull(down) {
@@ -176,11 +288,11 @@
         if (S.state === 'launch' && S.charge > 0.05) launch(S.charge, false);
         S.charge = 0;
       },
-      newGame
+      newGame, _shot: shot   // _shot is exposed for tests
     };
   }
 
-  const api = { createEngine, W, H, R };
+  const api = { createEngine, W, H, R, MISSIONS, RANKS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.PinballEngine = api;
 })(typeof window !== 'undefined' ? window : globalThis);
