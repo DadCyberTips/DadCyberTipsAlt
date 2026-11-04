@@ -1,5 +1,5 @@
 /**
- * Nova Strike pinball window, early-2000s rendered-3D look.
+ * Snack Cyber pinball window, realistic rendered look.
  * The table (art from pinball-art.js, physics from pinball-engine.js) is drawn flat,
  * warped onto a tilted perspective, given a glass sheen, and shown
  * with a glossy score panel on the right. Everything renders at 2x (A.SC).
@@ -59,7 +59,7 @@
     for (let i = 0; i < 40; i++) { x.fillStyle = '#c8d8ff'; x.fillRect(12 + rnd() * (PANEL - 24), 12 + rnd() * 104, 1, 1); }
     const pg = x.createRadialGradient(150, 40, 2, 160, 50, 30); pg.addColorStop(0, '#ffd0a0'); pg.addColorStop(0.5, '#d0388a'); pg.addColorStop(1, '#3a0a40');
     x.fillStyle = pg; x.beginPath(); x.arc(160, 50, 26, 0, TAU); x.fill();
-    A.chromeText(x, 'NOVA', PANEL / 2 - 8, 46, 34); A.chromeText(x, 'STRIKE', PANEL / 2, 88, 30);
+    A.chromeText(x, 'SNACK', PANEL / 2 - 6, 46, 34); A.chromeText(x, 'CYBER', PANEL / 2, 88, 34);
     // labels and display boxes
     x.font = '700 10px Verdana, Tahoma, sans-serif'; x.textBaseline = 'top';
     [['SCORE', 128, 50], ['MESSAGES', 236, 72], ['MISSION', 330, 72], ['BONUS MULTIPLIER', 424, 30], ['HIGH SCORE', 474, 30], ['CONTROLS', 520, 76]].forEach(([t, y, h]) => {
@@ -79,14 +79,20 @@
     node.innerHTML = '<canvas class="pb-cv"></canvas>';
     const cv = node.querySelector('.pb-cv'), ctx = cv.getContext('2d');
     cv.width = CW * SC; cv.height = CH * SC; cv.style.width = CW + 'px'; cv.style.height = CH + 'px';
-    windowManager.createWindow({ key: 'pinball', title: 'Nova Strike Pinball', icon: 'pinball', node, width: CW + 2, height: CH + 34, left: 200, top: 4 });
+    windowManager.createWindow({ key: 'pinball', title: 'Snack Cyber Pinball', icon: 'pinball', node, width: CW + 2, height: CH + 34, left: 200, top: 4 });
 
     const E = createEngine(), S = E.S, G = E.geo;
     node._engine = E;
     S.hi = +store.get('pinball.hi') || 0;
     E.newGame();
 
-    const TABLE = A.table(W, H), RAILS = A.rails(G.segs, W, H), LANES = A.lanes(G.lanes, W, H), APRON = A.apron(W);
+    const TABLE = A.table(W, H);
+    (() => {                                 // bake the cabinet lighting into the (static, opaque) playfield once
+      const x = TABLE.getContext('2d'); x.save(); x.setTransform(1, 0, 0, 1, 0, 0);
+      x.globalCompositeOperation = 'multiply'; x.drawImage(A.shade(W, H), 0, 0, TABLE.width, TABLE.height);
+      x.globalCompositeOperation = 'lighter'; x.drawImage(A.gi(W, H), 0, 0, TABLE.width, TABLE.height); x.restore();
+    })();
+    const RAILS = A.rails(G.segs, W, H), LANES = A.lanes(G.lanes, W, H), APRON = A.apron(W);
     const BALL = A.ball(), BUMP = [A.bumper(false), A.bumper(true)], PANELBG = buildPanel();
     const SHEEN = (() => {                   // the playfield glass: a broad diagonal reflection and a soft top highlight
       const [cn, x] = A.mk(W, H), a0 = SLICES[0], z = SLICES[NS - 1];
@@ -204,7 +210,13 @@
     const circle = (x, y, r) => { c.beginPath(); c.arc(x, y, r, 0, TAU); };
     const glow = (name, x, y, size, a) => { c.globalCompositeOperation = 'lighter'; c.globalAlpha = a; c.drawImage(HALO[name], x - size / 2, y - size / 2, size, size); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; };
     // a lamp insert set into the playfield: dark coloured plastic when off, bright with light spill when on
-    const insert = (shape, on, col, offCol) => { c.fillStyle = on ? col : offCol; shape(); c.fill(); c.strokeStyle = '#000'; c.lineWidth = 1; c.stroke(); };
+    // translucent plastic insert: unlit it is dim coloured plastic, lit it glows from a bulb underneath; the clearcoat adds a glint
+    const insert = (shape, on, col, offCol) => {
+      shape(); c.fillStyle = on ? col : offCol; c.fill();
+      if (on) { c.globalCompositeOperation = 'lighter'; c.fillStyle = 'rgba(255,255,255,.35)'; c.fill(); c.globalCompositeOperation = 'source-over'; }
+      else { c.fillStyle = 'rgba(255,255,255,.08)'; c.fill(); }
+      c.strokeStyle = on ? 'rgba(255,255,255,.6)' : 'rgba(0,0,0,.7)'; c.lineWidth = 1; c.stroke();
+    };
     const arrow = (x, y, ang, lit, col, sz = 1) => {
       insert(() => { c.save(); c.translate(x, y); c.rotate(ang); c.scale(sz, sz); c.beginPath(); c.moveTo(9, 0); c.lineTo(-6, -7); c.lineTo(-6, 7); c.closePath(); c.restore(); },
         lit, col === 'gold' ? '#ffd56b' : '#7ad4ff', col === 'gold' ? '#4a3510' : '#14305a');
@@ -269,10 +281,10 @@
         const lit = m === 'orbit' ? i < S.mission.have + 1 && blink || i < S.mission.have : (Math.floor(t * 4) + i) % 4 === 0;
         [[40, 'cyan'], [342, 'cyan']].forEach(([x]) => { const y = 336 - i * 16; insert(() => circle(x, y, 3), lit, '#7ad4ff', '#14305a'); if (lit) glow('cyan', x, y, 16, 0.5); });
       }
-      // N-O-V-A letter inserts between the slingshots: one lights per rank earned, all flash in warp mode
+      // S-N-A-C-K letter inserts between the slingshots: one lights per mission completed, all flash in warp mode
       c.font = '900 9px "Arial Black", "Segoe UI", sans-serif'; c.textAlign = 'center';
-      'NOVA'.split('').forEach((ch, i) => {
-        const x = 160 + i * 20, y = 486, lit = S.wizard > 0 ? blink : i < S.rank;
+      'SNACK'.split('').forEach((ch, i) => {
+        const x = 151 + i * 20, y = 486, lit = S.wizard > 0 ? blink : i < S.done;
         insert(() => { c.beginPath(); c.moveTo(x, y - 9); c.lineTo(x + 8, y); c.lineTo(x, y + 9); c.lineTo(x - 8, y); c.closePath(); }, lit, '#ff7ad0', '#3a1440');
         c.fillStyle = lit ? '#3a0020' : '#a05080'; c.fillText(ch, x, y + 3.5);
         if (lit) glow('pink', x, y, 30, 0.55);
@@ -285,17 +297,21 @@
 
       // slingshots: solid plastic with bevelled edges and a rubber kicker
       const slings = G.segs.filter(s => s.sling);
-      const tri = (P, hit) => {
-        c.fillStyle = 'rgba(0,0,0,.6)'; c.beginPath(); P.forEach((p, i) => c[i ? 'lineTo' : 'moveTo'](p[0] + 3, p[1] + 6)); c.closePath(); c.fill();
-        c.fillStyle = '#7a1848'; c.beginPath(); P.forEach((p, i) => c[i ? 'lineTo' : 'moveTo'](p[0], p[1] + 4)); c.closePath(); c.fill();
-        c.fillStyle = hit ? '#ffd0e8' : '#e0488c'; c.beginPath(); P.forEach((p, i) => c[i ? 'lineTo' : 'moveTo'](...p)); c.closePath(); c.fill();
-        c.strokeStyle = '#ffa0c8'; c.lineWidth = 1; c.stroke();
+      const tri = (P, hit) => {                // translucent printed plastic over a lit base, black rubber wrapped round three chrome posts
+        const path = (dx, dy) => { c.beginPath(); P.forEach((p, i) => c[i ? 'lineTo' : 'moveTo'](p[0] + dx, p[1] + dy)); c.closePath(); };
+        path(4, 8); c.fillStyle = 'rgba(0,0,10,.45)'; c.fill();
+        path(0, 0); const lg = c.createLinearGradient(P[0][0], P[0][1], P[2][0], P[2][1]);
+        lg.addColorStop(0, hit ? 'rgba(255,220,235,.95)' : 'rgba(230,70,140,.78)'); lg.addColorStop(1, hit ? 'rgba(255,160,200,.9)' : 'rgba(120,20,70,.82)');
+        c.fillStyle = lg; c.fill();
+        c.strokeStyle = 'rgba(255,255,255,.35)'; c.lineWidth = 0.8; path(-0.6, -0.8); c.stroke();
+        c.lineJoin = 'round'; path(0, 0); c.strokeStyle = '#111'; c.lineWidth = 4; c.stroke(); c.strokeStyle = 'rgba(255,255,255,.18)'; c.lineWidth = 1; path(-0.8, -1); c.stroke();
+        P.forEach(([x, y]) => { const pg = c.createRadialGradient(x - 1, y - 2, 0.5, x, y - 1, 4); pg.addColorStop(0, '#fff'); pg.addColorStop(1, '#4a5070'); c.fillStyle = pg; c.beginPath(); c.arc(x, y - 1, 3.5, 0, TAU); c.fill(); });
       };
       tri([[52, 420], [52, 482], [98, 482]], slings[0] && slings[0].hit > 0); tri([[330, 420], [330, 482], [284, 482]], slings[1] && slings[1].hit > 0);
       c.lineCap = 'round';
       for (const s of slings) {
-        c.strokeStyle = '#000'; c.lineWidth = 6; c.beginPath(); c.moveTo(s.x1, s.y1); c.lineTo(s.x2, s.y2); c.stroke();
-        c.strokeStyle = s.hit > 0 ? '#ffffff' : '#f4f0e0'; c.lineWidth = 4; c.stroke();
+        c.strokeStyle = s.hit > 0 ? '#ffffff' : '#1a1a1a'; c.lineWidth = 5; c.beginPath(); c.moveTo(s.x1, s.y1); c.lineTo(s.x2, s.y2); c.stroke();   // kicker rubber
+        c.strokeStyle = 'rgba(255,255,255,.25)'; c.lineWidth = 1; c.beginPath(); c.moveTo(s.x1 - 1, s.y1 - 1.5); c.lineTo(s.x2 - 1, s.y2 - 1.5); c.stroke();
         if (s.hit > 0) glow('pink', (s.x1 + s.x2) / 2, (s.y1 + s.y2) / 2, 60, 0.8);
       }
       // gate and standup targets

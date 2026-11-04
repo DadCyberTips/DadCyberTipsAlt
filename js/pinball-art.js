@@ -1,6 +1,6 @@
 /**
- * Nova Strike pinball: static art in an early-2000s rendered-3D style
- * (smooth high-colour shading, tall extruded walls, glossy plastics).
+ * Snack Cyber pinball: static art in a realistic rendered style (printed playfield with
+ * clearcoat and grain, cabinet lighting, polished metal, chrome ball, glossy plastics).
  * Everything here is drawn once when the window opens, at 2x for sharpness.
  * Coordinates match the engine (the table is W x H).
  */
@@ -18,10 +18,10 @@
   function chromeText(x, t, cx, cy, size, ital = true) {
     x.save(); x.font = `${ital ? 'italic ' : ''}900 ${size}px "Arial Black", "Segoe UI", sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
     x.lineJoin = 'round';
-    x.fillStyle = '#000'; x.fillText(t, cx + 2, cy + 3);
-    x.strokeStyle = '#05081c'; x.lineWidth = 5; x.strokeText(t, cx, cy);
-    const g = x.createLinearGradient(0, cy - size / 2, 0, cy + size / 2);
-    g.addColorStop(0, '#fff7d0'); g.addColorStop(0.45, '#ffc93a'); g.addColorStop(0.5, '#b0560c'); g.addColorStop(0.75, '#ff9a1f'); g.addColorStop(1, '#ffe7a0');
+    x.fillStyle = 'rgba(0,0,0,.55)'; x.fillText(t, cx + 1.5, cy + 2.5);
+    x.strokeStyle = '#1a1208'; x.lineWidth = 2.5; x.strokeText(t, cx, cy);
+    const g = x.createLinearGradient(0, cy - size / 2, 0, cy + size / 2);   // brushed gold with a sky/horizon reflection
+    g.addColorStop(0, '#fff4d8'); g.addColorStop(0.4, '#e8c070'); g.addColorStop(0.52, '#6a4a18'); g.addColorStop(0.62, '#b88a3a'); g.addColorStop(1, '#f0d8a0');
     x.fillStyle = g; x.fillText(t, cx, cy);
     x.restore();
   }
@@ -75,7 +75,7 @@
     b.fillStyle = 'rgba(40,40,60,.5)'; [[326, 452, 3], [334, 460, 2], [333, 449, 1.5]].forEach(([x, y, r]) => { b.beginPath(); b.arc(x, y, r, 0, TAU); b.fill(); });
     g = b.createLinearGradient(30, 560, 110, 520); g.addColorStop(0, 'rgba(120,220,255,0)'); g.addColorStop(1, 'rgba(200,240,255,.7)');
     b.strokeStyle = g; b.lineWidth = 4; b.beginPath(); b.moveTo(30, 565); b.lineTo(104, 524); b.stroke(); b.fillStyle = '#fff'; b.beginPath(); b.arc(106, 523, 3, 0, TAU); b.fill();
-    chromeText(b, 'NOVA STRIKE', 191, 528, 22);
+    chromeText(b, 'SNACK CYBER', 191, 528, 22);
     // printed shot labels
     const label = (t, x, y, ang = 0) => {
       b.save(); b.translate(x, y); b.rotate(ang); b.font = '900 10px "Arial Black", "Segoe UI", sans-serif'; b.textAlign = 'center';
@@ -87,8 +87,32 @@
     b.fillStyle = g; b.fillRect(372, 244, 38, 396);
     b.fillStyle = '#3a4270'; for (let y = 260; y < 640; y += 12) b.fillRect(376, y, 30, 1);
     b.fillStyle = '#ffd56b'; [330, 385, 440].forEach(y => { b.beginPath(); b.moveTo(382, y + 8); b.lineTo(391, y - 2); b.lineTo(400, y + 8); b.lineTo(391, y + 3); b.closePath(); b.fill(); });
-    // far end of the table sits in shadow
-    g = b.createLinearGradient(0, 0, 0, H * 0.5); g.addColorStop(0, 'rgba(0,0,20,.5)'); g.addColorStop(1, 'rgba(0,0,20,0)'); b.fillStyle = g; b.fillRect(0, 0, W, H);
+    // printed-on-wood grain: fine per-pixel noise plus faint long fibres
+    const id = b.getImageData(0, 0, c.width, c.height), d = id.data;
+    for (let i = 0; i < d.length; i += 4) { const n = (rnd() - 0.5) * 18; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+    b.putImageData(id, 0, 0);
+    b.globalAlpha = 0.05; b.strokeStyle = '#000'; b.lineWidth = 0.6;
+    for (let i = 0; i < 90; i++) { const y = rnd() * H; b.beginPath(); b.moveTo(0, y); b.bezierCurveTo(W / 3, y + (rnd() - 0.5) * 8, W * 2 / 3, y + (rnd() - 0.5) * 8, W, y + (rnd() - 0.5) * 6); b.stroke(); }
+    b.globalAlpha = 1;
+    return c;
+  }
+
+  /* ---------- cabinet lighting: applied over the dynamic table every frame ---------- */
+  function shade(W, H) {           // multiply layer: dim room, far end and edges fall off, lamp-lit centre
+    const [c, x] = mk(W, H, 1);
+    x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
+    let g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#3a3a50'); g.addColorStop(0.3, '#b8b8c8'); g.addColorStop(0.7, '#f0ece6'); g.addColorStop(1, '#8a8682');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    g = x.createLinearGradient(0, 0, W, 0); g.addColorStop(0, 'rgba(30,30,50,.7)'); g.addColorStop(0.16, 'rgba(255,255,255,0)'); g.addColorStop(0.84, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(30,30,50,.7)');
+    x.fillStyle = g; x.fillRect(0, 0, W, H);
+    return c;
+  }
+  function gi(W, H) {              // additive layer: warm light pools from the bulbs hidden under the side rails and slings
+    const [c, x] = mk(W, H, 1);
+    [[30, 300, 70], [350, 300, 70], [70, 470, 80], [310, 470, 80], [190, 560, 90], [60, 140, 60], [330, 140, 60]].forEach(([px, py, r]) => {
+      const g = x.createRadialGradient(px, py, 0, px, py, r); g.addColorStop(0, 'rgba(255,200,140,.22)'); g.addColorStop(1, 'rgba(255,200,140,0)');
+      x.fillStyle = g; x.fillRect(px - r, py - r, r * 2, r * 2);
+    });
     return c;
   }
 
@@ -103,9 +127,10 @@
     pass('rgba(0,0,20,.55)', 9, 4, 11);
     for (let k = 10; k >= 2; k -= 2) pass(`rgb(${40 + k * 4},${44 + k * 4},${70 + k * 5})`, 9, 0, k);   // tall side face, lit from the top
     pass('#5fe0ff', 1.5, 0, 6);            // lit strip along the base of each wall
-    pass('#a8b0cc', 8);                    // top face
-    pass('#e4e8f6', 3, -1, -1.5);          // specular edge
-    pass('#ffffff', 1, -1.5, -2.5);
+    pass('#6a7088', 8);                    // polished top: dark reflection of the room...
+    pass('#b8bccc', 5, -0.5, -0.8);        // ...lit band...
+    pass('#f4f6fc', 1.6, -1, -1.8);        // ...and a sharp highlight
+    pass('rgba(255,255,255,.5)', 0.8, 1.2, 1.2);
     return c;
   }
 
@@ -132,12 +157,17 @@
   }
 
   /* ---------- sprites ---------- */
-  function ball() {
-    const [c, x] = mk(20, 20);
-    const g = x.createRadialGradient(7, 6, 1, 10, 10, 10);
-    g.addColorStop(0, '#ffffff'); g.addColorStop(0.25, '#dfe6f5'); g.addColorStop(0.6, '#7d88a8'); g.addColorStop(0.85, '#2c3350'); g.addColorStop(1, '#151a2e');
-    x.fillStyle = g; x.beginPath(); x.arc(10, 10, 9, 0, TAU); x.fill();
-    x.fillStyle = '#8fa0d8'; x.fillRect(12, 14, 3, 1);      // reflected playfield
+  function ball() {                // chrome: sky above the horizon, dark room band, playfield reflected below
+    const [c, x] = mk(20, 20, 4);
+    x.save(); x.beginPath(); x.arc(10, 10, 9, 0, TAU); x.clip();
+    let g = x.createLinearGradient(0, 1, 0, 19);
+    g.addColorStop(0, '#f4f6fa'); g.addColorStop(0.38, '#aab2c4'); g.addColorStop(0.48, '#2a2e3c'); g.addColorStop(0.58, '#1a1e2c'); g.addColorStop(0.72, '#3a4a9a'); g.addColorStop(1, '#6a5ab0');
+    x.fillStyle = g; x.fillRect(0, 0, 20, 20);
+    g = x.createRadialGradient(10, 10, 5, 10, 10, 9.5); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,10,.55)');   // edge darkening
+    x.fillStyle = g; x.fillRect(0, 0, 20, 20);
+    x.fillStyle = 'rgba(255,220,170,.5)'; x.beginPath(); x.ellipse(13, 14, 3, 1.4, -0.4, 0, TAU); x.fill();   // warm lamp reflection
+    x.restore();
+    x.fillStyle = '#fff'; x.beginPath(); x.ellipse(7, 5.5, 2.4, 1.6, -0.5, 0, TAU); x.fill();                  // key light
     return c;
   }
   function bumper(lit) {                     // tall bumper: chrome base, coloured body, glossy dome cap. Base centre is (30, 44).
@@ -169,11 +199,11 @@
     x.beginPath(); x.moveTo(10, 6); x.lineTo(150, 6); x.lineTo(166, 0); x.lineTo(216, 0); x.lineTo(232, 6); x.lineTo(372, 6); x.lineTo(372, 40); x.lineTo(10, 40); x.closePath(); x.fill();
     x.strokeStyle = '#ffffff'; x.lineWidth = 1; x.beginPath(); x.moveTo(10, 6.5); x.lineTo(150, 6.5); x.lineTo(166, 0.5); x.lineTo(216, 0.5); x.lineTo(232, 6.5); x.lineTo(372, 6.5); x.stroke();
     x.fillStyle = '#20263e'; x.fillRect(150, 14, 82, 20);
-    x.font = '900 9px "Arial Black", "Segoe UI", sans-serif'; x.textAlign = 'center'; x.fillStyle = '#ffd56b'; x.fillText('NOVA STRIKE', 191, 28);
+    x.font = '900 9px "Arial Black", "Segoe UI", sans-serif'; x.textAlign = 'center'; x.fillStyle = '#ffd56b'; x.fillText('SNACK CYBER', 191, 28);
     x.font = '700 8px "Segoe UI", sans-serif'; x.fillStyle = '#20263e';
     x.fillText('3 BALLS PER GAME', 80, 20); x.fillText('COMPLETE MISSIONS', 80, 31); x.fillText('TO RANK UP', 300, 20); x.fillText('6 MISSIONS = WARP', 300, 31);
     return c;
   }
 
-  window.PinballArt = { SC, mk, star, chromeText, table, rails, lanes, ball, bumper, halo, apron };
+  window.PinballArt = { SC, mk, star, chromeText, table, shade, gi, rails, lanes, ball, bumper, halo, apron };
 })();
