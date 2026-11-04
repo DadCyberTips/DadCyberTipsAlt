@@ -16,7 +16,7 @@
   const NS = 200, SLH = H / NS, S_TOP = 0.64;   // perspective: rows narrow towards the far (top) end
   const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   // CTF: reaching FLAG_SCORE lights this flag, printed into the playfield between the pop bumpers (flashes for FLAG_FLASH seconds, then stays faintly lit)
-  const FLAG = '{CTF}[SN4CK-1337]', FLAG_SCORE = 1337, FLAG_FLASH = 10;
+  const FLAG = '{CTF}[SN4CK-1337]', FLAG_SCORE = 31337, FLAG_FLASH = 10;
   const RGB = { gold: '255,213,107', cyan: '76,194,255', pink: '255,95,168', green: '108,240,150', white: '255,255,255' };
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
 
