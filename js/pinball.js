@@ -1,7 +1,7 @@
 /**
  * Nova Strike pinball window, early-2000s rendered-3D look.
  * The table (art from pinball-art.js, physics from pinball-engine.js) is drawn flat,
- * warped onto a steep perspective below a lit backbox, given a glass sheen, and shown
+ * warped onto a tilted perspective, given a glass sheen, and shown
  * with a glossy score panel on the right. Everything renders at 2x (A.SC).
  *
  * Controls: Left Arrow / Z = left flipper, Right Arrow / M or / = right flipper,
@@ -13,8 +13,7 @@
   const { createEngine, W, H } = window.PinballEngine;
   const A = window.PinballArt;
   const PANEL = 200, CW = W + PANEL, CH = H, TAU = Math.PI * 2, SC = A.SC;
-  const TOP = 92;                                // backbox + back wall above the tilted table
-  const NS = 220, SLH = H / NS, S_TOP = 0.5, DEPTH = 1.7;   // far rows are narrower (S_TOP) and squashed harder (DEPTH)
+  const NS = 200, SLH = H / NS, S_TOP = 0.64;   // perspective: rows narrow towards the far (top) end
   const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const RGB = { gold: '255,213,107', cyan: '76,194,255', pink: '255,95,168', green: '108,240,150', white: '255,255,255' };
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
@@ -23,13 +22,12 @@
   const SLICES = [];
   (() => {
     let sum = 0;
-    for (let i = 0; i < NS; i++) { const s = S_TOP + (1 - S_TOP) * (i + 0.5) / NS; SLICES.push({ s }); sum += SLH * Math.pow(s, DEPTH); }
-    const k = (H - TOP) / sum; let y = TOP;
-    SLICES.forEach(o => { o.dh = SLH * Math.pow(o.s, DEPTH) * k; o.dy = y; y += o.dh; o.dw = W * o.s; o.dx = (W - o.dw) / 2; });
+    for (let i = 0; i < NS; i++) { const s = S_TOP + (1 - S_TOP) * (i + 0.5) / NS; SLICES.push({ s }); sum += SLH * s; }
+    const k = H / sum; let y = 0;
+    SLICES.forEach(o => { o.dh = SLH * o.s * k; o.dy = y; y += o.dh; o.dw = W * o.s; o.dx = (W - o.dw) / 2; });
   })();
   const toTable = (sx, sy) => {                  // screen point -> flat table point
     let i = SLICES.findIndex(o => sy < o.dy + o.dh); if (i < 0) i = NS - 1;
-    if (sy < TOP) return [-1, -1];
     const o = SLICES[i], f = (sy - o.dy) / o.dh;
     return [(sx - o.dx) / o.dw * W, (i + f) * SLH];
   };
@@ -72,21 +70,6 @@
     return c;
   }
 
-  function buildBackbox() {                      // lit sign behind the far end of the table
-    const [c, x] = A.mk(W, TOP + 30);
-    let g = x.createLinearGradient(0, 0, 0, TOP); g.addColorStop(0, '#0a0c18'); g.addColorStop(1, '#262c48');
-    x.fillStyle = g; x.fillRect(0, 0, W, TOP + 30);
-    const a = SLICES[0];
-    rrect(x, a.dx + 6, 8, a.dw - 12, TOP - 26, 10); g = x.createLinearGradient(0, 8, 0, TOP - 18); g.addColorStop(0, '#2a1060'); g.addColorStop(0.5, '#6a2aa0'); g.addColorStop(1, '#14306a');
-    x.fillStyle = g; x.fill(); x.strokeStyle = '#c8d0ec'; x.lineWidth = 2; x.stroke();
-    for (let i = 0; i < 30; i++) { x.fillStyle = 'rgba(255,255,255,.8)'; x.fillRect(a.dx + 12 + (i * 97 % (a.dw - 24)), 12 + (i * 53 % (TOP - 34)), 1, 1); }
-    A.chromeText(x, 'NOVA STRIKE', W / 2, 8 + (TOP - 26) / 2, 26);
-    rrect(x, a.dx + 8, 10, a.dw - 16, (TOP - 26) * 0.45, 8); x.fillStyle = 'rgba(255,255,255,.12)'; x.fill();   // glass gloss
-    // back wall of the playfield: a vertical face the table runs into
-    g = x.createLinearGradient(0, TOP - 14, 0, TOP); g.addColorStop(0, '#c8d0ec'); g.addColorStop(0.3, '#5a6488'); g.addColorStop(1, '#141a32');
-    x.fillStyle = g; x.fillRect(a.dx, TOP - 14, a.dw, 14);
-    return c;
-  }
 
   window.openPinball = function() {
     if (windowManager.wins.has('pinball')) { windowManager.createWindow({ key: 'pinball' }); return; }
@@ -104,15 +87,15 @@
     E.newGame();
 
     const TABLE = A.table(W, H), RAILS = A.rails(G.segs, W, H), LANES = A.lanes(G.lanes, W, H), APRON = A.apron(W);
-    const BALL = A.ball(), BUMP = [A.bumper(false), A.bumper(true)], PANELBG = buildPanel(), BACK = buildBackbox();
+    const BALL = A.ball(), BUMP = [A.bumper(false), A.bumper(true)], PANELBG = buildPanel();
     const SHEEN = (() => {                   // the playfield glass: a broad diagonal reflection and a soft top highlight
       const [cn, x] = A.mk(W, H), a0 = SLICES[0], z = SLICES[NS - 1];
-      x.beginPath(); x.moveTo(a0.dx, TOP); x.lineTo(W - a0.dx, TOP); x.lineTo(W - z.dx, H); x.lineTo(z.dx, H); x.closePath(); x.clip();
-      let g = x.createLinearGradient(0, TOP, W, H);
+      x.beginPath(); x.moveTo(a0.dx, 0); x.lineTo(W - a0.dx, 0); x.lineTo(W - z.dx, H); x.lineTo(z.dx, H); x.closePath(); x.clip();
+      let g = x.createLinearGradient(0, 0, W, H);
       g.addColorStop(0, 'rgba(255,255,255,.10)'); g.addColorStop(0.28, 'rgba(255,255,255,0)'); g.addColorStop(0.36, 'rgba(255,255,255,.07)'); g.addColorStop(0.42, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,0)');
       x.fillStyle = g; x.fillRect(0, 0, W, H);
-      g = x.createLinearGradient(0, TOP, 0, TOP + 140); g.addColorStop(0, 'rgba(160,190,255,.14)'); g.addColorStop(1, 'rgba(160,190,255,0)');
-      x.fillStyle = g; x.fillRect(0, TOP, W, 140);
+      g = x.createLinearGradient(0, 0, 0, 140); g.addColorStop(0, 'rgba(160,190,255,.14)'); g.addColorStop(1, 'rgba(160,190,255,0)');
+      x.fillStyle = g; x.fillRect(0, 0, W, 140);
       return cn;
     })();
     const HALO = {}; for (const k in RGB) HALO[k] = A.halo(RGB[k]);
@@ -137,7 +120,7 @@
       bank: () => arp([523, 659, 784, 1047]), bonus: () => arp([392, 523, 659, 784, 1047]), saved: () => arp([784, 659, 523]),
       launch: () => snd('sawtooth', 160, 700, 0.35, 0.09), drain: () => snd('triangle', 420, 70, 0.7, 0.13),
       over: () => snd('triangle', 300, 60, 1.2, 0.14), flip: () => snd('triangle', 180, 90, 0.05, 0.09),
-      orbit: () => snd('sawtooth', 220, 900, 0.45, 0.08), ramp: () => { snd('sawtooth', 160, 1100, 0.5, 0.09); snd('square', 400, 1600, 0.5, 0.05); },
+      orbit: () => snd('sawtooth', 220, 900, 0.45, 0.08), hole: () => { snd('sine', 900, 60, 0.6, 0.14); snd('sawtooth', 120, 40, 0.6, 0.06); },
       spin: () => snd('square', 1400, 1100, 0.025, 0.04), saucer: () => snd('triangle', 200, 80, 0.2, 0.15), eject: () => snd('sawtooth', 120, 600, 0.18, 0.1),
       drop: () => snd('square', 300, 140, 0.07, 0.1), dropbank: () => arp([392, 523, 784]), mission: () => arp([523, 659, 784, 1047, 1319]),
       wizard: () => arp([262, 330, 392, 523, 659, 784, 1047])
@@ -206,7 +189,7 @@
       saved: f => { burst(f.x, f.y, 12, 'green', 160); say('BALL SAVED', 'SHOOT AGAIN', 1500); },
       drain: () => say('BALL LOST', '', 1100),
       orbit: f => { burst(f.x, f.y, 8, 'cyan', 180); say('ORBIT', '+500', 800); },
-      ramp: f => { burst(f.x, f.y, 10, 'gold', 200); say('SKYWAY', '+1,500', 900); },
+      hole: f => { burst(f.x, f.y, 14, 'pink', 160); say('WORMHOLE', '+1,500', 1100); },
       spin: f => burst(f.x, f.y + 8, 2, 'white', 80),
       saucer: f => { burst(f.x, f.y, 10, 'green', 140); say('DOCKING', '+1,000', 1000); },
       eject: f => burst(f.x + 10, f.y, 8, 'green', 200),
@@ -227,7 +210,7 @@
         lit, col === 'gold' ? '#ffd56b' : '#7ad4ff', col === 'gold' ? '#4a3510' : '#14305a');
       if (lit) glow(col, x, y, 34 * sz, 0.7);
     };
-    const drawBall = (b, h) => {       // h = how high above the playfield the ball is (ramps)
+    const drawBall = (b, h) => {       // h = how high above the playfield the ball is (orbits)
       c.fillStyle = `rgba(0,0,20,${0.5 - h * 0.012})`; c.beginPath(); c.ellipse(b.x + 4 + h * 0.5, b.y + 7 + h * 1.1, 8 + h * 0.15, 6, 0, 0, TAU); c.fill();
       const s = 20 + h * 0.4; c.drawImage(BALL, b.x - s / 2, b.y - h - s / 2, s, s);
     };
@@ -249,7 +232,7 @@
         arrow(x + 8, y, 0.52, lit, 'cyan'); arrow(382 - x - 8, y, Math.PI - 0.52, lit, 'cyan');
       }
       // shot arrows: the shot the current mission wants flashes gold
-      [['orbit', 40, 372], ['orbit', 342, 372], ['ramp', 190, 432]].forEach(([k, x, y]) => arrow(x, y, -Math.PI / 2, m === k ? blink : Math.floor(t * 3 + x) % 3 === 0, m === k ? 'gold' : 'cyan', 1.25));
+      [['orbit', 40, 372], ['orbit', 342, 372], ['hole', 190, 428]].forEach(([k, x, y]) => arrow(x, y, -Math.PI / 2, m === k ? blink : Math.floor(t * 3 + x) % 3 === 0, m === k ? 'gold' : 'cyan', 1.25));
       arrow(291, 194, -Math.PI / 2, m === 'spin' && blink, 'gold', 1.1);
       arrow(86, 262, Math.PI, m === 'saucer' && blink, 'gold', 1.1);
       arrow(300, 348, Math.PI / 2, m === 'drop' && blink, 'gold', 1.1);
@@ -268,6 +251,35 @@
       });
       // rollover stars
       for (const s of G.sensors) { insert(() => A.star(c, s.x, s.y, 9.5, 4.2), s.lit, '#ffd56b', '#3a3060'); if (s.lit) glow('gold', s.x, s.y, 36, 0.7); }
+
+      // wormhole: painted vortex turns, ring of lamps chases when it is the mission shot
+      const wh = G.hole, hm = m === 'hole';
+      c.save(); c.translate(wh.x, wh.y); c.rotate(t * (S.hold && S.hold.h === wh ? 6 : 0.8));
+      for (let k = 0; k < 4; k++) { c.rotate(TAU / 4); c.fillStyle = k % 2 ? 'rgba(255,95,168,.35)' : 'rgba(120,80,255,.35)'; c.beginPath(); c.moveTo(0, 0); c.quadraticCurveTo(22, -6, 30, 14); c.quadraticCurveTo(14, 4, 0, 0); c.fill(); }
+      c.restore();
+      for (let i = 0; i < 16; i++) {
+        const a = i * TAU / 16, x = wh.x + Math.cos(a) * 30, y = wh.y + Math.sin(a) * 30, lit = hm ? (i + Math.floor(t * 14)) % 4 === 0 : (i + Math.floor(t * 3)) % 8 === 0;
+        insert(() => circle(x, y, 2.6), lit, '#ff7ad0', '#3a1440'); if (lit) glow('pink', x, y, 16, 0.6);
+      }
+      c.fillStyle = '#9aa2c0'; circle(wh.x, wh.y, wh.r + 3); c.fill();
+      const wg = c.createRadialGradient(wh.x, wh.y, 1, wh.x, wh.y, wh.r); wg.addColorStop(0, '#000'); wg.addColorStop(0.7, '#1a0630'); wg.addColorStop(1, '#6a2aa0');
+      c.fillStyle = wg; circle(wh.x, wh.y, wh.r); c.fill();
+      // orbit progress lamps up each orbit entrance
+      for (let i = 0; i < 4; i++) {
+        const lit = m === 'orbit' ? i < S.mission.have + 1 && blink || i < S.mission.have : (Math.floor(t * 4) + i) % 4 === 0;
+        [[40, 'cyan'], [342, 'cyan']].forEach(([x]) => { const y = 336 - i * 16; insert(() => circle(x, y, 3), lit, '#7ad4ff', '#14305a'); if (lit) glow('cyan', x, y, 16, 0.5); });
+      }
+      // N-O-V-A letter inserts between the slingshots: one lights per rank earned, all flash in warp mode
+      c.font = '900 9px "Arial Black", "Segoe UI", sans-serif'; c.textAlign = 'center';
+      'NOVA'.split('').forEach((ch, i) => {
+        const x = 160 + i * 20, y = 486, lit = S.wizard > 0 ? blink : i < S.rank;
+        insert(() => { c.beginPath(); c.moveTo(x, y - 9); c.lineTo(x + 8, y); c.lineTo(x, y + 9); c.lineTo(x - 8, y); c.closePath(); }, lit, '#ff7ad0', '#3a1440');
+        c.fillStyle = lit ? '#3a0020' : '#a05080'; c.fillText(ch, x, y + 3.5);
+        if (lit) glow('pink', x, y, 30, 0.55);
+      });
+      // bumper-ring lamps flash with the bumpers
+      const anyBump = G.bumpers.some(b => b.lit > 0);
+      for (let i = 0; i < 20; i++) { const a = i * TAU / 20 + 0.1, x = 195 + Math.cos(a) * 100, y = 215 + Math.sin(a) * 100, lit = anyBump ? i % 2 === 0 : (i + Math.floor(t * 6)) % 10 === 0; insert(() => circle(x, y, 2.2), lit, '#ffd56b', '#2a2050'); if (lit) glow('gold', x, y, 14, 0.5); }
 
       c.drawImage(RAILS, 0, 0, W, H);
 
@@ -319,6 +331,13 @@
       if (hot) glow('green', sc.x, sc.y, 50, S.hold ? 0.8 : 0.45);
       // pop bumpers
       for (const b of G.bumpers) { c.drawImage(BUMP[b.lit > 0 ? 1 : 0], b.x - 30, b.y - 44, 60, 72); if (b.lit > 0) glow('gold', b.x, b.y, 80, 0.7); }
+      // rubber posts: chrome post, red rubber ring
+      for (const p of G.posts) {
+        c.fillStyle = 'rgba(0,0,20,.5)'; circle(p.x + 3, p.y + 6, p.r + 1); c.fill();
+        c.fillStyle = p.hit > 0 ? '#ffffff' : '#c01828'; circle(p.x, p.y, p.r + 1); c.fill();
+        const pg = c.createRadialGradient(p.x - 1.5, p.y - 4, 0.5, p.x, p.y - 2, p.r); pg.addColorStop(0, '#fff'); pg.addColorStop(1, '#5a6080');
+        c.fillStyle = pg; circle(p.x, p.y - 2.5, p.r - 1.5); c.fill();
+      }
       // flippers: white plastic bat, red rubber, bevel highlight, steel pivot
       for (const f of G.flippers) {
         const tx = f.px + Math.cos(f.ang) * f.len, ty = f.py + Math.sin(f.ang) * f.len;
@@ -326,8 +345,9 @@
         line('rgba(0,0,0,.6)', 15, 3, 6); line('#8a8478', 15, 0, 3); line('#c01828', 15); line('#f4f0e4', 10); line('#ffffff', 2, -1, -3);
         c.fillStyle = '#9aa2c0'; circle(f.px, f.py, 5); c.fill(); c.fillStyle = '#2a3050'; circle(f.px, f.py, 2); c.fill();
       }
-      // ball under the ramps, the ramp plastics, then the ball on top while it rides one
+      // ball under the orbit plastics, then on top of them while it rides one
       if (!S.ride && !S.hold) drawBall(S.ball, 0);
+      if (S.hold) { const h = S.hold.h; c.globalAlpha = 0.6; c.drawImage(BALL, h.x - 7, h.y - 7, 14, 14); c.globalAlpha = 1; }
       c.drawImage(LANES, 0, 0, W, H);
       if (S.ride) drawBall(S.ball, 22);
       // apron over the drain, plunger in the launch lane
@@ -345,9 +365,9 @@
       const side = flipX => {
         const X = v => flipX ? W - v : v;
         const g = ctx.createLinearGradient(flipX ? W : 0, 0, flipX ? W - a.dx : a.dx, 0); g.addColorStop(0, '#0c0e1a'); g.addColorStop(0.75, '#2a3050'); g.addColorStop(1, '#5a6488');
-        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(X(0), TOP - 14); ctx.lineTo(X(a.dx), TOP - 14); ctx.lineTo(X(z.dx), H); ctx.lineTo(X(0), H); ctx.closePath(); ctx.fill();
-        ctx.strokeStyle = '#c0c6dc'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(a.dx), TOP - 14); ctx.lineTo(X(z.dx), H); ctx.stroke();
-        ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(a.dx + (flipX ? -2 : 2)), TOP); ctx.lineTo(X(z.dx + (flipX ? -2 : 2)), H); ctx.stroke();
+        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(X(0), 0); ctx.lineTo(X(a.dx), 0); ctx.lineTo(X(z.dx), H); ctx.lineTo(X(0), H); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#c0c6dc'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(a.dx), 0); ctx.lineTo(X(z.dx), H); ctx.stroke();
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(a.dx + (flipX ? -2 : 2)), 0); ctx.lineTo(X(z.dx + (flipX ? -2 : 2)), H); ctx.stroke();
       };
       side(false); side(true);
     }
@@ -390,7 +410,6 @@
       drawTable();
       ctx.setTransform(SC, 0, 0, SC, 0, 0);
       ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
-      ctx.drawImage(BACK, 0, 0, W, TOP + 30);
       drawCabinet();
       ctx.save();
       if (shake > 0) ctx.translate((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3);
@@ -399,8 +418,8 @@
       ctx.drawImage(SHEEN, 0, 0, W, H);
       if (S.state === 'over' || paused) {
         ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(0, 0, W, H);
-        A.chromeText(ctx, paused ? 'PAUSED' : 'GAME OVER', W / 2, 320, 30, false);
-        if (!paused) { ctx.font = '700 13px Tahoma, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText('Score ' + fmt(S.score) + '  -  press Enter or click', W / 2, 360); ctx.textAlign = 'left'; }
+        A.chromeText(ctx, paused ? 'PAUSED' : 'GAME OVER', W / 2, 290, 30, false);
+        if (!paused) { ctx.font = '700 13px Tahoma, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText('Score ' + fmt(S.score) + '  -  press Enter or click', W / 2, 330); ctx.textAlign = 'left'; }
       }
       drawPanel(now);
     }

@@ -49,13 +49,39 @@
     for (let i = 0; i < 12; i++) { const a = i * TAU / 12; b.fillStyle = '#ffd56b'; b.beginPath(); b.arc(195 + Math.cos(a) * 89, 215 + Math.sin(a) * 89, 2, 0, TAU); b.fill(); }
     // orbit lanes painted under the arch
     [[170, '#1d2f9a'], [160, '#0c144c'], [150, '#3a1a70'], [146, '#0c144c']].forEach(([r, col]) => { b.strokeStyle = col; b.lineWidth = 6; b.beginPath(); b.arc(210, 210, r, Math.PI + 0.16, TAU - 0.16); b.stroke(); });
-    chromeText(b, 'NOVA STRIKE', 191, 420, 28);
+    // hyperlanes: glowing painted lines radiating from the wormhole
+    b.lineCap = 'round';
+    [[-2.5, 150], [-1.9, 120], [-0.6, 120], [-1.2, 160], [2.2, 90], [0.9, 90]].forEach(([a, L]) => {
+      const x2 = 190 + Math.cos(a) * L, y2 = 392 + Math.sin(a) * L;
+      b.strokeStyle = 'rgba(120,200,255,.18)'; b.lineWidth = 6; b.beginPath(); b.moveTo(190, 392); b.lineTo(x2, y2); b.stroke();
+      b.strokeStyle = 'rgba(160,230,255,.6)'; b.lineWidth = 1.2; b.stroke();
+      b.fillStyle = '#bfe8ff'; b.beginPath(); b.arc(x2, y2, 2, 0, TAU); b.fill();
+    });
+    // wormhole well: dark disc with an accretion rim
+    g = b.createRadialGradient(190, 392, 10, 190, 392, 44); g.addColorStop(0, '#05010e'); g.addColorStop(0.6, '#2a0a50'); g.addColorStop(0.85, '#d0388a'); g.addColorStop(1, 'rgba(208,56,138,0)');
+    b.fillStyle = g; b.beginPath(); b.arc(190, 392, 44, 0, TAU); b.fill();
+    // hex panel pattern behind the bumpers
+    b.strokeStyle = 'rgba(140,180,255,.14)'; b.lineWidth = 1;
+    for (let r = 0; r < 9; r++) for (let q = 0; q < 10; q++) {
+      const hx = 110 + q * 19 + (r % 2) * 9.5, hy = 130 + r * 16.5;
+      if (Math.hypot(hx - 195, hy - 215) > 74) continue;
+      b.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3 + Math.PI / 6; b[k ? 'lineTo' : 'moveTo'](hx + Math.cos(a) * 9, hy + Math.sin(a) * 9); } b.closePath(); b.stroke();
+    }
+    // spiral galaxy top left, small moon right, comet lower left
+    b.save(); b.translate(70, 160); b.rotate(-0.5); b.scale(1, 0.5);
+    for (let k = 0; k < 60; k++) { const a = k * 0.32, r = 3 + k * 0.55; b.fillStyle = `rgba(220,200,255,${0.75 - k * 0.011})`; b.beginPath(); b.arc(Math.cos(a) * r, Math.sin(a) * r, 1.6, 0, TAU); b.arc(-Math.cos(a) * r, -Math.sin(a) * r, 1.6, 0, TAU); b.fill(); }
+    b.restore();
+    g = b.createRadialGradient(326, 452, 1, 330, 456, 14); g.addColorStop(0, '#f0f0f0'); g.addColorStop(1, '#5a5a70'); b.fillStyle = g; b.beginPath(); b.arc(330, 456, 12, 0, TAU); b.fill();
+    b.fillStyle = 'rgba(40,40,60,.5)'; [[326, 452, 3], [334, 460, 2], [333, 449, 1.5]].forEach(([x, y, r]) => { b.beginPath(); b.arc(x, y, r, 0, TAU); b.fill(); });
+    g = b.createLinearGradient(30, 560, 110, 520); g.addColorStop(0, 'rgba(120,220,255,0)'); g.addColorStop(1, 'rgba(200,240,255,.7)');
+    b.strokeStyle = g; b.lineWidth = 4; b.beginPath(); b.moveTo(30, 565); b.lineTo(104, 524); b.stroke(); b.fillStyle = '#fff'; b.beginPath(); b.arc(106, 523, 3, 0, TAU); b.fill();
+    chromeText(b, 'NOVA STRIKE', 191, 528, 22);
     // printed shot labels
     const label = (t, x, y, ang = 0) => {
       b.save(); b.translate(x, y); b.rotate(ang); b.font = '900 10px "Arial Black", "Segoe UI", sans-serif'; b.textAlign = 'center';
       b.fillStyle = '#000'; b.fillText(t, 1, 1); b.fillStyle = '#9fd8ff'; b.fillText(t, 0, 0); b.restore();
     };
-    label('ORBIT', 31, 302, -Math.PI / 2); label('ORBIT', 351, 302, Math.PI / 2); label('SKYWAY', 190, 452); label('SPIN', 291, 178); label('DOCK', 72, 265); label('SHIELDS', 300, 351);
+    label('ORBIT', 31, 302, -Math.PI / 2); label('ORBIT', 351, 302, Math.PI / 2); label('WORMHOLE', 190, 446); label('SPIN', 291, 178); label('DOCK', 72, 265); label('SHIELDS', 300, 351);
     // launch lane: dark metal channel with grooves
     g = b.createLinearGradient(372, 0, 410, 0); g.addColorStop(0, '#05071a'); g.addColorStop(0.5, '#262c52'); g.addColorStop(1, '#0a0e2a');
     b.fillStyle = g; b.fillRect(372, 244, 38, 396);
@@ -72,21 +98,23 @@
     const plain = segs.filter(s => !s.target && !s.sling && !s.rubber && !s.gate && !s.drop);
     const pass = (col, w, dx = 0, dy = 0) => { r.strokeStyle = col; r.lineWidth = w; r.beginPath(); plain.forEach(s => { r.moveTo(s.x1 + dx, s.y1 + dy); r.lineTo(s.x2 + dx, s.y2 + dy); }); r.stroke(); };
     r.lineCap = 'round'; r.lineJoin = 'round';
+    pass('rgba(60,200,255,.10)', 22, 0, 6);   // light spill from the lit edges
     pass('rgba(0,0,20,.35)', 12, 7, 16);   // long soft cast shadow
     pass('rgba(0,0,20,.55)', 9, 4, 11);
     for (let k = 10; k >= 2; k -= 2) pass(`rgb(${40 + k * 4},${44 + k * 4},${70 + k * 5})`, 9, 0, k);   // tall side face, lit from the top
+    pass('#5fe0ff', 1.5, 0, 6);            // lit strip along the base of each wall
     pass('#a8b0cc', 8);                    // top face
     pass('#e4e8f6', 3, -1, -1.5);          // specular edge
     pass('#ffffff', 1, -1.5, -2.5);
     return c;
   }
 
-  /* ---------- ramp + orbit plastics on posts ---------- */
+  /* ---------- orbit plastics on posts ---------- */
   function lanes(L, W, H) {
     const [c, x] = mk(W, H);
     x.lineCap = 'round'; x.lineJoin = 'round';
     L.forEach(l => {
-      const hw = l.key === 'ramp' ? 12 : 8, P = l.pts, left = [], right = [];
+      const hw = 8, P = l.pts, left = [], right = [];
       P.forEach((p, i) => {
         const a = P[Math.max(0, i - 1)], q = P[Math.min(P.length - 1, i + 1)];
         let dx = q[0] - a[0], dy = q[1] - a[1]; const n = Math.hypot(dx, dy) || 1; dx /= n; dy /= n;
@@ -96,7 +124,7 @@
       const rail = (pts, col, w, dx, dy) => { x.strokeStyle = col; x.lineWidth = w; x.beginPath(); pts.forEach((p, i) => x[i ? 'lineTo' : 'moveTo'](p[0] + dx, p[1] + dy)); x.stroke(); };
       for (let k = 1; k <= 6; k++) { ribbon(k * 2, k * 4); x.fillStyle = 'rgba(0,0,20,.09)'; x.fill(); }      // soft shadow far below: the ramps sit high
       for (let i = 4; i < P.length - 2; i += 14) { const p = P[i]; const pg = x.createLinearGradient(p[0] - 2, 0, p[0] + 2, 0); pg.addColorStop(0, '#5a6080'); pg.addColorStop(0.5, '#e0e6f6'); pg.addColorStop(1, '#4a5070'); x.fillStyle = pg; x.fillRect(p[0] - 2, p[1] - 2, 4, 22); }   // chrome support posts
-      ribbon(0, -2); x.fillStyle = l.key === 'ramp' ? 'rgba(90,200,255,.42)' : 'rgba(150,160,255,.32)'; x.fill();   // tinted plastic
+      ribbon(0, -2); x.fillStyle = 'rgba(150,160,255,.32)'; x.fill();   // tinted plastic
       ribbon(0, -2); const sh = x.createLinearGradient(0, 0, W, H); sh.addColorStop(0, 'rgba(255,255,255,.25)'); sh.addColorStop(0.5, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(255,255,255,.12)'); x.fillStyle = sh; x.fill();   // gloss
       [left, right].forEach(s => { rail(s, '#2a2f48', 5, 0, 2); rail(s, '#8a94b8', 3.5, 0, -2); rail(s, '#ffffff', 1.2, -0.5, -3); });
     });

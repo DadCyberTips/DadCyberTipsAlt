@@ -2,14 +2,15 @@
  * Pinball physics + rules, with no drawing code (so it can be tested on its own).
  * An original table: arch, plunger lane with a one-way gate, three pop bumpers, two slingshots,
  * two flippers, two standup-target banks, a drop-target bank, a spinner, a kick-out saucer,
- * three top rollovers, two orbit loops and a centre ramp (balls ride those on scripted paths),
+ * a centre wormhole (another kick-out hole), rubber posts, three top rollovers with lane
+ * guides, two orbit loops (balls ride those on scripted paths),
  * and a mission mode that cycles through shots and ranks you up.
  */
 (function(root) {
   const W = 420, H = 640, R = 9, FR = 7, G = 900, DT = 1 / 240, VMAX = 1700;
   const clamp01 = t => Math.max(0, Math.min(1, t));
 
-  // Catmull-Rom smoothing for the ramp / orbit paths
+  // Catmull-Rom smoothing for the orbit paths
   function spline(pts, per = 12) {
     const out = [];
     for (let i = 0; i < pts.length - 1; i++) {
@@ -24,7 +25,7 @@
   }
   const MISSIONS = [
     { key: 'orbit', need: 3, name: 'ORBIT RUN', hint: 'SHOOT THE ORBITS' },
-    { key: 'ramp', need: 2, name: 'SKYWAY', hint: 'SHOOT THE RAMP' },
+    { key: 'hole', need: 2, name: 'WORMHOLE', hint: 'SHOOT THE WORMHOLE' },
     { key: 'bump', need: 20, name: 'REACTOR', hint: 'HIT THE BUMPERS' },
     { key: 'drop', need: 2, name: 'SHIELDS', hint: 'CLEAR THE DROP BANK' },
     { key: 'spin', need: 40, name: 'WARP DRIVE', hint: 'SPIN THE SPINNER' },
@@ -64,7 +65,7 @@
     flippers.push({ side: 'L', px: 112, py: 556, len: 62, rest: 0.49, act: -0.49, ang: 0.49, om: 0, down: false });
     flippers.push({ side: 'R', px: 268, py: 556, len: 62, rest: Math.PI - 0.49, act: Math.PI + 0.49, ang: Math.PI - 0.49, om: 0, down: false });
 
-    // ramp + orbit loops: a ball that enters fast enough in the right direction rides a scripted path
+    // orbit loops: a ball that enters fast enough in the right direction rides a scripted path
     const mkLane = o => {
       const pts = spline(o.path), cum = [0];
       for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
@@ -74,9 +75,12 @@
       path: [[40, 345], [32, 260], [44, 172], [88, 102], [150, 62], [210, 48], [270, 62], [332, 102], [352, 160]] }));
     lanes.push(mkLane({ id: 'orbitR', key: 'orbit', entry: { x: 342, y: 345, r: 20 }, dir: { x: 0, y: -1 }, minSpeed: 400, rideSpeed: 560, exit: { vx: 40, vy: 360 },
       path: [[342, 345], [350, 260], [338, 172], [294, 102], [232, 62], [172, 48], [112, 62], [50, 102], [30, 160]] }));
-    lanes.push(mkLane({ id: 'ramp', key: 'ramp', entry: { x: 190, y: 392, r: 20 }, dir: { x: 0, y: -1 }, minSpeed: 440, rideSpeed: 520, exit: { vx: 50, vy: 260 },
-      path: [[190, 392], [192, 330], [202, 262], [218, 196], [246, 140], [292, 108]] }));
-    const saucer = { x: 72, y: 235, r: 13, holdFor: 1.0 };
+    // kick-out holes: a ball that rolls in is held, then fired back out along `out`
+    const saucer = { key: 'saucer', x: 72, y: 235, r: 13, holdFor: 1.0, pts: 1000, out: [16, -2, 480, -80] };
+    const hole = { key: 'hole', x: 190, y: 392, r: 14, holdFor: 1.3, pts: 1500, out: [-6, -18, -240, -640] };
+    const holes = [saucer, hole];
+    // rubber posts: lane guides between the top rollovers and a pair guarding the wormhole
+    const posts = [[165, 100], [215, 100], [164, 366], [216, 366], [60, 404], [322, 404]].map(([x, y]) => ({ x, y, r: 5, hit: 0 }));
     const spinner = { x1: 270, x2: 312, y1: 152, ang: 0, om: 0, turns: 0 };
 
     const S = { W, H, R, score: 0, hi: 0, balls: 3, ballNo: 1, mult: 1, state: 'launch', charge: 0, pulling: false,
@@ -170,7 +174,7 @@
         f.om = (f.ang - old) / DT;
       });
       bumpers.forEach(c => { c.lit = Math.max(0, c.lit - DT); c.cool = Math.max(0, c.cool - DT); });
-      segs.forEach(s => { if (s.hit > 0) s.hit -= DT; });
+      segs.forEach(s => { if (s.hit > 0) s.hit -= DT; }); posts.forEach(p => { if (p.hit > 0) p.hit -= DT; });
       if (S.wizard > 0) S.wizard = Math.max(0, S.wizard - DT);
       if (S.dropReset && S.t >= S.dropReset) { drops.forEach(d => { d.down = false; }); S.dropReset = 0; ev('dropup', 300, 296); }
       spinner.ang += spinner.om * DT; spinner.om *= 1 - 1.6 * DT; if (spinner.om < 0.6) spinner.om = 0;
@@ -183,12 +187,12 @@
       if (S.state === 'launch' && S.autoAt && S.t >= S.autoAt) { S.autoAt = 0; launch(0.88, true); }
 
       const b = S.ball;
-      if (S.hold) {                                           // sitting in the saucer
-        S.hold.t += DT;
-        if (S.hold.t >= saucer.holdFor) { b.x = saucer.x + 16; b.y = saucer.y - 2; b.vx = 480; b.vy = -80; S.hold = null; ev('eject', saucer.x, saucer.y); }
+      if (S.hold) {                                           // sitting in a kick-out hole
+        const h = S.hold.h; S.hold.t += DT;
+        if (S.hold.t >= h.holdFor) { b.x = h.x + h.out[0]; b.y = h.y + h.out[1]; b.vx = h.out[2]; b.vy = h.out[3]; S.hold = null; ev('eject', h.x, h.y); }
         return;
       }
-      if (S.ride) {                                           // riding a ramp / orbit on its scripted path
+      if (S.ride) {                                           // riding an orbit on its scripted path
         const r = S.ride, L = r.lane;
         r.d += r.speed * DT;
         if (r.d >= L.len) { const p = L.pts[L.pts.length - 1]; b.x = p[0]; b.y = p[1]; b.vx = L.exit.vx; b.vy = L.exit.vy; S.ride = null; ev('rideEnd'); }
@@ -213,6 +217,14 @@
           }
         }
         flippers.forEach(f => collideFlipper(b, f));
+        for (const p of posts) {
+          const dx = b.x - p.x, dy = b.y - p.y, d = Math.hypot(dx, dy), rr = R + p.r;
+          if (d >= rr) continue;
+          const nx = dx / (d || 1), ny = d ? dy / d : -1;
+          b.x = p.x + nx * rr; b.y = p.y + ny * rr;
+          const vn = b.vx * nx + b.vy * ny;
+          if (vn < 0) { b.vx -= 1.6 * vn * nx; b.vy -= 1.6 * vn * ny; if (-vn > 80) { p.hit = 0.12; add(10); } }
+        }
         for (const c of bumpers) {
           const dx = b.x - c.x, dy = b.y - c.y, d = Math.hypot(dx, dy), rr = R + c.r;
           if (d >= rr) continue;
@@ -236,22 +248,24 @@
         }
         s.inside = inside;
       });
-      // ramp / orbit entrances: fast enough and heading the right way
+      // orbit entrances: fast enough and heading the right way
       const speed = Math.hypot(b.vx, b.vy);
       for (const L of lanes) {
         const e = L.entry, dx = b.x - e.x, dy = b.y - e.y;
         if (dx * dx + dy * dy < e.r * e.r && speed >= L.minSpeed && (b.vx * L.dir.x + b.vy * L.dir.y) / speed > 0.6) {
           S.ride = { lane: L, d: 0, speed: Math.max(L.rideSpeed, Math.min(speed, 900)) };
-          add(L.key === 'ramp' ? 1500 : 500); ev(L.key, e.x, e.y); shot(L.key);
+          add(500); ev(L.key, e.x, e.y); shot(L.key);
           b.x = e.x; b.y = e.y;
           return;
         }
       }
-      // kick-out saucer: a ball that rolls in is held for a moment, then fired back out
-      if (speed < 900 && Math.hypot(b.x - saucer.x, b.y - saucer.y) < saucer.r - 2) {
-        S.hold = { t: 0 }; b.x = saucer.x; b.y = saucer.y; b.vx = 0; b.vy = 0;
-        add(1000); ev('saucer', saucer.x, saucer.y); shot('saucer');
-        return;
+      // kick-out holes: a ball that rolls in is held for a moment, then fired back out
+      for (const h of holes) {
+        if (speed < 900 && Math.hypot(b.x - h.x, b.y - h.y) < h.r - 2) {
+          S.hold = { t: 0, h }; b.x = h.x; b.y = h.y; b.vx = 0; b.vy = 0;
+          add(h.pts); ev(h.key, h.x, h.y); shot(h.key);
+          return;
+        }
       }
 
       // ball fell back into the lane: ready to launch again
@@ -279,7 +293,7 @@
 
     let acc = 0;
     return {
-      S, geo: { segs, bumpers, sensors, flippers, banks, lanes, drops, saucer, spinner, missions: MISSIONS, ranks: RANKS },
+      S, geo: { segs, bumpers, sensors, flippers, banks, lanes, drops, saucer, hole, posts, spinner, missions: MISSIONS, ranks: RANKS },
       step(dt) { acc += Math.min(dt, 0.05); let n = 0; while (acc >= DT && n++ < 30) { acc -= DT; sub(); } },
       setFlipper(side, down) { flippers.forEach(f => { if (f.side === side) f.down = !!down; }); },
       pull(down) {
