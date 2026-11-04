@@ -15,7 +15,7 @@
   const PANEL = 200, CW = W + PANEL, CH = H, TAU = Math.PI * 2, SC = A.SC;
   const NS = 200, SLH = H / NS, S_TOP = 0.64;   // perspective: rows narrow towards the far (top) end
   const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  // CTF: reaching FLAG_SCORE reveals this flag between the pop bumpers (flashes for FLAG_FLASH seconds, then stays lit)
+  // CTF: reaching FLAG_SCORE lights this flag, printed into the playfield between the pop bumpers (flashes for FLAG_FLASH seconds, then stays faintly lit)
   const FLAG = ['{CTF}', '[SN4CK-1337]'], FLAG_SCORE = 1337, FLAG_FLASH = 10;
   const RGB = { gold: '255,213,107', cyan: '76,194,255', pink: '255,95,168', green: '108,240,150', white: '255,255,255' };
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
@@ -226,7 +226,6 @@
 
     /* ---------- drawing the table (flat) ---------- */
     const circle = (x, y, r) => { c.beginPath(); c.arc(x, y, r, 0, TAU); };
-    const rr = (x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
     const glow = (name, x, y, size, a) => { c.globalCompositeOperation = 'lighter'; c.globalAlpha = a; c.drawImage(HALO[name], x - size / 2, y - size / 2, size, size); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; };
     // a lamp insert set into the playfield: dark coloured plastic when off, bright with light spill when on
     // translucent plastic insert: unlit it is dim coloured plastic, lit it glows from a bulb underneath; the clearcoat adds a glint
@@ -253,6 +252,13 @@
     function drawTable() {
       const m = S.mission.key, blink = Math.floor(t * 4) % 2 === 0;
       c.drawImage(TABLE, 0, 0, W, H);
+      // CTF flag: printed into the playfield between the bumpers, lit faintly from below; everything else is drawn over it
+      if (flagAt >= 0) {
+        const age = t - flagAt, a = age < FLAG_FLASH ? (Math.floor(age * 4) % 2 ? 0.25 : 0.6) : 0.32, fx = 192, fy = 214;
+        c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = a * 0.5; c.drawImage(HALO.green, fx - 34, fy - 18, 68, 36);
+        c.globalAlpha = a; c.font = '700 7px "Courier New", monospace'; c.textAlign = 'center'; c.fillStyle = '#9cf0b8';
+        c.fillText(FLAG[0], fx, fy - 1); c.fillText(FLAG[1], fx, fy + 8); c.restore();
+      }
       const speed = flash > 0 ? 20 : 8;
 
       // chasing lamps along the arch
@@ -370,16 +376,6 @@
       if (hot) glow('green', sc.x, sc.y, 50, S.hold ? 0.8 : 0.45);
       // pop bumpers
       for (const b of G.bumpers) { c.drawImage(BUMP[b.lit > 0 ? 1 : 0], b.x - 30, b.y - 44, 60, 72); if (b.lit > 0) glow('gold', b.x, b.y, 80, 0.7); }
-      // CTF flag readout between the bumpers
-      if (flagAt >= 0) {
-        const age = t - flagAt, on = age > FLAG_FLASH || Math.floor(age * 5) % 2 === 0, fx = 192, fy = 214;
-        rr(fx - 36, fy - 15, 72, 30, 5); c.fillStyle = 'rgba(0,4,12,.82)'; c.fill(); c.strokeStyle = on ? '#6cf096' : '#1a3a2a'; c.lineWidth = 1.2; c.stroke();
-        if (on) {
-          glow('green', fx, fy, age < FLAG_FLASH ? 130 : 90, age < FLAG_FLASH ? 0.9 : 0.5);
-          c.font = '700 8px "Courier New", monospace'; c.textAlign = 'center'; c.fillStyle = '#d8ffe4';
-          c.fillText(FLAG[0], fx, fy - 2); c.fillText(FLAG[1], fx, fy + 9);
-        }
-      }
       // rubber posts: chrome post, red rubber ring
       for (const p of G.posts) {
         c.fillStyle = 'rgba(0,0,20,.5)'; circle(p.x + 3, p.y + 6, p.r + 1); c.fill();
