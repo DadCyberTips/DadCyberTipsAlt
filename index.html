@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Web Desktop Simulator</title>
+<title>DESKTOP-SNACK01</title>
 <link rel="stylesheet" href="css/desktop.css?v=1104i">
 <link rel="prefetch" href="img/scare.jpg">
 <link rel="stylesheet" href="css/windows.css?v=1104i">
@@ -150,16 +150,18 @@
 
 <div id="about-modal" class="modal hidden">
   <div class="about-container">
-    <h2>About This Project</h2>
-    <p>This is a web-based desktop simulation created for educational purposes.</p>
-    <p><strong>Not affiliated with Microsoft Corporation.</strong></p>
-    <p>Windows® is a registered trademark of Microsoft Corporation.</p>
-    <p>Update names, KB numbers, and CVE identifiers shown here are fictional.</p>
-    <button class="btn" onclick="closeAbout()">Close</button>
+    <div class="ab-bar"><span>About Windows</span><button onclick="closeAbout()" title="Close">✕</button></div>
+    <div class="ab-body">
+      <div class="ab-hero"><svg class="ab-logo"><use href="#i-start"/></svg><span>Windows 11</span></div>
+      <hr>
+      <p>Windows 11 Pro<br>Version 24H2 (OS Build 26100.2033)</p>
+      <p class="ab-lic">This product is licensed to:<br><b>Guest User</b><br>SnackSpaceCon</p>
+      <div class="ab-btns"><button class="btn" onclick="closeAbout()">OK</button></div>
+    </div>
   </div>
 </div>
 
-<div class="footer-disclaimer">Unofficial web simulation • Not affiliated with Microsoft</div>
+<div class="footer-disclaimer">Not affiliated with Microsoft</div>
 
 </div>
 

@@ -42,8 +42,7 @@
       row('🔋 Power', 'Power mode: Balanced · Plugged in') +
       row('💾 Storage', '98.4 GB of 237 GB used (Local Disk C:)') +
       row('ℹ️ About', 'DESKTOP-SNACK01 · Intel(R) Core(TM) i5-10400 CPU @ 2.90GHz · 16.0 GB RAM · 64-bit operating system, x64-based processor') +
-      row('🪟 Windows specifications', 'Edition Windows 11 Pro · Version 24H2 · OS build 26100.2033') +
-      row('🧩 Simulator', 'Web Desktop Simulator v1.1.0'),
+      row('🪟 Windows specifications', 'Edition Windows 11 Pro · Version 24H2 · OS build 26100.2033'),
     bluetooth: () =>
       row('Bluetooth', 'Discoverable as "DESKTOP-SNACK01"', tog(1)) +
       row('⌨️ Wireless Keyboard', 'Connected · Battery 82%') +
@@ -68,7 +67,7 @@
       row('🚀 Start', 'Layout: More pins · Show recently added apps', tog(1)),
     apps: () =>
       row('Installed apps', '6 apps') +
-      row('📁 File Explorer', 'Microsoft Corporation (simulated) · —') +
+      row('📁 File Explorer', 'Microsoft Corporation · Installed 9/1/2026') +
       row('📝 Notepad', '0.8 MB · Installed 9/1/2026') +
       row('💣 Minesweeper', '2.1 MB · Installed 9/1/2026') +
       row('⚙️ Settings', '1.2 MB · Installed 9/1/2026') +
@@ -82,7 +81,7 @@
       row('Family', 'Add someone to your family group', '›') +
       row('Windows backup', 'Not signed in', '›'),
     time: () =>
-      row('Set time automatically', 'Synchronized with time.windows.com (simulated)', tog(1)) +
+      row('Set time automatically', 'Last synchronized: today · time.windows.com', tog(1)) +
       row('Time zone', '(UTC-05:00) Eastern Time (US & Canada) · Cape Canaveral, FL', '›') +
       row('Adjust for daylight saving time automatically', '', tog(1)) +
       row('Language', 'English (United States)', '›') +

@@ -46,7 +46,7 @@
     if (/\.exe$/i.test(name)) { window.showUAC(name, 'app', path); return; }   // programs that are not built out
     const el = document.createElement('div');
     el.innerHTML = '<div class="menubar"><span>File</span><span>Edit</span><span>View</span></div><div class="doc-content"></div>';
-    el.querySelector('.doc-content').textContent = node.content ?? "This file can't be previewed in this simulation.";
+    el.querySelector('.doc-content').textContent = node.content ?? "This file can't be previewed.";
     windowManager.createWindow({ key: 'view:' + lc(path), title: name + ' - Notepad', icon: 'doc', node: el, width: 560, height: 380, front: true });
   }
 

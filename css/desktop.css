@@ -61,12 +61,19 @@ svg use{pointer-events:none}
 
 .modal{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,.45);z-index:10000}
 .modal.hidden{display:none}
-.about-container{width:92%;max-width:440px;padding:28px 32px;background:#202020;border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 16px 48px rgba(0,0,0,.6)}
-.about-container h2{font-size:18px;font-weight:600;margin-bottom:12px}
-.about-container p{font-size:14px;color:rgba(255,255,255,.8);margin:8px 0}
+.about-container{width:420px;max-width:92%;background:#f3f3f3;color:#1b1b1b;border:1px solid rgba(0,0,0,.2);border-radius:8px;box-shadow:0 16px 48px rgba(0,0,0,.45);overflow:hidden;font-size:13px}
+.ab-bar{display:flex;align-items:center;justify-content:space-between;height:32px;padding-left:12px;font-size:12px}
+.ab-bar button{width:46px;height:32px;border:0;background:none;font-size:12px;color:#1b1b1b}
+.ab-bar button:hover{background:#c42b1c;color:#fff}
+.ab-body{padding:8px 28px 18px}
+.ab-hero{display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 0 10px;font-size:32px;font-weight:300;color:#0067c0}
+.ab-logo{width:38px;height:38px}
+.about-container hr{border:0;border-top:1px solid #d6d6d6;margin:6px 0 14px}
+.about-container p{margin:0 0 12px;line-height:1.5}
+.ab-btns{display:flex;justify-content:flex-end}
 .progress-bar{height:4px;margin:18px 0 10px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
 .progress-fill{height:100%;background:#4cc2ff;transition:width .3s ease}
-.about-container .btn{margin-top:16px}
+.about-container .btn{min-width:88px;padding:6px 16px;background:#0067c0;color:#fff;border-radius:4px}
 .shutdown-screen{position:absolute;inset:0;display:none;justify-content:center;align-items:center;background:#000;font-size:22px;z-index:10001}
 
 .start-search{position:relative}
