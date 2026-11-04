@@ -80,7 +80,7 @@
     const spinner = { x1: 270, x2: 312, y1: 152, ang: 0, om: 0, turns: 0 };
 
     const S = { W, H, R, score: 0, hi: 0, balls: 3, ballNo: 1, mult: 1, state: 'launch', charge: 0, pulling: false,
-      ball: { x: 391, y: 621, vx: 0, vy: 0 }, events: [], fx: [], t: 0, saveUntil: 0, saveAvail: true, autoAt: 0, paused: false, still: 0,
+      ball: { x: 391, y: 621, vx: 0, vy: 0 }, events: [], fx: [], t: 0, saveUntil: 0, saveAvail: true, autoAt: 0, still: 0,
       ride: null, hold: null, dropReset: 0, mi: 0, have: 0, rank: 0, done: 0, wizard: 0, mission: { ...MISSIONS[0], have: 0 } };
     const ev = (e, x, y) => { S.events.push(e); if (x !== undefined) { S.fx.push({ k: e, x, y }); if (S.fx.length > 200) S.fx.shift(); } };
     const add = n => { S.score += n * S.mult * (S.wizard > 0 ? 2 : 1); if (S.score > S.hi) S.hi = S.score; };
