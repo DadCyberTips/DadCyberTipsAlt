@@ -8,5 +8,4 @@ async function bootSequence(){
   boot.classList.add('fade-out');
   await delay(250);
   boot.style.display='none';
-  document.addEventListener('contextmenu',e=>e.preventDefault());
 }

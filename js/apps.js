@@ -6,7 +6,6 @@
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const shrink = w => { w.style.minWidth = '0'; w.style.minHeight = '0'; return w; };
   const already = key => windowManager.wins.has(key) && (windowManager.createWindow({ key }), true);
-  const hash = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
   const rnd = (a, b) => a + Math.random() * (b - a);
 
   /* ---------- "You don't have permission" dialogs ---------- */
@@ -112,8 +111,9 @@
     g.addEventListener('pointerdown', e => { const b = e.target.closest('.cb'); if (b) press(b.dataset.k); });
     g.addEventListener('click', e => { const b = e.target.closest('.cb'); if (b && e.detail === 0) press(b.dataset.k); });
     const map = { '*': '×', '/': '÷', '-': '−', Enter: '=', Backspace: '⌫', Escape: 'C', Delete: 'CE' };
-    document.addEventListener('keydown', e => {
-      if (!n.isConnected || (e.target.closest && e.target.closest('input,textarea'))) return;
+    document.addEventListener('keydown', function onKey(e) {
+      if (!n.isConnected) { document.removeEventListener('keydown', onKey); return; }   // window closed
+      if (e.target.closest && e.target.closest('input,textarea')) return;
       const wm = windowManager;
       if (wm.order[wm.order.length - 1] !== 'calc' || wm.wins.get('calc').min) return;
       const k = map[e.key] ?? e.key;
@@ -169,7 +169,10 @@
       else if (a === 'save') { localStorage.setItem('notepad.text', ta.value); st.textContent = 'Saved'; setTimeout(upd, 1200); }
       else windowManager.closeWindow('notepad');
     });
-    document.addEventListener('pointerdown', e => { if (n.isConnected && !dd.contains(e.target) && e.target !== fm) dd.classList.remove('open'); }, true);
+    document.addEventListener('pointerdown', function onDown(e) {
+      if (!n.isConnected) { document.removeEventListener('pointerdown', onDown, true); return; }
+      if (!dd.contains(e.target) && e.target !== fm) dd.classList.remove('open');
+    }, true);
   };
 
   /* ---------- Task Manager (opens on Services; has a Processes tab too) ---------- */
@@ -191,7 +194,7 @@
     function tick() {
       if (!n.isConnected) { clearInterval(iv); return; }
       const apps = [...windowManager.wins].map(([id, w]) => ({ id, name: w.el.querySelector('.title').textContent,
-        cpu: id === 'taskmgr' ? rnd(1, 3) : rnd(0, 1.2), mem: 20 + hash(id) % 90, disk: 0, net: 0 }));
+        cpu: id === 'taskmgr' ? rnd(1, 3) : rnd(0, 1.2), mem: 20 + SYS.h(id) % 90, disk: 0, net: 0 }));
       const bg = BG.map(([name, c, m, d, nt]) => ({ id: 'bg:' + name, name, cpu: c * rnd(0.7, 1.3), mem: m * rnd(0.98, 1.02), disk: d * rnd(0.5, 1.5), net: nt * rnd(0.5, 1.5) }));
       if (window.updateInProgress) bg.unshift({ id: 'bg:Windows Modules Installer Worker', name: 'Windows Modules Installer Worker', cpu: rnd(8, 24), mem: 142, disk: rnd(1, 6), net: rnd(0.5, 3) });
       const all = apps.concat(bg), tot = k => all.reduce((s, r) => s + r[k], 0);
@@ -280,9 +283,8 @@
       const a = e.target.dataset.a; if (!a) return;
       if (a === 'tstart') {
         if (T.run) { T.run = false; } else {
-          if (T.done || !T.left) T.left = 0;
           const m = +n.querySelector('.t-m').value || 0, s = +n.querySelector('.t-s').value || 0;
-          if (!T.run && (T.done || T.left === 0 || true)) T.left = (m * 60 + s) * 1000 || T.left;
+          T.left = (m * 60 + s) * 1000 || T.left;
           if (T.left > 0) { T.done = false; T.end = Date.now() + T.left; T.run = true; }
         }
       } else if (a === 'treset') { T.run = false; T.done = false; T.left = 5 * 60000; }
@@ -342,7 +344,6 @@
     };
     ['pointerdown', 'keydown', 'touchstart'].forEach(t => n.addEventListener(t, hit, true));
     n.addEventListener('wheel', hit, { capture: true, passive: true });
-    win.__edge = () => ({ loaded, crashed });   // used by tests
     n.focus();
   };
 })();

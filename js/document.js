@@ -6,14 +6,14 @@
 // The contents of Flag.txt
 const documentContent = 'You found the FLAG: {CTF}[I-L0VE-W1NDERS]';
 
-// Drop any text cached in the browser by earlier versions
-localStorage.removeItem('documentContent');
+// Drop any text cached in the browser by earlier versions (storage can be blocked)
+try { localStorage.removeItem('documentContent'); } catch (e) {}
+const markFound = () => { window.flagOpened = true; try { localStorage.setItem('flagFound', '1'); } catch (e) {} };
 
 // Command-line reads of Flag.txt follow the same rules as opening it from the desktop
 window.readFlagForTerminal = function() {
   if (window.docUnlocked !== true || window.docLocked) return null;
-  window.flagOpened = true;
-  localStorage.setItem('flagFound', '1');
+  markFound();
   return documentContent;
 };
 
@@ -29,8 +29,7 @@ function openDocument() {
   
   // Open the document in a window
   if (typeof windowManager !== 'undefined') {
-    window.flagOpened = true;
-    localStorage.setItem('flagFound', '1');
+    markFound();
     windowManager.openDocumentWindow(documentContent);
   }
 }
@@ -77,4 +76,3 @@ function showBlockedMessage() {
 
 // Export globally
 window.openDocument = openDocument;
-window.documentContent = documentContent;

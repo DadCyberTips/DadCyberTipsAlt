@@ -43,7 +43,7 @@
     if (node.scare) { if (window.runJumpScare) window.runJumpScare(); return; }
     if (node.open === 'doc') { window.openDocument(); return; }
     if (node.open) { window.launchApp(node.open); return; }
-    if (/\.exe$/i.test(name) && !node.scare) { window.showUAC(name, 'app', path); return; }   // programs that are not built out
+    if (/\.exe$/i.test(name)) { window.showUAC(name, 'app', path); return; }   // programs that are not built out
     const el = document.createElement('div');
     el.innerHTML = '<div class="menubar"><span>File</span><span>Edit</span><span>View</span></div><div class="doc-content"></div>';
     el.querySelector('.doc-content').textContent = node.content ?? "This file can't be previewed in this simulation.";
@@ -180,8 +180,9 @@
       dd.classList.remove('open');
       render();
     });
-    document.addEventListener('pointerdown', e => {
-      if (node.isConnected && !dd.contains(e.target) && !e.target.classList.contains('ex-view')) dd.classList.remove('open');
+    document.addEventListener('pointerdown', function onDown(e) {
+      if (!node.isConnected) { document.removeEventListener('pointerdown', onDown, true); return; }   // window closed
+      if (!dd.contains(e.target) && !e.target.classList.contains('ex-view')) dd.classList.remove('open');
     }, true);
 
     win.__go = parts => go(parts);

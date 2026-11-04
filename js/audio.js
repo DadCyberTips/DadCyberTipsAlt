@@ -3,21 +3,21 @@
  * button and the Settings > System > Sound slider all control it, and anything
  * that plays sound through it (or through an <audio>/<video> tag) follows.
  *
- *   EmuAudio.play('audio/song.mp3', { loop: true })  // start music, returns the <audio>
- *   EmuAudio.track(el)      // make an existing media element follow the volume
- *   EmuAudio.connect(el)    // optional: route through Web Audio (needed on iOS, same-origin files only)
+ *   EmuAudio.track(el)      // make a media element follow the volume (done automatically for <audio>/<video>)
  *   EmuAudio.ding()         // the little chime played when the slider is released
  *   EmuAudio.ctxOut()       // { ctx, out } to synthesize your own sounds through the master volume
  *   EmuAudio.vol / .muted   // current state (0-100 / boolean)
  */
 (function() {
-  const sv = localStorage.getItem('vol');
-  const S = { vol: sv === null ? 50 : Math.max(0, Math.min(100, +sv || 0)), muted: localStorage.getItem('muted') === '1' };
-  const media = new Set(), routed = new WeakSet();
+  const get = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };   // storage can be blocked
+  const put = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  const sv = get('vol');
+  const S = { vol: sv === null ? 50 : Math.max(0, Math.min(100, +sv || 0)), muted: get('muted') === '1' };
+  const media = new Set();
   let ctx = null, master = null;
 
   const gain = () => S.muted ? 0 : Math.pow(S.vol / 100, 2); // audio taper: quieter at low settings
-  function applyEl(el) { el.volume = routed.has(el) ? 1 : Math.min(1, gain() * (parseFloat(el.dataset.vol) || 1)); }
+  function applyEl(el) { el.volume = Math.min(1, gain() * (parseFloat(el.dataset.vol) || 1)); }
 
   function audioCtx() {
     if (!ctx) {
@@ -36,26 +36,13 @@
     set(vol, muted) {
       S.vol = Math.max(0, Math.min(100, Math.round(vol)));
       S.muted = muted === undefined ? (S.vol > 0 ? false : S.muted) : !!muted;
-      localStorage.setItem('vol', S.vol);
-      localStorage.setItem('muted', S.muted ? '1' : '0');
+      put('vol', S.vol);
+      put('muted', S.muted ? '1' : '0');
       if (master) master.gain.value = gain();
       media.forEach(applyEl);
       window.dispatchEvent(new Event('emuvolume'));
     },
     track(el) { media.add(el); applyEl(el); return el; },
-    connect(el) {
-      const c = audioCtx();
-      if (!c || routed.has(el)) return;
-      c.createMediaElementSource(el).connect(master);
-      routed.add(el); media.add(el); applyEl(el);
-    },
-    play(src, opt = {}) {
-      const a = new Audio(src);
-      a.loop = !!opt.loop; a.dataset.vol = opt.volume ?? 1;
-      api.track(a);
-      a.play().catch(() => {});
-      return a;
-    },
     ctxOut() { const c = audioCtx(); return c ? { ctx: c, out: master } : null; }, // for custom synthesized sounds
     ding() {
       const c = audioCtx();

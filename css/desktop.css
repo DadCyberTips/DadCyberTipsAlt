@@ -15,7 +15,6 @@ svg use{pointer-events:none}
 #desktop{position:relative;width:100%;height:100%;display:none;overflow:hidden}
 #wallpaper{position:absolute;inset:0;background:#0a1020 url(../img/wallpaper.jpg) center/cover no-repeat}
 .desktop-icon{position:absolute;left:8px;top:8px;width:84px;padding:6px 4px;display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid transparent;border-radius:4px;font-size:12px;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.8);outline:0}
-#settings-icon{top:104px}
 .desktop-icon svg{width:44px;height:44px}
 .desktop-icon:hover{background:rgba(255,255,255,.1)}
 .desktop-icon.sel,.desktop-icon:focus-visible{background:rgba(255,255,255,.2);border-color:rgba(255,255,255,.35)}
@@ -31,15 +30,13 @@ svg use{pointer-events:none}
 .taskbar-app::after{content:'';position:absolute;bottom:2px;left:50%;width:6px;height:3px;margin-left:-3px;border-radius:2px;background:#9a9a9a;transition:width .12s,margin .12s}
 .taskbar-app.active::after{width:16px;margin-left:-8px;background:#4cc2ff}
 .system-tray{display:flex;align-items:center;gap:6px;font-size:12px}
-#notification-icon,.tray-clock{padding:4px 8px;border-radius:4px}
-#notification-icon:hover,.tray-clock:hover{background:rgba(255,255,255,.09)}
-.tray-clock{text-align:right;line-height:1.25}
+.tray-clock{padding:4px 8px;border-radius:4px;text-align:right;line-height:1.25}
+.tray-clock:hover{background:rgba(255,255,255,.09)}
 
 #start-menu{position:absolute;bottom:60px;left:50%;width:560px;height:620px;max-width:calc(100% - 16px);max-height:calc(100% - 68px);overflow:hidden;display:flex;flex-direction:column;padding:24px 28px 0;background:rgba(38,38,38,.98);border:1px solid rgba(255,255,255,.08);border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:1001;opacity:0;visibility:hidden;transform:translate(-50%,10px);transition:opacity .1s,transform .1s,visibility 0s .1s}
 #start-menu.open{opacity:1;visibility:visible;transform:translate(-50%,0);transition:opacity .1s,transform .1s}
 .start-search input{width:100%;padding:10px 14px 10px 38px;border:1px solid rgba(255,255,255,.08);border-bottom:2px solid #4cc2ff;border-radius:20px;background:rgba(255,255,255,.08);color:#fff;font-size:14px;outline:0;user-select:text}
 .start-search input::placeholder{color:rgba(255,255,255,.55)}
-.start-section-title{font-size:13px;font-weight:600;margin:22px 0 10px}
 .start-pinned{flex:1;align-content:start;display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
 .app-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border-radius:6px;font-size:12px;transition:background .08s}
 .app-tile svg{width:32px;height:32px}
@@ -60,19 +57,15 @@ svg use{pointer-events:none}
 .btn:hover{background:#6bcfff}
 .btn:active{background:#3aa9e8;transform:scale(.97)}
 
-.notification-toast{position:absolute;bottom:60px;right:12px;width:340px;max-width:calc(100% - 24px);padding:14px 16px;background:#2b2b2b;border:1px solid rgba(255,255,255,.08);border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.5);font-size:13px;z-index:1002;transition:opacity .15s,transform .15s}
-.notification-toast.hidden{opacity:0;transform:translateY(12px);pointer-events:none}
-.toast-content{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .footer-disclaimer{position:absolute;bottom:54px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,.55);z-index:999;pointer-events:none;white-space:nowrap}
 
 .modal{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;background:rgba(0,0,0,.45);z-index:10000}
 .modal.hidden{display:none}
-.update-container,.about-container{width:92%;max-width:440px;padding:28px 32px;background:#202020;border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 16px 48px rgba(0,0,0,.6)}
-.update-container h2,.about-container h2{font-size:18px;font-weight:600;margin-bottom:12px}
-.update-container p,.about-container p{font-size:14px;color:rgba(255,255,255,.8);margin:8px 0}
+.about-container{width:92%;max-width:440px;padding:28px 32px;background:#202020;border:1px solid rgba(255,255,255,.1);border-radius:8px;box-shadow:0 16px 48px rgba(0,0,0,.6)}
+.about-container h2{font-size:18px;font-weight:600;margin-bottom:12px}
+.about-container p{font-size:14px;color:rgba(255,255,255,.8);margin:8px 0}
 .progress-bar{height:4px;margin:18px 0 10px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
 .progress-fill{height:100%;background:#4cc2ff;transition:width .3s ease}
-.update-container .update-percentage{font-size:13px;color:rgba(255,255,255,.7)}
 .about-container .btn{margin-top:16px}
 .shutdown-screen{position:absolute;inset:0;display:none;justify-content:center;align-items:center;background:#000;font-size:22px;z-index:10001}
 
@@ -111,12 +104,6 @@ svg use{pointer-events:none}
 .update-body .progress-bar{margin:16px 0 10px;background:rgba(0,0,0,.12)}
 .update-body .progress-fill{background:#0067c0;transition:width .5s ease}
 .update-note{font-size:12px;color:#666}
-.up-h{font-size:16px;font-weight:600;color:#1b1b1b;margin-bottom:6px}
-.up-kb{font-size:13px;font-weight:600;color:#333;margin-bottom:6px}
-.up-desc{font-size:13px;line-height:1.45;color:#555;margin-bottom:14px}
-.update-body .btn{background:#0067c0;color:#fff}
-.update-body .btn:hover{background:#1a78cc}
-.update-body .btn:active{background:#005aa8}
 
 .taskbar-app:not(.open)::after{display:none}
 .tray-clock.active{background:rgba(255,255,255,.14)}

@@ -96,7 +96,7 @@
     function lose(i) {
       over = true; clearInterval(timer);
       cells[i].boom = true; face.textContent = '😵';
-      cells.forEach((k, j) => { if (k.mine && !k.flag) k.open = true; draw(j); });
+      cells.forEach(k => { if (k.mine && !k.flag) k.open = true; });
       cells.forEach((_, j) => draw(j));
     }
     function win_() {
@@ -169,8 +169,8 @@
       else if (a === 'new') newGame();
       else newGame(a);
     });
-    document.addEventListener('pointerdown', e => {
-      if (!node.isConnected) return;
+    document.addEventListener('pointerdown', function onDown(e) {
+      if (!node.isConnected) { document.removeEventListener('pointerdown', onDown, true); return; }   // window closed
       if (!dd.contains(e.target) && e.target !== game) { dd.classList.remove('open'); game.classList.remove('on'); }
     }, true);
 

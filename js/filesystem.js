@@ -72,7 +72,7 @@ function todoList() {
  * Add your own files anywhere below; the placeholder keys are {CTF}[REPLACE-ME-n].
  */
 window.FS = (() => {
-  const _h = s => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const _h = SYS.h;
   const _date = n => `2026-0${1 + _h(n) % 9}-${String(1 + _h(n + 'd') % 28).padStart(2, '0')} ${String(8 + _h(n + 't') % 12).padStart(2, '0')}:${String(_h(n + 'm') % 60).padStart(2, '0')}`;
   const D = (children = {}, o = {}) => ({ type: 'dir', children, ...o });
   const F = (o = {}) => ({ type: 'file', ...o });

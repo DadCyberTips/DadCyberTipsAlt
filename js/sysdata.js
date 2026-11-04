@@ -37,7 +37,7 @@ window.SYS = (() => {
 
   // window key -> process image shown while that app is open
   const APPIMG = { notepad: 'notepad.exe', calc: 'CalculatorApp.exe', taskmgr: 'Taskmgr.exe', settings: 'SystemSettings.exe', minesweeper: 'Minesweeper.exe', edge: 'msedge.exe',
-    cmd: 'cmd.exe', ps: 'powershell.exe', clock: 'Time.exe', explorer: null };
+    cmd: 'cmd.exe', ps: 'powershell.exe', clock: 'Time.exe', pinball: 'Pinball.exe', explorer: null };
 
   // The machine lives at Cape Canaveral, FL (US Eastern time)
   const tz = 'America/New_York', place = 'Cape Canaveral, FL';
@@ -58,5 +58,5 @@ window.SYS = (() => {
     if (window.updateInProgress) a.push({ img: 'TrustedInstaller.exe', pid: 3300, ses: 'Services', mem: 142000, sys: true });
     return a.concat(apps());
   };
-  return { net, procs, services, apps, all, h, APPIMG, tz, place, today };
+  return { net, services, apps, all, h, tz, place, today };
 })();

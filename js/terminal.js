@@ -283,7 +283,7 @@
     const pat = rest[0], ci = fl.includes('/i');
     grep(c, { test: l => ci ? lc(l).includes(lc(pat)) : l.includes(pat), specs: rest.slice(1), rec: false, number: fl.includes('/n'), invert: fl.includes('/v'), header: true });
   });
-  ['mkdir md rmdir rd del erase copy move ren rename xcopy robocopy mklink'].forEach(n => def(n, (a, c) => c.emit('Access is denied.')));
+  def('mkdir md rmdir rd del erase copy move ren rename xcopy robocopy mklink', (a, c) => c.emit('Access is denied.'));
 
   /* ---------- network ---------- */
   def('ipconfig', (a, c) => {
@@ -535,7 +535,7 @@
     grep(c, { test: l => re.test(l), specs, rec: a.some(x => /^-recurse$/i.test(x)), number: true, withNames: true });
   }, PSCMD);
   def('get-filehash', async (a, c) => {
-    const ai = a.findIndex(x => lc(x) === '-algorithm'), alg = ai >= 0 ? a[ai + 1].toUpperCase() : 'SHA256';
+    const ai = a.findIndex(x => lc(x) === '-algorithm'), alg = ai >= 0 ? (a[ai + 1] || 'SHA256').toUpperCase() : 'SHA256';
     const file = psArg(ai >= 0 ? a.filter((x, i) => i !== ai && i !== ai + 1) : a, ['-path']);
     const f = readFile(file || '', c.S);
     if (f.err) { c.emit(`Get-FileHash : Cannot find path '${file}' because it does not exist.`); return; }
@@ -669,8 +669,6 @@
     node.addEventListener('keydown', e => { if (S.busy && e.ctrlKey && lc(e.key) === 'c') { S.aborted = true; print('^C'); } });
     node.addEventListener('pointerdown', () => { if (!getSelection().toString()) setTimeout(() => (S.busy ? node : inp).focus(), 0); });
 
-    win.__run = submit;            // used by tests
-    win.__text = () => out.textContent;
     print(...(key === 'ps' ? PS_BANNER : CMD_BANNER));
     setPrompt();
     inp.focus();
