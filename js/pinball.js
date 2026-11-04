@@ -32,13 +32,23 @@
     return [(sx - o.dx) / o.dw * W, (i + f) * SLH];
   };
 
-  /* ---------- 7-segment digits for the score ---------- */
-  const DIG = ['abcdef', 'bc', 'abged', 'abgcd', 'fgbc', 'afgcd', 'afgedc', 'abc', 'abcdefg', 'abcdfg'];
-  function seg7(c, x, y, w, h, d) {
-    const t = 3, on = d === null ? '' : DIG[d], hh = h / 2;
-    const S = { a: [x + t, y, w - 2 * t, t], d: [x + t, y + h - t, w - 2 * t, t], g: [x + t, y + hh - t / 2, w - 2 * t, t],
-      f: [x, y + t, t, hh - t], b: [x + w - t, y + t, t, hh - t], e: [x, y + hh, t, hh - t], c: [x + w - t, y + hh, t, hh - t] };
-    for (const k in S) { c.fillStyle = on.includes(k) ? '#6ff0ff' : '#0c2a3a'; c.fillRect(...S[k]); }
+  /* ---------- plasma dot-matrix display (DMD), as on a real machine ---------- */
+  function makeDMD(cols, rows, pitch) {
+    const [src, sx] = A.mk(cols, rows, 1), [out, ox] = A.mk(cols * pitch, rows * pitch); let key = '';
+    return (ctx, x, y, lines) => {
+      const k = JSON.stringify(lines);
+      if (k !== key) {                          // re-rasterise the dots only when the text changes
+        key = k; sx.fillStyle = '#000'; sx.fillRect(0, 0, cols, rows); sx.fillStyle = '#fff'; sx.textAlign = 'center'; sx.textBaseline = 'top';
+        lines.forEach(l => { sx.font = l.font; sx.fillText(l.t, cols / 2, l.y); });
+        const d = sx.getImageData(0, 0, cols, rows).data, r = pitch * 0.42;
+        ox.clearRect(0, 0, cols * pitch, rows * pitch);
+        for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
+          ox.fillStyle = d[(j * cols + i) * 4] >= 90 ? '#ff8c1a' : '#2a1204';
+          ox.beginPath(); ox.arc(i * pitch + r, j * pitch + r, r, 0, TAU); ox.fill();
+        }
+      }
+      ctx.drawImage(out, x, y, cols * pitch, rows * pitch);
+    };
   }
   const rrect = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
   function glassBox(c, x, y, w, h) {             // dark glass display with a chrome rim and a gloss highlight on the top half
@@ -93,6 +103,7 @@
       x.globalCompositeOperation = 'lighter'; x.drawImage(A.gi(W, H), 0, 0, TABLE.width, TABLE.height); x.restore();
     })();
     const RAILS = A.rails(G.segs, W, H), LANES = A.lanes(G.lanes, W, H), APRON = A.apron(W);
+    const scoreDMD = makeDMD(71, 18, 2.5), msgDMD = makeDMD(71, 27, 2.5);
     const BALL = A.ball(), BUMP = [A.bumper(false), A.bumper(true)], PANELBG = buildPanel();
     const SHEEN = (() => {                   // the playfield glass: a broad diagonal reflection and a soft top highlight
       const [cn, x] = A.mk(W, H), a0 = SLICES[0], z = SLICES[NS - 1];
@@ -102,6 +113,11 @@
       x.fillStyle = g; x.fillRect(0, 0, W, H);
       g = x.createLinearGradient(0, 0, 0, 140); g.addColorStop(0, 'rgba(160,190,255,.14)'); g.addColorStop(1, 'rgba(160,190,255,0)');
       x.fillStyle = g; x.fillRect(0, 0, W, 140);
+      [[150, 18, .06], [250, 8, .045]].forEach(([cx, w, a]) => {    // long reflections of the room's ceiling lights
+        x.save(); x.translate(cx, H / 2); x.rotate(0.22);
+        const lg = x.createLinearGradient(-w, 0, w, 0); lg.addColorStop(0, 'rgba(255,255,255,0)'); lg.addColorStop(0.5, `rgba(255,250,240,${a})`); lg.addColorStop(1, 'rgba(255,255,255,0)');
+        x.fillStyle = lg; x.fillRect(-w, -H, w * 2, H * 2); x.restore();
+      });
       return cn;
     })();
     const HALO = {}; for (const k in RGB) HALO[k] = A.halo(RGB[k]);
@@ -219,12 +235,16 @@
     };
     const arrow = (x, y, ang, lit, col, sz = 1) => {
       insert(() => { c.save(); c.translate(x, y); c.rotate(ang); c.scale(sz, sz); c.beginPath(); c.moveTo(9, 0); c.lineTo(-6, -7); c.lineTo(-6, 7); c.closePath(); c.restore(); },
-        lit, col === 'gold' ? '#ffd56b' : '#7ad4ff', col === 'gold' ? '#4a3510' : '#14305a');
+        lit, col === 'gold' ? '#ffd56b' : '#ffc070', col === 'gold' ? '#4a3510' : '#14305a');
       if (lit) glow(col, x, y, 34 * sz, 0.7);
     };
     const drawBall = (b, h) => {       // h = how high above the playfield the ball is (orbits)
       c.fillStyle = `rgba(0,0,20,${0.5 - h * 0.012})`; c.beginPath(); c.ellipse(b.x + 4 + h * 0.5, b.y + 7 + h * 1.1, 8 + h * 0.15, 6, 0, 0, TAU); c.fill();
-      const s = 20 + h * 0.4; c.drawImage(BALL, b.x - s / 2, b.y - h - s / 2, s, s);
+      const s = 20 + h * 0.4, sp = Math.hypot(b.vx, b.vy);
+      if (sp > 450) for (let k = 3; k >= 1; k--) {                    // motion blur at speed
+        const f = k * 0.006; c.globalAlpha = 0.12; c.drawImage(BALL, b.x - b.vx * f - s / 2, b.y - b.vy * f - h - s / 2, s, s);
+      }
+      c.globalAlpha = 1; c.drawImage(BALL, b.x - s / 2, b.y - h - s / 2, s, s);
     };
 
     function drawTable() {
@@ -251,7 +271,7 @@
       // mission lamps (six) and multiplier inserts
       for (let i = 0; i < 6; i++) {
         const x = [108, 134, 160, 236, 262, 288][i], done = i < S.mi, now = i === S.mi;
-        insert(() => circle(x, 302, 6.5), done || (now && blink), done ? '#ffd56b' : '#7ad4ff', '#1a2350');
+        insert(() => circle(x, 302, 6.5), done || (now && blink), done ? '#ffd56b' : '#ffc070', '#1a2350');
         if (done) glow('gold', x, 302, 26, 0.55); else if (now && blink) glow('cyan', x, 302, 26, 0.6);
       }
       c.font = '900 9px "Arial Black", "Segoe UI", sans-serif'; c.textAlign = 'center';
@@ -279,7 +299,7 @@
       // orbit progress lamps up each orbit entrance
       for (let i = 0; i < 4; i++) {
         const lit = m === 'orbit' ? i < S.mission.have + 1 && blink || i < S.mission.have : (Math.floor(t * 4) + i) % 4 === 0;
-        [[40, 'cyan'], [342, 'cyan']].forEach(([x]) => { const y = 336 - i * 16; insert(() => circle(x, y, 3), lit, '#7ad4ff', '#14305a'); if (lit) glow('cyan', x, y, 16, 0.5); });
+        [[40, 'cyan'], [342, 'cyan']].forEach(([x]) => { const y = 336 - i * 16; insert(() => circle(x, y, 3), lit, '#ffc070', '#14305a'); if (lit) glow('cyan', x, y, 16, 0.5); });
       }
       // S-N-A-C-K letter inserts between the slingshots: one lights per mission completed, all flash in warp mode
       c.font = '900 9px "Arial Black", "Segoe UI", sans-serif'; c.textAlign = 'center';
@@ -391,8 +411,7 @@
       const X = W;
       ctx.drawImage(PANELBG, X, 0, PANEL, CH);
       // score
-      const digits = String(Math.round(shown)).padStart(9, ' ').slice(-9);
-      for (let i = 0; i < 9; i++) seg7(ctx, X + 13 + i * 20, 147, 15, 28, digits[i] === ' ' ? null : +digits[i]);
+      scoreDMD(ctx, X + 12, 144, [{ t: fmt(shown), font: 'bold 17px Arial, sans-serif', y: 1 }]);
       ctx.font = '700 11px Verdana, sans-serif'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
       ctx.fillStyle = '#e0e8ff'; ctx.font = '700 11px Verdana, sans-serif'; ctx.fillText(`BALL ${Math.min(S.ballNo, 3)}`, X + 12, 196); ctx.fillText(`PLAYER 1`, X + 112, 196);
       ctx.fillStyle = '#ffd56b'; ctx.fillText(`RANK  ${G.ranks[S.rank]}`, X + 12, 213);
@@ -405,22 +424,21 @@
       else if (paused || !active()) { l1 = 'PAUSED'; l2 = paused ? 'PRESS P' : 'CLICK TABLE'; }
       else if (S.state === 'launch') { l1 = S.charge > 0 ? 'POWER' : 'HOLD SPACE'; l2 = S.charge > 0 ? '■'.repeat(Math.round(S.charge * 12)) : (blink ? '' : 'TO LAUNCH'); }
       else if (S.wizard > 0) { l1 = 'WARP MODE x2'; l2 = Math.ceil(S.wizard) + ' SEC'; }
-      ctx.fillStyle = '#6ff0ff'; ctx.font = '700 12px Verdana, sans-serif';
-      if (l1) ctx.fillText(l1, X + 14, 256); if (l2) ctx.fillText(l2, X + 14, 274);
-      ctx.fillStyle = '#2a7a9a'; ctx.fillText(S.ride ? '>> ON LANE' : '', X + 14, 294);
+      msgDMD(ctx, X + 12, 252, [{ t: l1 || '', font: 'bold 12px Arial, sans-serif', y: 1 }, { t: l2 || '', font: 'bold 12px Arial, sans-serif', y: 14 }]);
+      ctx.font = '700 10px Verdana, sans-serif';
       // mission
       const ms = S.mission;
-      ctx.fillStyle = '#7ad4ff'; ctx.fillText(ms.name, X + 14, 348); ctx.fillStyle = '#6ff0ff'; ctx.font = '700 10px Verdana, sans-serif'; ctx.fillText(ms.hint, X + 14, 366);
-      ctx.fillStyle = '#0c2a3a'; ctx.fillRect(X + 14, 382, PANEL - 28, 8); ctx.fillStyle = '#6ff0ff'; ctx.fillRect(X + 14, 382, (PANEL - 28) * Math.min(1, ms.have / ms.need), 8);
+      ctx.fillStyle = '#ffc070'; ctx.fillText(ms.name, X + 14, 348); ctx.fillStyle = '#ff9a2a'; ctx.font = '700 10px Verdana, sans-serif'; ctx.fillText(ms.hint, X + 14, 366);
+      ctx.fillStyle = '#2a1404'; ctx.fillRect(X + 14, 382, PANEL - 28, 8); ctx.fillStyle = '#ff9a2a'; ctx.fillRect(X + 14, 382, (PANEL - 28) * Math.min(1, ms.have / ms.need), 8);
       ctx.fillText(`${ms.have}/${ms.need}   MISSIONS ${S.done}`, X + 14, 396);
       // multiplier lamps
       for (let n = 1; n <= 5; n++) {
         const x = X + 14 + (n - 1) * 35, lit = S.mult >= n;
-        ctx.fillStyle = lit ? '#6ff0ff' : '#0c2a3a'; ctx.fillRect(x, 440, 30, 22);
-        ctx.fillStyle = lit ? '#000' : '#2a5a7a'; ctx.font = '900 11px "Arial Black", sans-serif'; ctx.fillText(n + 'X', x + 6, 445);
+        ctx.fillStyle = lit ? '#ff9a2a' : '#2a1404'; ctx.fillRect(x, 440, 30, 22);
+        ctx.fillStyle = lit ? '#000' : '#6a3a10'; ctx.font = '900 11px "Arial Black", sans-serif'; ctx.fillText(n + 'X', x + 6, 445);
       }
       // high score
-      ctx.fillStyle = '#6ff0ff'; ctx.font = '700 14px Verdana, sans-serif'; ctx.fillText(fmt(Math.max(S.hi, S.score)), X + 14, 494);
+      ctx.fillStyle = '#ff9a2a'; ctx.font = '700 14px Verdana, sans-serif'; ctx.fillText(fmt(Math.max(S.hi, S.score)), X + 14, 494);
     }
     function draw(now) {
       drawTable();
@@ -432,6 +450,9 @@
       for (let i = 0; i < NS; i++) { const o = SLICES[i]; ctx.drawImage(tbl, 0, i * SLH * SC, W * SC, SLH * SC, o.dx, o.dy, o.dw, o.dh + 0.6); }
       ctx.restore();
       ctx.drawImage(SHEEN, 0, 0, W, H);
+      const lb = ctx.createLinearGradient(0, H - 12, 0, H);            // chrome lockdown bar across the front of the cabinet
+      lb.addColorStop(0, '#f4f6fc'); lb.addColorStop(0.3, '#9aa0b4'); lb.addColorStop(0.55, '#2a2e3c'); lb.addColorStop(0.8, '#7a8098'); lb.addColorStop(1, '#3a3e4c');
+      ctx.fillStyle = lb; ctx.fillRect(0, H - 12, W, 12);
       if (S.state === 'over' || paused) {
         ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(0, 0, W, H);
         A.chromeText(ctx, paused ? 'PAUSED' : 'GAME OVER', W / 2, 290, 30, false);

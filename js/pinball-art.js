@@ -26,60 +26,132 @@
     x.restore();
   }
 
+  /* ---------- procedural noise for the nebula ---------- */
+  function valueNoise(seed) {
+    const P = new Uint8Array(512), V = new Float32Array(256); let s = seed;
+    const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 256; i++) { P[i] = i; V[i] = r(); }
+    for (let i = 255; i > 0; i--) { const j = r() * (i + 1) | 0; [P[i], P[j]] = [P[j], P[i]]; }
+    for (let i = 0; i < 256; i++) P[i + 256] = P[i];
+    const sm = t => t * t * (3 - 2 * t);
+    const n = (x, y) => {
+      const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, X = xi & 255, Y = yi & 255;
+      const a = V[P[X + P[Y]]], b2 = V[P[X + 1 + P[Y]]], c2 = V[P[X + P[Y + 1]]], d = V[P[X + 1 + P[Y + 1]]], u = sm(xf), v = sm(yf);
+      return a + (b2 - a) * u + (c2 - a) * v + (a - b2 - c2 + d) * u * v;
+    };
+    return (x, y, oct = 5) => { let f = 0, amp = 0.5, fr = 1; for (let o = 0; o < oct; o++) { f += amp * n(x * fr, y * fr); amp *= 0.5; fr *= 2.03; } return f; };
+  }
+  function nebula(W, H) {          // computed at quarter resolution, then drawn smoothly scaled
+    const w = W / 2 | 0, h = H / 2 | 0, [c, x] = mk(w, h, 1), id = x.createImageData(w, h), d = id.data;
+    const f1 = valueNoise(7), f2 = valueNoise(19);
+    for (let j = 0, i = 0; j < h; j++) for (let k = 0; k < w; k++, i += 4) {
+      const u = k / w * 4, v = j / h * 6;
+      const wx = f2(u + 3.1, v + 1.7, 3) * 2, wy = f2(u - 2.3, v + 5.2, 3) * 2;      // domain warp gives wispy filaments
+      const n = f1(u + wx, v + wy), m = f1(u * 2 + 9, v * 2 - 4, 4);
+      const dust = Math.max(0, n - 0.42) * 2.6, glow = Math.max(0, m - 0.5) * 2;
+      d[i] = 30 + dust * 190 + glow * 60; d[i + 1] = 18 + dust * 60 + glow * 40; d[i + 2] = 60 + dust * 170 + glow * 140;   // magenta dust over blue emission
+      d[i + 3] = Math.min(255, 70 + (dust + glow) * 210);
+      if (n < 0.36) { d[i] *= 0.4; d[i + 1] *= 0.4; d[i + 2] *= 0.55; }                // dark dust lanes
+    }
+    x.putImageData(id, 0, 0);
+    return c;
+  }
+
   /* ---------- playfield ---------- */
   function table(W, H) {
     const [c, b] = mk(W, H);
-    let g = b.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0a1048'); g.addColorStop(0.45, '#14207a'); g.addColorStop(1, '#0a0f3c');
-    b.fillStyle = g; b.fillRect(0, 0, W, H);
-    // nebula clouds
-    [[300, 250, 170, '170,60,200', 0.45], [80, 430, 150, '40,120,255', 0.4], [210, 560, 150, '230,50,120', 0.25], [200, 120, 140, '60,180,255', 0.3]].forEach(([x, y, r, rgb, a]) => {
-      const n = b.createRadialGradient(x, y, 4, x, y, r); n.addColorStop(0, `rgba(${rgb},${a})`); n.addColorStop(1, `rgba(${rgb},0)`); b.fillStyle = n; b.fillRect(0, 0, W, H);
+    // deep-space backdrop: a procedurally generated nebula (domain-warped fractal noise), not flat gradients
+    b.fillStyle = '#03040e'; b.fillRect(0, 0, W, H);
+    b.drawImage(nebula(W, H), 0, 0, W, H);
+    let g, seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    // stars: mostly faint, a few bright ones with soft halos and diffraction spikes
+    for (let i = 0; i < 900; i++) {
+      const x = rnd() * W, y = rnd() * H, m = Math.pow(rnd(), 3), t = rnd();
+      const col = t < 0.15 ? '255,210,180' : t < 0.3 ? '190,210,255' : '235,240,255';
+      b.fillStyle = `rgba(${col},${0.25 + m * 0.75})`; b.fillRect(x, y, 0.5 + m * 1.2, 0.5 + m * 1.2);
+      if (m > 0.55) {
+        const hg = b.createRadialGradient(x, y, 0, x, y, 6 * m); hg.addColorStop(0, `rgba(${col},.5)`); hg.addColorStop(1, `rgba(${col},0)`); b.fillStyle = hg; b.fillRect(x - 6, y - 6, 12, 12);
+        if (m > 0.8) { b.strokeStyle = `rgba(${col},.35)`; b.lineWidth = 0.5; b.beginPath(); b.moveTo(x - 9, y); b.lineTo(x + 9, y); b.moveTo(x, y - 9); b.lineTo(x, y + 9); b.stroke(); }
+      }
+    }
+    // spiral galaxy, top left: thousands of points along two log-spiral arms with a bright core
+    b.save(); b.translate(70, 160); b.rotate(-0.5); b.scale(1, 0.45);
+    for (let i = 0; i < 1800; i++) {
+      const arm = i % 2 ? 0 : Math.PI, d = Math.pow(rnd(), 0.7) * 40, a = arm + d * 0.16 + (rnd() - 0.5) * 0.9 * (1 - d / 50);
+      b.fillStyle = `rgba(${d < 10 ? '255,230,200' : '200,200,255'},${0.15 + 0.5 * (1 - d / 40)})`; b.fillRect(Math.cos(a) * d, Math.sin(a) * d, 0.7, 0.7);
+    }
+    g = b.createRadialGradient(0, 0, 0, 0, 0, 10); g.addColorStop(0, 'rgba(255,240,220,.9)'); g.addColorStop(1, 'rgba(255,240,220,0)'); b.fillStyle = g; b.fillRect(-10, -10, 20, 20);
+    b.restore();
+    // gas giant, lower left: banded surface, sunlit from the upper left, atmosphere rim, ring with shadow
+    const PX = 95, PY = 372, PR = 46;
+    const ring = front => {
+      b.save(); b.translate(PX, PY); b.rotate(-0.35);
+      for (let r = 58; r < 82; r += 0.8) {
+        const a = 0.25 + 0.35 * Math.sin(r * 0.9) * Math.sin(r * 0.23); if (r > 70 && r < 72) continue;   // Cassini-style gap
+        b.strokeStyle = `rgba(${200 + r},${170 + r * 0.5 | 0},120,${a})`; b.lineWidth = 0.8;
+        b.beginPath(); b.ellipse(0, 0, r, r * 0.2, 0, front ? 0 : Math.PI, front ? Math.PI : TAU); b.stroke();
+      }
+      b.restore();
+    };
+    ring(false);
+    b.save(); b.beginPath(); b.arc(PX, PY, PR, 0, TAU); b.clip();
+    for (let y = -PR; y < PR; y++) {                       // turbulent bands
+      const k = y / PR, v = Math.sin(k * 11 + Math.sin(k * 23) * 0.8) * 0.5 + 0.5;
+      b.fillStyle = `rgb(${60 + v * 70 | 0},${100 + v * 80 | 0},${170 + v * 60 | 0})`; b.fillRect(PX - PR, PY + y, PR * 2, 1.2);
+    }
+    g = b.createRadialGradient(PX - 20, PY - 22, 4, PX + 8, PY + 8, PR * 1.25);   // lit side to night side
+    g.addColorStop(0, 'rgba(255,255,255,.35)'); g.addColorStop(0.35, 'rgba(0,0,0,0)'); g.addColorStop(0.75, 'rgba(0,0,15,.75)'); g.addColorStop(1, 'rgba(0,0,10,.95)');
+    b.fillStyle = g; b.fillRect(PX - PR, PY - PR, PR * 2, PR * 2);
+    b.fillStyle = 'rgba(0,0,10,.45)'; b.save(); b.translate(PX, PY + 6); b.rotate(-0.35); b.fillRect(-PR, -2, PR * 2, 5); b.restore();   // ring shadow on the planet
+    b.restore();
+    g = b.createRadialGradient(PX, PY, PR - 2, PX, PY, PR + 5); g.addColorStop(0, 'rgba(140,200,255,.5)'); g.addColorStop(1, 'rgba(140,200,255,0)');
+    b.fillStyle = g; b.beginPath(); b.arc(PX, PY, PR + 5, Math.PI * 0.75, Math.PI * 1.75); b.arc(PX, PY, PR - 2, Math.PI * 1.75, Math.PI * 0.75, true); b.fill();   // atmosphere on the lit limb
+    ring(true);
+    // printed artwork under the bumpers: metallic-ink rings with fine engraving instead of flat bands
+    [[104, '#3a2470', '#1a0c40'], [96, '#c8407a', '#6a1440'], [86, '#24388a', '#0c1440'], [80, '#3a64c8', '#142a6a']].forEach(([r, c1, c2]) => {
+      g = b.createLinearGradient(195 - r, 215 - r, 195 + r, 215 + r); g.addColorStop(0, c1); g.addColorStop(1, c2);
+      b.fillStyle = g; b.beginPath(); b.arc(195, 215, r, 0, TAU); b.fill();
     });
-    let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    for (let i = 0; i < 170; i++) { const v = 150 + rnd() * 105 | 0; b.fillStyle = `rgb(${v},${v},255)`; const s = rnd() < 0.1 ? 2 : 1; b.fillRect(rnd() * W | 0, rnd() * H | 0, s, s); }
-    // ringed planet, lower left
-    const ring = (a0, a1) => { b.strokeStyle = '#d9a640'; b.lineWidth = 4; b.beginPath(); b.ellipse(95, 372, 80, 16, -0.35, a0, a1); b.stroke(); b.strokeStyle = '#7a5418'; b.lineWidth = 1; b.stroke(); };
-    ring(Math.PI, TAU);
-    g = b.createRadialGradient(76, 352, 3, 95, 372, 50); g.addColorStop(0, '#c8f0ff'); g.addColorStop(0.35, '#4a8ae8'); g.addColorStop(0.8, '#14307a'); g.addColorStop(1, '#060c30');
-    b.fillStyle = g; b.beginPath(); b.arc(95, 372, 46, 0, TAU); b.fill();
-    b.save(); b.beginPath(); b.arc(95, 372, 46, 0, TAU); b.clip(); b.fillStyle = 'rgba(255,255,255,.12)'; [[350, 6], [364, 9], [383, 5]].forEach(([y, h]) => b.fillRect(40, y, 110, h)); b.restore();
-    ring(0, Math.PI);
-    // reactor emblem under the pop bumpers: solid painted bands
-    [[104, '#2a1660'], [96, '#d0388a'], [92, '#2a1660'], [86, '#1a2a8a'], [80, '#3a6ae0'], [77, '#101a5a']].forEach(([r, col]) => { b.fillStyle = col; b.beginPath(); b.arc(195, 215, r, 0, TAU); b.fill(); });
-    for (let i = 0; i < 12; i++) { const a = i * TAU / 12; b.fillStyle = '#ffd56b'; b.beginPath(); b.arc(195 + Math.cos(a) * 89, 215 + Math.sin(a) * 89, 2, 0, TAU); b.fill(); }
-    // orbit lanes painted under the arch
-    [[170, '#1d2f9a'], [160, '#0c144c'], [150, '#3a1a70'], [146, '#0c144c']].forEach(([r, col]) => { b.strokeStyle = col; b.lineWidth = 6; b.beginPath(); b.arc(210, 210, r, Math.PI + 0.16, TAU - 0.16); b.stroke(); });
-    // hyperlanes: glowing painted lines radiating from the wormhole
+    g = b.createRadialGradient(195, 215, 10, 195, 215, 78); g.addColorStop(0, '#0a1030'); g.addColorStop(1, '#101a50'); b.fillStyle = g; b.beginPath(); b.arc(195, 215, 77, 0, TAU); b.fill();
+    b.strokeStyle = 'rgba(255,255,255,.08)'; b.lineWidth = 0.5; for (let r = 78; r < 104; r += 2) { b.beginPath(); b.arc(195, 215, r, 0, TAU); b.stroke(); }
+    for (let i = 0; i < 12; i++) { const a = i * TAU / 12; b.fillStyle = '#d8b060'; b.beginPath(); b.arc(195 + Math.cos(a) * 89, 215 + Math.sin(a) * 89, 1.6, 0, TAU); b.fill(); }
+    // orbit lanes printed under the arch
+    [[170, '#1a2770'], [160, '#0a1040'], [150, '#2a1658'], [146, '#0a1040']].forEach(([r, col]) => { b.strokeStyle = col; b.lineWidth = 6; b.beginPath(); b.arc(210, 210, r, Math.PI + 0.16, TAU - 0.16); b.stroke(); });
+    // hyperlanes: fine printed lines from the wormhole
     b.lineCap = 'round';
     [[-2.5, 150], [-1.9, 120], [-0.6, 120], [-1.2, 160], [2.2, 90], [0.9, 90]].forEach(([a, L]) => {
       const x2 = 190 + Math.cos(a) * L, y2 = 392 + Math.sin(a) * L;
-      b.strokeStyle = 'rgba(120,200,255,.18)'; b.lineWidth = 6; b.beginPath(); b.moveTo(190, 392); b.lineTo(x2, y2); b.stroke();
-      b.strokeStyle = 'rgba(160,230,255,.6)'; b.lineWidth = 1.2; b.stroke();
-      b.fillStyle = '#bfe8ff'; b.beginPath(); b.arc(x2, y2, 2, 0, TAU); b.fill();
+      g = b.createLinearGradient(190, 392, x2, y2); g.addColorStop(0, 'rgba(160,220,255,.05)'); g.addColorStop(1, 'rgba(160,220,255,.45)');
+      b.strokeStyle = g; b.lineWidth = 0.9; b.beginPath(); b.moveTo(190, 392); b.lineTo(x2, y2); b.stroke();
+      b.fillStyle = 'rgba(200,235,255,.7)'; b.beginPath(); b.arc(x2, y2, 1.3, 0, TAU); b.fill();
     });
-    // wormhole well: dark disc with an accretion rim
-    g = b.createRadialGradient(190, 392, 10, 190, 392, 44); g.addColorStop(0, '#05010e'); g.addColorStop(0.6, '#2a0a50'); g.addColorStop(0.85, '#d0388a'); g.addColorStop(1, 'rgba(208,56,138,0)');
-    b.fillStyle = g; b.beginPath(); b.arc(190, 392, 44, 0, TAU); b.fill();
-    // hex panel pattern behind the bumpers
-    b.strokeStyle = 'rgba(140,180,255,.14)'; b.lineWidth = 1;
+    // wormhole well: dark centre, glowing accretion disc
+    g = b.createRadialGradient(190, 392, 10, 190, 392, 46); g.addColorStop(0, '#000'); g.addColorStop(0.5, '#14062a'); g.addColorStop(0.78, 'rgba(220,90,160,.75)'); g.addColorStop(0.88, 'rgba(255,200,150,.5)'); g.addColorStop(1, 'rgba(208,56,138,0)');
+    b.fillStyle = g; b.beginPath(); b.arc(190, 392, 46, 0, TAU); b.fill();
+    // hex panel pattern behind the bumpers (fine engraving)
+    b.strokeStyle = 'rgba(140,180,255,.10)'; b.lineWidth = 0.6;
     for (let r = 0; r < 9; r++) for (let q = 0; q < 10; q++) {
       const hx = 110 + q * 19 + (r % 2) * 9.5, hy = 130 + r * 16.5;
       if (Math.hypot(hx - 195, hy - 215) > 74) continue;
       b.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3 + Math.PI / 6; b[k ? 'lineTo' : 'moveTo'](hx + Math.cos(a) * 9, hy + Math.sin(a) * 9); } b.closePath(); b.stroke();
     }
-    // spiral galaxy top left, small moon right, comet lower left
-    b.save(); b.translate(70, 160); b.rotate(-0.5); b.scale(1, 0.5);
-    for (let k = 0; k < 60; k++) { const a = k * 0.32, r = 3 + k * 0.55; b.fillStyle = `rgba(220,200,255,${0.75 - k * 0.011})`; b.beginPath(); b.arc(Math.cos(a) * r, Math.sin(a) * r, 1.6, 0, TAU); b.arc(-Math.cos(a) * r, -Math.sin(a) * r, 1.6, 0, TAU); b.fill(); }
-    b.restore();
-    g = b.createRadialGradient(326, 452, 1, 330, 456, 14); g.addColorStop(0, '#f0f0f0'); g.addColorStop(1, '#5a5a70'); b.fillStyle = g; b.beginPath(); b.arc(330, 456, 12, 0, TAU); b.fill();
-    b.fillStyle = 'rgba(40,40,60,.5)'; [[326, 452, 3], [334, 460, 2], [333, 449, 1.5]].forEach(([x, y, r]) => { b.beginPath(); b.arc(x, y, r, 0, TAU); b.fill(); });
-    g = b.createLinearGradient(30, 560, 110, 520); g.addColorStop(0, 'rgba(120,220,255,0)'); g.addColorStop(1, 'rgba(200,240,255,.7)');
-    b.strokeStyle = g; b.lineWidth = 4; b.beginPath(); b.moveTo(30, 565); b.lineTo(104, 524); b.stroke(); b.fillStyle = '#fff'; b.beginPath(); b.arc(106, 523, 3, 0, TAU); b.fill();
+    // cratered moon, right: noise surface, terminator shading
+    b.save(); b.beginPath(); b.arc(330, 456, 12, 0, TAU); b.clip();
+    b.fillStyle = '#9a9aa4'; b.fillRect(318, 444, 24, 24);
+    for (let i = 0; i < 26; i++) { const x = 318 + rnd() * 24, y = 444 + rnd() * 24, r = 0.6 + rnd() * 2.2; b.fillStyle = 'rgba(40,40,50,.35)'; b.beginPath(); b.arc(x, y, r, 0, TAU); b.fill(); b.fillStyle = 'rgba(255,255,255,.25)'; b.beginPath(); b.arc(x - 0.4, y - 0.4, r * 0.7, Math.PI, Math.PI * 1.5); b.fill(); }
+    g = b.createRadialGradient(325, 451, 2, 332, 458, 15); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(0.6, 'rgba(0,0,10,.3)'); g.addColorStop(1, 'rgba(0,0,10,.85)');
+    b.fillStyle = g; b.fillRect(316, 442, 28, 28); b.restore();
+    // comet, lower left: bright nucleus, blue ion tail and a broader dust tail
+    [[0.5, 'rgba(255,240,210,', 7], [0, 'rgba(140,200,255,', 2.5]].forEach(([off, col, w]) => {
+      g = b.createLinearGradient(106, 523, 26 + off * 12, 568 - off * 10); g.addColorStop(0, col + '.6)'); g.addColorStop(1, col + '0)');
+      b.strokeStyle = g; b.lineWidth = w; b.beginPath(); b.moveTo(106, 523); b.quadraticCurveTo(70, 548 - off * 6, 26 + off * 12, 568 - off * 10); b.stroke();
+    });
+    g = b.createRadialGradient(106, 523, 0, 106, 523, 6); g.addColorStop(0, '#fff'); g.addColorStop(1, 'rgba(200,230,255,0)'); b.fillStyle = g; b.fillRect(100, 517, 12, 12);
     chromeText(b, 'SNACK CYBER', 191, 528, 22);
     // printed shot labels
     const label = (t, x, y, ang = 0) => {
-      b.save(); b.translate(x, y); b.rotate(ang); b.font = '900 10px "Arial Black", "Segoe UI", sans-serif'; b.textAlign = 'center';
-      b.fillStyle = '#000'; b.fillText(t, 1, 1); b.fillStyle = '#9fd8ff'; b.fillText(t, 0, 0); b.restore();
+      b.save(); b.translate(x, y); b.rotate(ang); b.font = '700 9px Arial, sans-serif'; b.textAlign = 'center';
+      b.strokeStyle = 'rgba(0,0,10,.8)'; b.lineWidth = 2; b.lineJoin = 'round'; b.strokeText(t, 0, 0); b.fillStyle = '#e8eef8'; b.fillText(t, 0, 0); b.restore();
     };
     label('ORBIT', 31, 302, -Math.PI / 2); label('ORBIT', 351, 302, Math.PI / 2); label('WORMHOLE', 190, 446); label('SPIN', 291, 178); label('DOCK', 72, 265); label('SHIELDS', 300, 351);
     // launch lane: dark metal channel with grooves
@@ -198,10 +270,10 @@
     x.fillStyle = g;
     x.beginPath(); x.moveTo(10, 6); x.lineTo(150, 6); x.lineTo(166, 0); x.lineTo(216, 0); x.lineTo(232, 6); x.lineTo(372, 6); x.lineTo(372, 40); x.lineTo(10, 40); x.closePath(); x.fill();
     x.strokeStyle = '#ffffff'; x.lineWidth = 1; x.beginPath(); x.moveTo(10, 6.5); x.lineTo(150, 6.5); x.lineTo(166, 0.5); x.lineTo(216, 0.5); x.lineTo(232, 6.5); x.lineTo(372, 6.5); x.stroke();
-    x.fillStyle = '#20263e'; x.fillRect(150, 14, 82, 20);
-    x.font = '900 9px "Arial Black", "Segoe UI", sans-serif'; x.textAlign = 'center'; x.fillStyle = '#ffd56b'; x.fillText('SNACK CYBER', 191, 28);
+    x.fillStyle = '#20263e'; x.fillRect(150, 10, 82, 18);
+    x.font = '900 9px "Arial Black", "Segoe UI", sans-serif'; x.textAlign = 'center'; x.fillStyle = '#ffd56b'; x.fillText('SNACK CYBER', 191, 22);
     x.font = '700 8px "Segoe UI", sans-serif'; x.fillStyle = '#20263e';
-    x.fillText('3 BALLS PER GAME', 80, 20); x.fillText('COMPLETE MISSIONS', 80, 31); x.fillText('TO RANK UP', 300, 20); x.fillText('6 MISSIONS = WARP', 300, 31);
+    x.fillText('3 BALLS PER GAME', 80, 17); x.fillText('COMPLETE MISSIONS', 80, 26); x.fillText('TO RANK UP', 300, 17); x.fillText('6 MISSIONS = WARP', 300, 26);
     return c;
   }
 
