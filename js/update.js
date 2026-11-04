@@ -3,7 +3,8 @@
  * The user starts the update from Settings > Windows Update. A non-blocking
  * progress panel then appears; progress wanders up and down, shows exactly 23%
  * at the moment Flag.txt unlocks, and parks at 99% after ~4 minutes.
- * It never completes. Flag.txt unlocks 45s-1:15 after the install is started.
+ * It never completes. Flag.txt unlocks 45s-1:15 after the install is started,
+ * and the crash (bsod.js) is scheduled from that unlock moment.
  */
 (function() {
   const DURATION = 240000;                     // ms until it sticks at 99%
@@ -26,7 +27,6 @@
   window.startUpdateSimulation = async function() {
     if (window.updateInProgress) return;
     window.updateInProgress = true;
-    if (window.scheduleCrash) window.scheduleCrash();
     if (typeof windowManager !== 'undefined') windowManager.closeWindow('blocked');
 
     modal.style.display = 'flex';
@@ -36,6 +36,7 @@
     setTimeout(() => {
       render(AT_UNLOCK);
       if (!window.docLocked) window.docUnlocked = true;
+      if (window.scheduleCrash) window.scheduleCrash();
       if (typeof windowManager !== 'undefined') windowManager.closeWindow('blocked');
     }, unlockAt);
 

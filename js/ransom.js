@@ -4,7 +4,7 @@
  * counts down. It lasts until the page is reloaded.
  */
 (function() {
-  const solved = () => window.flagOpened || localStorage.getItem('flagFound');
+  const solved = () => window.flagOpened; // this visit only
 
   window.triggerRansom = function() {
     if (solved() || window.ransomActive) return;

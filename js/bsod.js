@@ -1,18 +1,19 @@
 /**
- * Random event: once the update install is started, between 1:15 and 2:00 later
- * either the fake ransomware event (see ransom.js) or a blue screen happens. The blue screen counts to 100%, goes dark, and reboots (a full
+ * Random event: 20-40s after Flag.txt unlocks (update.js calls scheduleCrash at
+ * the unlock moment), either the fake ransomware event (see ransom.js) or a blue
+ * screen happens, so players always get at least 20s to open the flag. The blue screen counts to 100%, goes dark, and reboots (a full
  * page reload, which also resets the install and the Flag.txt unlock timer).
- * The user must start the update again after each reboot. Crashes stop for good
- * in this browser once Flag.txt has been opened.
+ * The user must start the update again after each reboot. Crashes are skipped
+ * only if Flag.txt was opened during the current visit.
  */
 (function() {
-  const MIN_MS = 75000, MAX_MS = 120000; // 1:15 to 2:00 after the update starts
+  const MIN_MS = 20000, MAX_MS = 40000;  // 20s to 40s after Flag.txt unlocks
   const CODES = ['CRITICAL_PROCESS_DIED', 'IRQL_NOT_LESS_OR_EQUAL', 'SYSTEM_SERVICE_EXCEPTION',
                  'KERNEL_SECURITY_CHECK_FAILURE', 'PAGE_FAULT_IN_NONPAGED_AREA', 'MEMORY_MANAGEMENT'];
   const scr = document.getElementById('screen');
 
-  const solved = () => window.flagOpened || localStorage.getItem('flagFound');
-  // Called by update.js when the user starts the install
+  const solved = () => window.flagOpened; // this visit only
+  // Called by update.js at the moment Flag.txt unlocks
   // Randomly picks the fake ransomware event (75%) or a blue screen (25%)
   window.scheduleCrash = function() {
     if (solved()) return;
