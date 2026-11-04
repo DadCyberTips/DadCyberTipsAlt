@@ -15,6 +15,8 @@
   const PANEL = 200, CW = W + PANEL, CH = H, TAU = Math.PI * 2, SC = A.SC;
   const NS = 200, SLH = H / NS, S_TOP = 0.64;   // perspective: rows narrow towards the far (top) end
   const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // CTF: reaching FLAG_SCORE reveals this flag between the pop bumpers (flashes for FLAG_FLASH seconds, then stays lit)
+  const FLAG = ['{CTF}', '[SN4CK-1337]'], FLAG_SCORE = 1337, FLAG_FLASH = 10;
   const RGB = { gold: '255,213,107', cyan: '76,194,255', pink: '255,95,168', green: '108,240,150', white: '255,255,255' };
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
 
@@ -39,7 +41,7 @@
       const k = JSON.stringify(lines);
       if (k !== key) {                          // re-rasterise the dots only when the text changes
         key = k; sx.fillStyle = '#000'; sx.fillRect(0, 0, cols, rows); sx.fillStyle = '#fff'; sx.textAlign = 'center'; sx.textBaseline = 'top';
-        lines.forEach(l => { sx.font = l.font; sx.fillText(l.t, cols / 2, l.y); });
+        lines.forEach(l => { let z = l.size; do { sx.font = `bold ${z}px Arial, sans-serif`; } while (z-- > 6 && sx.measureText(l.t).width > cols - 2); sx.fillText(l.t, cols / 2, l.y); });   // shrink to fit
         const d = sx.getImageData(0, 0, cols, rows).data, r = pitch * 0.42;
         ox.clearRect(0, 0, cols * pitch, rows * pitch);
         for (let j = 0; j < rows; j++) for (let i = 0; i < cols; i++) {
@@ -124,7 +126,7 @@
     const [tbl, c] = A.mk(W, H);            // the table is drawn flat here, then warped onto the screen
     const keys = { L: false, R: false };
     const life = new AbortController(), on = { signal: life.signal };
-    let paused = false, raf = 0, last = performance.now(), t = 0;
+    let paused = false, raf = 0, last = performance.now(), t = 0, flagAt = -1;   // flagAt: table time the flag was won (stays on until the window closes)
 
     /* ---------- sound (through the emulator's master volume) ---------- */
     const snd = (type, f0, f1, dur, vol = 0.12, delay = 0) => {
@@ -224,6 +226,7 @@
 
     /* ---------- drawing the table (flat) ---------- */
     const circle = (x, y, r) => { c.beginPath(); c.arc(x, y, r, 0, TAU); };
+    const rr = (x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
     const glow = (name, x, y, size, a) => { c.globalCompositeOperation = 'lighter'; c.globalAlpha = a; c.drawImage(HALO[name], x - size / 2, y - size / 2, size, size); c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; };
     // a lamp insert set into the playfield: dark coloured plastic when off, bright with light spill when on
     // translucent plastic insert: unlit it is dim coloured plastic, lit it glows from a bulb underneath; the clearcoat adds a glint
@@ -367,6 +370,16 @@
       if (hot) glow('green', sc.x, sc.y, 50, S.hold ? 0.8 : 0.45);
       // pop bumpers
       for (const b of G.bumpers) { c.drawImage(BUMP[b.lit > 0 ? 1 : 0], b.x - 30, b.y - 44, 60, 72); if (b.lit > 0) glow('gold', b.x, b.y, 80, 0.7); }
+      // CTF flag readout between the bumpers
+      if (flagAt >= 0) {
+        const age = t - flagAt, on = age > FLAG_FLASH || Math.floor(age * 5) % 2 === 0, fx = 192, fy = 214;
+        rr(fx - 36, fy - 15, 72, 30, 5); c.fillStyle = 'rgba(0,4,12,.82)'; c.fill(); c.strokeStyle = on ? '#6cf096' : '#1a3a2a'; c.lineWidth = 1.2; c.stroke();
+        if (on) {
+          glow('green', fx, fy, age < FLAG_FLASH ? 130 : 90, age < FLAG_FLASH ? 0.9 : 0.5);
+          c.font = '700 8px "Courier New", monospace'; c.textAlign = 'center'; c.fillStyle = '#d8ffe4';
+          c.fillText(FLAG[0], fx, fy - 2); c.fillText(FLAG[1], fx, fy + 9);
+        }
+      }
       // rubber posts: chrome post, red rubber ring
       for (const p of G.posts) {
         c.fillStyle = 'rgba(0,0,20,.5)'; circle(p.x + 3, p.y + 6, p.r + 1); c.fill();
@@ -411,7 +424,7 @@
       const X = W;
       ctx.drawImage(PANELBG, X, 0, PANEL, CH);
       // score
-      scoreDMD(ctx, X + 12, 144, [{ t: fmt(shown), font: 'bold 17px Arial, sans-serif', y: 1 }]);
+      scoreDMD(ctx, X + 12, 144, [{ t: fmt(shown), size: 17, y: 1 }]);
       ctx.font = '700 11px Verdana, sans-serif'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
       ctx.fillStyle = '#e0e8ff'; ctx.font = '700 11px Verdana, sans-serif'; ctx.fillText(`BALL ${Math.min(S.ballNo, 3)}`, X + 12, 196); ctx.fillText(`PLAYER 1`, X + 112, 196);
       ctx.fillStyle = '#ffd56b'; ctx.fillText(`RANK  ${G.ranks[S.rank]}`, X + 12, 213);
@@ -424,7 +437,7 @@
       else if (paused || !active()) { l1 = 'PAUSED'; l2 = paused ? 'PRESS P' : 'CLICK TABLE'; }
       else if (S.state === 'launch') { l1 = S.charge > 0 ? 'POWER' : 'HOLD SPACE'; l2 = S.charge > 0 ? '■'.repeat(Math.round(S.charge * 12)) : (blink ? '' : 'TO LAUNCH'); }
       else if (S.wizard > 0) { l1 = 'WARP MODE x2'; l2 = Math.ceil(S.wizard) + ' SEC'; }
-      msgDMD(ctx, X + 12, 252, [{ t: l1 || '', font: 'bold 12px Arial, sans-serif', y: 1 }, { t: l2 || '', font: 'bold 12px Arial, sans-serif', y: 14 }]);
+      msgDMD(ctx, X + 12, 252, [{ t: l1 || '', size: 12, y: 1 }, { t: l2 || '', size: 12, y: 14 }]);
       ctx.font = '700 10px Verdana, sans-serif';
       // mission
       const ms = S.mission;
@@ -475,6 +488,7 @@
         if (k === 'over') { store.set('pinball.hi', S.hi); say('GAME OVER', '', 2500); }
       }
       for (const f of S.fx.splice(0)) if (FX[f.k]) FX[f.k](f);
+      if (flagAt < 0 && S.score >= FLAG_SCORE) { flagAt = t; flash = 1; flashRGB = RGB.green; play('wizard'); say('FLAG FOUND', 'SEE BUMPERS', 3000); }
       shown += (S.score - shown) * Math.min(1, dt * 9); if (Math.abs(S.score - shown) < 1) shown = S.score;
       for (const p of sparks) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 320 * dt; p.life -= dt; }
       for (let i = sparks.length - 1; i >= 0; i--) if (sparks[i].life <= 0) sparks.splice(i, 1);
