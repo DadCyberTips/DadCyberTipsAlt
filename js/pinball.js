@@ -16,7 +16,7 @@
   const NS = 200, SLH = H / NS, S_TOP = 0.64;   // perspective: rows narrow towards the far (top) end
   const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   // CTF: reaching FLAG_SCORE lights this flag, printed into the playfield between the pop bumpers (flashes for FLAG_FLASH seconds, then stays faintly lit)
-  const FLAG = ['{CTF}', '[SN4CK-1337]'], FLAG_SCORE = 1337, FLAG_FLASH = 10;
+  const FLAG = '{CTF}[SN4CK-1337]', FLAG_SCORE = 1337, FLAG_FLASH = 10;
   const RGB = { gold: '255,213,107', cyan: '76,194,255', pink: '255,95,168', green: '108,240,150', white: '255,255,255' };
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
 
@@ -257,7 +257,7 @@
         const age = t - flagAt, a = age < FLAG_FLASH ? (Math.floor(age * 4) % 2 ? 0.25 : 0.6) : 0.32, fx = 192, fy = 214;
         c.save(); c.globalCompositeOperation = 'lighter'; c.globalAlpha = a * 0.5; c.drawImage(HALO.green, fx - 34, fy - 18, 68, 36);
         c.globalAlpha = a; c.font = '700 7px "Courier New", monospace'; c.textAlign = 'center'; c.fillStyle = '#9cf0b8';
-        c.fillText(FLAG[0], fx, fy - 1); c.fillText(FLAG[1], fx, fy + 8); c.restore();
+        const [f1, f2] = FLAG.split(/(?=\[)/); c.fillText(f1, fx, fy - 1); c.fillText(f2, fx, fy + 8); c.restore();
       }
       const speed = flash > 0 ? 20 : 8;
 

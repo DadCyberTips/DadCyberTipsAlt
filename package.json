@@ -1,0 +1,7 @@
+{
+  "name": "snack-desktop",
+  "private": true,
+  "description": "Source for the Dad Cyber Tips x SnackSpaceCon CTF desktop. Build with npm run build; publish the dist/ folder.",
+  "scripts": { "build": "node tools/build.mjs" },
+  "devDependencies": { "acorn": "^8.19.0", "acorn-walk": "^8.3.4", "terser": "^5.51.2" }
+}
