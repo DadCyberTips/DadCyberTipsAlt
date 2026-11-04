@@ -1,27 +1,13 @@
 /**
- * Nova Strike pinball: static art in a late-90s "pre-rendered 3D" style.
- * Everything here is drawn once when the window opens, then reduced to a limited,
- * ordered-dithered palette (posterize) so it reads like a low-colour rendered bitmap.
- * Coordinates match the engine (table is W x H, drawn at 1x and scaled up pixelated).
+ * Nova Strike pinball: static art in an early-2000s rendered-3D style
+ * (smooth high-colour shading, tall extruded walls, glossy plastics).
+ * Everything here is drawn once when the window opens, at 2x for sharpness.
+ * Coordinates match the engine (the table is W x H).
  */
 (function() {
   const TAU = Math.PI * 2;
-  const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
-
-  const mk = (w, h) => { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; };
-
-  // Reduce a canvas to `levels` steps per channel with a 4x4 ordered dither, and harden soft alpha edges
-  function posterize(c, levels = 7) {
-    const x = c.getContext('2d'), d = x.getImageData(0, 0, c.width, c.height), p = d.data, step = 255 / (levels - 1);
-    for (let y = 0, i = 0; y < c.height; y++) for (let X = 0; X < c.width; X++, i += 4) {
-      if (p[i + 3] === 0) continue;
-      const t = (BAYER[(y & 3) * 4 + (X & 3)] / 16 - 0.5) * step;
-      for (let k = 0; k < 3; k++) p[i + k] = Math.max(0, Math.min(255, Math.round((p[i + k] + t) / step) * step));
-      const a = p[i + 3]; p[i + 3] = a < 40 ? 0 : a > 215 ? 255 : Math.round(a / 64) * 64;
-    }
-    x.putImageData(d, 0, 0);
-    return c;
-  }
+  const SC = 2;
+  const mk = (w, h, sc = SC) => { const c = document.createElement('canvas'); c.width = w * sc; c.height = h * sc; const x = c.getContext('2d'); x.scale(sc, sc); return [c, x]; };
 
   const star = (x, cx, cy, R1, R2, n = 5) => {
     x.beginPath();
@@ -45,7 +31,7 @@
     const [c, b] = mk(W, H);
     let g = b.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0a1048'); g.addColorStop(0.45, '#14207a'); g.addColorStop(1, '#0a0f3c');
     b.fillStyle = g; b.fillRect(0, 0, W, H);
-    // nebula clouds (the posterize pass turns these into hard colour bands)
+    // nebula clouds
     [[300, 250, 170, '170,60,200', 0.45], [80, 430, 150, '40,120,255', 0.4], [210, 560, 150, '230,50,120', 0.25], [200, 120, 140, '60,180,255', 0.3]].forEach(([x, y, r, rgb, a]) => {
       const n = b.createRadialGradient(x, y, 4, x, y, r); n.addColorStop(0, `rgba(${rgb},${a})`); n.addColorStop(1, `rgba(${rgb},0)`); b.fillStyle = n; b.fillRect(0, 0, W, H);
     });
@@ -77,7 +63,7 @@
     b.fillStyle = '#ffd56b'; [330, 385, 440].forEach(y => { b.beginPath(); b.moveTo(382, y + 8); b.lineTo(391, y - 2); b.lineTo(400, y + 8); b.lineTo(391, y + 3); b.closePath(); b.fill(); });
     // far end of the table sits in shadow
     g = b.createLinearGradient(0, 0, 0, H * 0.5); g.addColorStop(0, 'rgba(0,0,20,.5)'); g.addColorStop(1, 'rgba(0,0,20,0)'); b.fillStyle = g; b.fillRect(0, 0, W, H);
-    return posterize(c, 8);
+    return c;
   }
 
   /* ---------- raised walls: side face, top face, bevel highlight ---------- */
@@ -86,13 +72,13 @@
     const plain = segs.filter(s => !s.target && !s.sling && !s.rubber && !s.gate && !s.drop);
     const pass = (col, w, dx = 0, dy = 0) => { r.strokeStyle = col; r.lineWidth = w; r.beginPath(); plain.forEach(s => { r.moveTo(s.x1 + dx, s.y1 + dy); r.lineTo(s.x2 + dx, s.y2 + dy); }); r.stroke(); };
     r.lineCap = 'round'; r.lineJoin = 'round';
-    pass('rgba(0,0,0,.7)', 9, 3, 7);       // cast shadow
-    pass('#3a3f5a', 9, 0, 5);              // side face
-    pass('#5b6180', 9, 0, 3);
-    pass('#9aa2c0', 8);                    // top face
-    pass('#d8ddef', 3, -1, -1.5);          // bevel highlight
+    pass('rgba(0,0,20,.35)', 12, 7, 16);   // long soft cast shadow
+    pass('rgba(0,0,20,.55)', 9, 4, 11);
+    for (let k = 10; k >= 2; k -= 2) pass(`rgb(${40 + k * 4},${44 + k * 4},${70 + k * 5})`, 9, 0, k);   // tall side face, lit from the top
+    pass('#a8b0cc', 8);                    // top face
+    pass('#e4e8f6', 3, -1, -1.5);          // specular edge
     pass('#ffffff', 1, -1.5, -2.5);
-    return posterize(c, 9);
+    return c;
   }
 
   /* ---------- ramp + orbit plastics on posts ---------- */
@@ -108,12 +94,13 @@
       });
       const ribbon = (dx, dy) => { x.beginPath(); left.forEach((p, i) => x[i ? 'lineTo' : 'moveTo'](p[0] + dx, p[1] + dy)); for (let i = right.length - 1; i >= 0; i--) x.lineTo(right[i][0] + dx, right[i][1] + dy); x.closePath(); };
       const rail = (pts, col, w, dx, dy) => { x.strokeStyle = col; x.lineWidth = w; x.beginPath(); pts.forEach((p, i) => x[i ? 'lineTo' : 'moveTo'](p[0] + dx, p[1] + dy)); x.stroke(); };
-      ribbon(6, 12); x.fillStyle = 'rgba(0,0,20,.45)'; x.fill();                                     // hard shadow on the playfield
-      for (let i = 4; i < P.length - 2; i += 14) { const p = P[i]; x.fillStyle = '#6a7090'; x.fillRect(p[0] - 1, p[1] - 2, 3, 12); }   // support posts
+      for (let k = 1; k <= 6; k++) { ribbon(k * 2, k * 4); x.fillStyle = 'rgba(0,0,20,.09)'; x.fill(); }      // soft shadow far below: the ramps sit high
+      for (let i = 4; i < P.length - 2; i += 14) { const p = P[i]; const pg = x.createLinearGradient(p[0] - 2, 0, p[0] + 2, 0); pg.addColorStop(0, '#5a6080'); pg.addColorStop(0.5, '#e0e6f6'); pg.addColorStop(1, '#4a5070'); x.fillStyle = pg; x.fillRect(p[0] - 2, p[1] - 2, 4, 22); }   // chrome support posts
       ribbon(0, -2); x.fillStyle = l.key === 'ramp' ? 'rgba(90,200,255,.42)' : 'rgba(150,160,255,.32)'; x.fill();   // tinted plastic
-      [left, right].forEach(s => { rail(s, '#2a2f48', 4.5, 0, 1); rail(s, '#aab3d2', 3, 0, -2); rail(s, '#ffffff', 1, -0.5, -3); });
+      ribbon(0, -2); const sh = x.createLinearGradient(0, 0, W, H); sh.addColorStop(0, 'rgba(255,255,255,.25)'); sh.addColorStop(0.5, 'rgba(255,255,255,0)'); sh.addColorStop(1, 'rgba(255,255,255,.12)'); x.fillStyle = sh; x.fill();   // gloss
+      [left, right].forEach(s => { rail(s, '#2a2f48', 5, 0, 2); rail(s, '#8a94b8', 3.5, 0, -2); rail(s, '#ffffff', 1.2, -0.5, -3); });
     });
-    return posterize(c, 9);
+    return c;
   }
 
   /* ---------- sprites ---------- */
@@ -123,26 +110,29 @@
     g.addColorStop(0, '#ffffff'); g.addColorStop(0.25, '#dfe6f5'); g.addColorStop(0.6, '#7d88a8'); g.addColorStop(0.85, '#2c3350'); g.addColorStop(1, '#151a2e');
     x.fillStyle = g; x.beginPath(); x.arc(10, 10, 9, 0, TAU); x.fill();
     x.fillStyle = '#8fa0d8'; x.fillRect(12, 14, 3, 1);      // reflected playfield
-    return posterize(c, 8);
+    return c;
   }
-  function bumper(lit) {                     // mushroom cap on a skirt, hard specular spot
-    const [c, x] = mk(56, 56), m = 28;
-    x.fillStyle = 'rgba(0,0,0,.6)'; x.beginPath(); x.ellipse(m + 3, m + 6, 24, 22, 0, 0, TAU); x.fill();
-    let g = x.createLinearGradient(0, m - 24, 0, m + 24); g.addColorStop(0, '#e8ecf8'); g.addColorStop(1, '#3a4060');
-    x.fillStyle = g; x.beginPath(); x.arc(m, m + 2, 24, 0, TAU); x.fill();                                 // metal skirt
-    x.fillStyle = lit ? '#fff0a0' : '#c02060'; x.beginPath(); x.arc(m, m + 2, 20, 0, TAU); x.fill();        // rubber ring
-    g = x.createRadialGradient(m - 6, m - 8, 2, m, m - 2, 18);
-    g.addColorStop(0, '#ffffff'); g.addColorStop(0.3, lit ? '#ffe070' : '#7ac8ff'); g.addColorStop(1, lit ? '#d07a00' : '#1438a0');
-    x.fillStyle = g; x.beginPath(); x.arc(m, m - 2, 16, 0, TAU); x.fill();                                 // cap
-    x.fillStyle = lit ? '#7a4000' : '#0a1450'; star(x, m, m - 2, 8, 3.4); x.fill();
-    return posterize(c, 8);
+  function bumper(lit) {                     // tall bumper: chrome base, coloured body, glossy dome cap. Base centre is (30, 44).
+    const [c, x] = mk(60, 72), m = 30, base = 44, top = 30;
+    x.fillStyle = 'rgba(0,0,20,.45)'; x.beginPath(); x.ellipse(m + 6, base + 10, 26, 18, 0, 0, TAU); x.fill();
+    let g = x.createLinearGradient(m - 24, 0, m + 24, 0); g.addColorStop(0, '#4a5070'); g.addColorStop(0.35, '#f4f6ff'); g.addColorStop(1, '#3a4060');
+    x.fillStyle = g; x.beginPath(); x.ellipse(m, base, 24, 12, 0, 0, TAU); x.fill();                          // chrome base ring
+    g = x.createLinearGradient(m - 18, 0, m + 18, 0);
+    g.addColorStop(0, lit ? '#a05000' : '#5a0a30'); g.addColorStop(0.4, lit ? '#ffd040' : '#e0307a'); g.addColorStop(1, lit ? '#804000' : '#40061e');
+    x.fillStyle = g; x.fillRect(m - 18, top, 36, base - top); x.beginPath(); x.ellipse(m, base, 18, 9, 0, 0, Math.PI); x.fill();   // body (cylinder)
+    g = x.createRadialGradient(m - 6, top - 6, 1, m, top, 20);
+    g.addColorStop(0, '#ffffff'); g.addColorStop(0.25, lit ? '#fff0a0' : '#a8dcff'); g.addColorStop(0.7, lit ? '#ffb020' : '#2a6ae0'); g.addColorStop(1, lit ? '#a06000' : '#0a2a80');
+    x.fillStyle = g; x.beginPath(); x.ellipse(m, top, 20, 11, 0, 0, TAU); x.fill();                           // dome cap
+    x.fillStyle = lit ? '#7a4000' : '#0a1450'; x.save(); x.translate(m, top); x.scale(1, 0.55); star(x, 0, 0, 9, 3.8); x.fill(); x.restore();
+    x.fillStyle = 'rgba(255,255,255,.85)'; x.beginPath(); x.ellipse(m - 7, top - 4, 6, 2.5, -0.3, 0, TAU); x.fill();   // specular glint
+    return c;
   }
-  function halo(rgb, size = 48) {            // a lamp's light spill, stepped not smooth
+  function halo(rgb, size = 48) {            // a lamp's light spill
     const [c, x] = mk(size, size), h = size / 2;
     const g = x.createRadialGradient(h, h, 0, h, h, h);
     g.addColorStop(0, `rgba(${rgb},.9)`); g.addColorStop(0.35, `rgba(${rgb},.45)`); g.addColorStop(1, `rgba(${rgb},0)`);
     x.fillStyle = g; x.fillRect(0, 0, size, size);
-    return posterize(c, 5);
+    return c;
   }
   function apron(W) {                         // grey plastic plate over the drain, with printed instructions
     const [c, x] = mk(W, 40);
@@ -154,8 +144,8 @@
     x.font = '900 9px "Arial Black", "Segoe UI", sans-serif'; x.textAlign = 'center'; x.fillStyle = '#ffd56b'; x.fillText('NOVA STRIKE', 191, 28);
     x.font = '700 8px "Segoe UI", sans-serif'; x.fillStyle = '#20263e';
     x.fillText('3 BALLS PER GAME', 80, 20); x.fillText('COMPLETE MISSIONS', 80, 31); x.fillText('TO RANK UP', 300, 20); x.fillText('6 MISSIONS = WARP', 300, 31);
-    return posterize(c, 8);
+    return c;
   }
 
-  window.PinballArt = { mk, posterize, star, chromeText, table, rails, lanes, ball, bumper, halo, apron };
+  window.PinballArt = { SC, mk, star, chromeText, table, rails, lanes, ball, bumper, halo, apron };
 })();

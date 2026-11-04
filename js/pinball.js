@@ -1,8 +1,8 @@
 /**
- * Nova Strike pinball window, late-90s "pre-rendered 3D" look.
- * The table (art from pinball-art.js, physics from pinball-engine.js) is drawn flat at 1x,
- * warped onto a steep perspective, and shown with a classic score panel on the right.
- * The canvas is rendered at native size and scaled up pixelated for the low-res look.
+ * Nova Strike pinball window, early-2000s rendered-3D look.
+ * The table (art from pinball-art.js, physics from pinball-engine.js) is drawn flat,
+ * warped onto a steep perspective below a lit backbox, given a glass sheen, and shown
+ * with a glossy score panel on the right. Everything renders at 2x (A.SC).
  *
  * Controls: Left Arrow / Z = left flipper, Right Arrow / M or / = right flipper,
  * hold Space to pull the plunger and release to launch, Enter = new game, P = pause.
@@ -12,8 +12,9 @@
 (function() {
   const { createEngine, W, H } = window.PinballEngine;
   const A = window.PinballArt;
-  const PANEL = 200, CW = W + PANEL, CH = H, TAU = Math.PI * 2;
-  const NS = 200, SLH = H / NS, S_TOP = 0.64;   // perspective: rows narrow towards the far (top) end
+  const PANEL = 200, CW = W + PANEL, CH = H, TAU = Math.PI * 2, SC = A.SC;
+  const TOP = 92;                                // backbox + back wall above the tilted table
+  const NS = 220, SLH = H / NS, S_TOP = 0.5, DEPTH = 1.7;   // far rows are narrower (S_TOP) and squashed harder (DEPTH)
   const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
   const RGB = { gold: '255,213,107', cyan: '76,194,255', pink: '255,95,168', green: '108,240,150', white: '255,255,255' };
   const store = { get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} } };
@@ -22,12 +23,13 @@
   const SLICES = [];
   (() => {
     let sum = 0;
-    for (let i = 0; i < NS; i++) { const s = S_TOP + (1 - S_TOP) * (i + 0.5) / NS; SLICES.push({ s }); sum += SLH * s; }
-    const k = H / sum; let y = 0;
-    SLICES.forEach(o => { o.dh = SLH * o.s * k; o.dy = y; y += o.dh; o.dw = W * o.s; o.dx = (W - o.dw) / 2; });
+    for (let i = 0; i < NS; i++) { const s = S_TOP + (1 - S_TOP) * (i + 0.5) / NS; SLICES.push({ s }); sum += SLH * Math.pow(s, DEPTH); }
+    const k = (H - TOP) / sum; let y = TOP;
+    SLICES.forEach(o => { o.dh = SLH * Math.pow(o.s, DEPTH) * k; o.dy = y; y += o.dh; o.dw = W * o.s; o.dx = (W - o.dw) / 2; });
   })();
   const toTable = (sx, sy) => {                  // screen point -> flat table point
     let i = SLICES.findIndex(o => sy < o.dy + o.dh); if (i < 0) i = NS - 1;
+    if (sy < TOP) return [-1, -1];
     const o = SLICES[i], f = (sy - o.dy) / o.dh;
     return [(sx - o.dx) / o.dw * W, (i + f) * SLH];
   };
@@ -38,34 +40,52 @@
     const t = 3, on = d === null ? '' : DIG[d], hh = h / 2;
     const S = { a: [x + t, y, w - 2 * t, t], d: [x + t, y + h - t, w - 2 * t, t], g: [x + t, y + hh - t / 2, w - 2 * t, t],
       f: [x, y + t, t, hh - t], b: [x + w - t, y + t, t, hh - t], e: [x, y + hh, t, hh - t], c: [x + w - t, y + hh, t, hh - t] };
-    for (const k in S) { c.fillStyle = on.includes(k) ? '#ffb020' : '#2e1c04'; c.fillRect(...S[k]); }
+    for (const k in S) { c.fillStyle = on.includes(k) ? '#6ff0ff' : '#0c2a3a'; c.fillRect(...S[k]); }
   }
-  const bevel = (c, x, y, w, h, inset) => {      // classic 3D frame
-    const [lt, dk] = inset ? ['#404040', '#ffffff'] : ['#ffffff', '#404040'];
-    c.fillStyle = lt; c.fillRect(x, y, w, 1); c.fillRect(x, y, 1, h);
-    c.fillStyle = dk; c.fillRect(x, y + h - 1, w, 1); c.fillRect(x + w - 1, y, 1, h);
-  };
+  const rrect = (c, x, y, w, h, r) => { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); };
+  function glassBox(c, x, y, w, h) {             // dark glass display with a chrome rim and a gloss highlight on the top half
+    rrect(c, x - 2, y - 2, w + 4, h + 4, 7); let g = c.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#e8ecf8'); g.addColorStop(1, '#5a6080'); c.fillStyle = g; c.fill();
+    rrect(c, x, y, w, h, 6); g = c.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#0a1a3a'); g.addColorStop(1, '#020812'); c.fillStyle = g; c.fill();
+    rrect(c, x + 2, y + 2, w - 4, h * 0.45, 5); g = c.createLinearGradient(0, y, 0, y + h * 0.45); g.addColorStop(0, 'rgba(255,255,255,.18)'); g.addColorStop(1, 'rgba(255,255,255,.02)'); c.fillStyle = g; c.fill();
+  }
 
   function buildPanel() {
     const [c, x] = A.mk(PANEL, CH);
-    x.fillStyle = '#c0c0c0'; x.fillRect(0, 0, PANEL, CH); bevel(x, 0, 0, PANEL, CH, false); bevel(x, 1, 1, PANEL - 2, CH - 2, false);
+    let g = x.createLinearGradient(0, 0, PANEL, 0); g.addColorStop(0, '#1a2240'); g.addColorStop(0.5, '#2c3a6a'); g.addColorStop(1, '#141a32');
+    x.fillStyle = g; x.fillRect(0, 0, PANEL, CH);
+    for (let y = 0; y < CH; y += 2) { x.fillStyle = `rgba(255,255,255,${(y * 7919 % 13) / 400})`; x.fillRect(0, y, PANEL, 1); }   // brushed metal
+    x.fillStyle = '#8a94b8'; x.fillRect(0, 0, 2, CH);
     // logo plate
-    const g = x.createLinearGradient(0, 8, 0, 120); g.addColorStop(0, '#060a30'); g.addColorStop(1, '#1a2a8a');
-    x.fillStyle = g; x.fillRect(8, 8, PANEL - 16, 112); bevel(x, 7, 7, PANEL - 14, 114, true);
+    glassBox(x, 8, 8, PANEL - 16, 112);
     let seed = 3; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-    for (let i = 0; i < 40; i++) { x.fillStyle = '#c8d8ff'; x.fillRect(10 + rnd() * (PANEL - 20) | 0, 10 + rnd() * 108 | 0, 1, 1); }
+    for (let i = 0; i < 40; i++) { x.fillStyle = '#c8d8ff'; x.fillRect(12 + rnd() * (PANEL - 24), 12 + rnd() * 104, 1, 1); }
     const pg = x.createRadialGradient(150, 40, 2, 160, 50, 30); pg.addColorStop(0, '#ffd0a0'); pg.addColorStop(0.5, '#d0388a'); pg.addColorStop(1, '#3a0a40');
     x.fillStyle = pg; x.beginPath(); x.arc(160, 50, 26, 0, TAU); x.fill();
     A.chromeText(x, 'NOVA', PANEL / 2 - 8, 46, 34); A.chromeText(x, 'STRIKE', PANEL / 2, 88, 30);
-    // fixed labels and inset boxes
-    x.font = '700 10px "MS Sans Serif", Tahoma, sans-serif'; x.fillStyle = '#000'; x.textBaseline = 'top';
-    [['SCORE', 128, 50], ['MESSAGES', 236, 72], ['MISSION', 330, 72], ['BONUS MULTIPLIER', 424, 30], ['HIGH SCORE', 474, 30]].forEach(([t, y, h]) => {
-      x.fillStyle = '#000'; x.fillText(t, 10, y); x.fillStyle = '#000'; x.fillRect(9, y + 13, PANEL - 18, h); bevel(x, 8, y + 12, PANEL - 16, h + 2, true);
+    // labels and display boxes
+    x.font = '700 10px Verdana, Tahoma, sans-serif'; x.textBaseline = 'top';
+    [['SCORE', 128, 50], ['MESSAGES', 236, 72], ['MISSION', 330, 72], ['BONUS MULTIPLIER', 424, 30], ['HIGH SCORE', 474, 30], ['CONTROLS', 520, 76]].forEach(([t, y, h]) => {
+      x.fillStyle = '#9fc8ff'; x.fillText(t, 12, y); glassBox(x, 9, y + 13, PANEL - 18, h);
     });
-    x.font = '10px Tahoma, sans-serif'; x.fillStyle = '#202020';
-    ['Z / ←   Left flipper', 'M / →   Right flipper', 'SPACE   Hold to launch', 'P   Pause      ENTER   New game'].forEach((t, i) => x.fillText(t, 12, 532 + i * 15));
-    bevel(x, 8, 524, PANEL - 16, 70, true);
-    return A.posterize(c, 9);
+    x.font = '10px Verdana, Tahoma, sans-serif'; x.fillStyle = '#9fb0d8';
+    ['Z / ←   Left flipper', 'M / →   Right flipper', 'SPACE   Hold to launch', 'P   Pause   ENTER   New game'].forEach((t, i) => x.fillText(t, 16, 540 + i * 16));
+    return c;
+  }
+
+  function buildBackbox() {                      // lit sign behind the far end of the table
+    const [c, x] = A.mk(W, TOP + 30);
+    let g = x.createLinearGradient(0, 0, 0, TOP); g.addColorStop(0, '#0a0c18'); g.addColorStop(1, '#262c48');
+    x.fillStyle = g; x.fillRect(0, 0, W, TOP + 30);
+    const a = SLICES[0];
+    rrect(x, a.dx + 6, 8, a.dw - 12, TOP - 26, 10); g = x.createLinearGradient(0, 8, 0, TOP - 18); g.addColorStop(0, '#2a1060'); g.addColorStop(0.5, '#6a2aa0'); g.addColorStop(1, '#14306a');
+    x.fillStyle = g; x.fill(); x.strokeStyle = '#c8d0ec'; x.lineWidth = 2; x.stroke();
+    for (let i = 0; i < 30; i++) { x.fillStyle = 'rgba(255,255,255,.8)'; x.fillRect(a.dx + 12 + (i * 97 % (a.dw - 24)), 12 + (i * 53 % (TOP - 34)), 1, 1); }
+    A.chromeText(x, 'NOVA STRIKE', W / 2, 8 + (TOP - 26) / 2, 26);
+    rrect(x, a.dx + 8, 10, a.dw - 16, (TOP - 26) * 0.45, 8); x.fillStyle = 'rgba(255,255,255,.12)'; x.fill();   // glass gloss
+    // back wall of the playfield: a vertical face the table runs into
+    g = x.createLinearGradient(0, TOP - 14, 0, TOP); g.addColorStop(0, '#c8d0ec'); g.addColorStop(0.3, '#5a6488'); g.addColorStop(1, '#141a32');
+    x.fillStyle = g; x.fillRect(a.dx, TOP - 14, a.dw, 14);
+    return c;
   }
 
   window.openPinball = function() {
@@ -75,7 +95,7 @@
     node.className = 'pb';
     node.innerHTML = '<canvas class="pb-cv"></canvas>';
     const cv = node.querySelector('.pb-cv'), ctx = cv.getContext('2d');
-    cv.width = CW; cv.height = CH; cv.style.width = CW + 'px'; cv.style.height = CH + 'px';
+    cv.width = CW * SC; cv.height = CH * SC; cv.style.width = CW + 'px'; cv.style.height = CH + 'px';
     windowManager.createWindow({ key: 'pinball', title: 'Nova Strike Pinball', icon: 'pinball', node, width: CW + 2, height: CH + 34, left: 200, top: 4 });
 
     const E = createEngine(), S = E.S, G = E.geo;
@@ -84,7 +104,17 @@
     E.newGame();
 
     const TABLE = A.table(W, H), RAILS = A.rails(G.segs, W, H), LANES = A.lanes(G.lanes, W, H), APRON = A.apron(W);
-    const BALL = A.ball(), BUMP = [A.bumper(false), A.bumper(true)], PANELBG = buildPanel();
+    const BALL = A.ball(), BUMP = [A.bumper(false), A.bumper(true)], PANELBG = buildPanel(), BACK = buildBackbox();
+    const SHEEN = (() => {                   // the playfield glass: a broad diagonal reflection and a soft top highlight
+      const [cn, x] = A.mk(W, H), a0 = SLICES[0], z = SLICES[NS - 1];
+      x.beginPath(); x.moveTo(a0.dx, TOP); x.lineTo(W - a0.dx, TOP); x.lineTo(W - z.dx, H); x.lineTo(z.dx, H); x.closePath(); x.clip();
+      let g = x.createLinearGradient(0, TOP, W, H);
+      g.addColorStop(0, 'rgba(255,255,255,.10)'); g.addColorStop(0.28, 'rgba(255,255,255,0)'); g.addColorStop(0.36, 'rgba(255,255,255,.07)'); g.addColorStop(0.42, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+      g = x.createLinearGradient(0, TOP, 0, TOP + 140); g.addColorStop(0, 'rgba(160,190,255,.14)'); g.addColorStop(1, 'rgba(160,190,255,0)');
+      x.fillStyle = g; x.fillRect(0, TOP, W, 140);
+      return cn;
+    })();
     const HALO = {}; for (const k in RGB) HALO[k] = A.halo(RGB[k]);
     const [tbl, c] = A.mk(W, H);            // the table is drawn flat here, then warped onto the screen
     const keys = { L: false, R: false };
@@ -198,14 +228,13 @@
       if (lit) glow(col, x, y, 34 * sz, 0.7);
     };
     const drawBall = (b, h) => {       // h = how high above the playfield the ball is (ramps)
-      c.fillStyle = 'rgba(0,0,0,.55)'; c.beginPath(); c.ellipse(b.x + 3 + h * 0.6, b.y + 5 + h, 8, 6, 0, 0, TAU); c.fill();
-      const s = 20 + h * 0.4; c.drawImage(BALL, Math.round(b.x - s / 2), Math.round(b.y - h - s / 2), s, s);
+      c.fillStyle = `rgba(0,0,20,${0.5 - h * 0.012})`; c.beginPath(); c.ellipse(b.x + 4 + h * 0.5, b.y + 7 + h * 1.1, 8 + h * 0.15, 6, 0, 0, TAU); c.fill();
+      const s = 20 + h * 0.4; c.drawImage(BALL, b.x - s / 2, b.y - h - s / 2, s, s);
     };
 
     function drawTable() {
       const m = S.mission.key, blink = Math.floor(t * 4) % 2 === 0;
-      c.imageSmoothingEnabled = false;
-      c.drawImage(TABLE, 0, 0);
+      c.drawImage(TABLE, 0, 0, W, H);
       const speed = flash > 0 ? 20 : 8;
 
       // chasing lamps along the arch
@@ -240,7 +269,7 @@
       // rollover stars
       for (const s of G.sensors) { insert(() => A.star(c, s.x, s.y, 9.5, 4.2), s.lit, '#ffd56b', '#3a3060'); if (s.lit) glow('gold', s.x, s.y, 36, 0.7); }
 
-      c.drawImage(RAILS, 0, 0);
+      c.drawImage(RAILS, 0, 0, W, H);
 
       // slingshots: solid plastic with bevelled edges and a rubber kicker
       const slings = G.segs.filter(s => s.sling);
@@ -289,7 +318,7 @@
       for (let i = 0; i < 6; i++) { const a = i * TAU / 6 + t * (S.hold ? 4 : 0.6); insert(() => circle(sc.x + Math.cos(a) * (sc.r + 1), sc.y + Math.sin(a) * (sc.r + 1), 1.8), hot, '#6cf096', '#1a3a2a'); }
       if (hot) glow('green', sc.x, sc.y, 50, S.hold ? 0.8 : 0.45);
       // pop bumpers
-      for (const b of G.bumpers) { c.drawImage(BUMP[b.lit > 0 ? 1 : 0], b.x - 28, b.y - 28); if (b.lit > 0) glow('gold', b.x, b.y, 80, 0.7); }
+      for (const b of G.bumpers) { c.drawImage(BUMP[b.lit > 0 ? 1 : 0], b.x - 30, b.y - 44, 60, 72); if (b.lit > 0) glow('gold', b.x, b.y, 80, 0.7); }
       // flippers: white plastic bat, red rubber, bevel highlight, steel pivot
       for (const f of G.flippers) {
         const tx = f.px + Math.cos(f.ang) * f.len, ty = f.py + Math.sin(f.ang) * f.len;
@@ -299,14 +328,14 @@
       }
       // ball under the ramps, the ramp plastics, then the ball on top while it rides one
       if (!S.ride && !S.hold) drawBall(S.ball, 0);
-      c.drawImage(LANES, 0, 0);
-      if (S.ride) drawBall(S.ball, 14);
+      c.drawImage(LANES, 0, 0, W, H);
+      if (S.ride) drawBall(S.ball, 22);
       // apron over the drain, plunger in the launch lane
-      c.drawImage(APRON, 0, 600);
+      c.drawImage(APRON, 0, 600, W, 40);
       const py = 626 + S.charge * 12;
       c.fillStyle = '#3a4060'; c.fillRect(388, py, 6, 640 - py + 4); c.fillStyle = '#c0c6dc'; c.fillRect(389, py, 2, 640 - py);
       c.fillStyle = '#c01828'; c.fillRect(380, py - 4, 22, 5); c.fillStyle = '#ff6070'; c.fillRect(380, py - 4, 22, 1);
-      for (const p of sparks) { c.fillStyle = `rgb(${RGB[p.c]})`; c.fillRect(p.x | 0, p.y | 0, 2, 2); }
+      for (const p of sparks) glow(p.c, p.x, p.y, 10 * Math.max(0.3, p.life / 0.6), Math.min(1, p.life * 2.5));
       if (flash > 0) { c.globalCompositeOperation = 'lighter'; c.fillStyle = `rgba(${flashRGB},${(flash * 0.12).toFixed(3)})`; c.fillRect(0, 0, W, H); c.globalCompositeOperation = 'source-over'; }
     }
 
@@ -315,22 +344,22 @@
       const a = SLICES[0], z = SLICES[NS - 1];
       const side = flipX => {
         const X = v => flipX ? W - v : v;
-        const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1a1c2a'); g.addColorStop(1, '#4a4e66');
-        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(X(0), 0); ctx.lineTo(X(a.dx), 0); ctx.lineTo(X(z.dx), H); ctx.lineTo(X(0), H); ctx.closePath(); ctx.fill();
-        ctx.strokeStyle = '#c0c6dc'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(a.dx), 0); ctx.lineTo(X(z.dx), H); ctx.stroke();
-        ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(a.dx + (flipX ? -2 : 2)), 0); ctx.lineTo(X(z.dx + (flipX ? -2 : 2)), H); ctx.stroke();
+        const g = ctx.createLinearGradient(flipX ? W : 0, 0, flipX ? W - a.dx : a.dx, 0); g.addColorStop(0, '#0c0e1a'); g.addColorStop(0.75, '#2a3050'); g.addColorStop(1, '#5a6488');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(X(0), TOP - 14); ctx.lineTo(X(a.dx), TOP - 14); ctx.lineTo(X(z.dx), H); ctx.lineTo(X(0), H); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#c0c6dc'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(X(a.dx), TOP - 14); ctx.lineTo(X(z.dx), H); ctx.stroke();
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X(a.dx + (flipX ? -2 : 2)), TOP); ctx.lineTo(X(z.dx + (flipX ? -2 : 2)), H); ctx.stroke();
       };
       side(false); side(true);
     }
     function drawPanel(now) {
       const X = W;
-      ctx.drawImage(PANELBG, X, 0);
+      ctx.drawImage(PANELBG, X, 0, PANEL, CH);
       // score
       const digits = String(Math.round(shown)).padStart(9, ' ').slice(-9);
       for (let i = 0; i < 9; i++) seg7(ctx, X + 13 + i * 20, 147, 15, 28, digits[i] === ' ' ? null : +digits[i]);
-      ctx.font = '700 11px "Courier New", monospace'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
-      ctx.fillStyle = '#000'; ctx.fillText(`BALL ${Math.min(S.ballNo, 3)}`, X + 12, 196); ctx.fillText(`PLAYER 1`, X + 110, 196);
-      ctx.fillText(`RANK  ${G.ranks[S.rank]}`, X + 12, 214);
+      ctx.font = '700 11px Verdana, sans-serif'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+      ctx.fillStyle = '#e0e8ff'; ctx.font = '700 11px Verdana, sans-serif'; ctx.fillText(`BALL ${Math.min(S.ballNo, 3)}`, X + 12, 196); ctx.fillText(`PLAYER 1`, X + 112, 196);
+      ctx.fillStyle = '#ffd56b'; ctx.fillText(`RANK  ${G.ranks[S.rank]}`, X + 12, 213);
       // messages
       if (cur && now >= cur.until && queue.length) { const q = queue.shift(); cur = { a: q.a, b: q.b, until: now + q.ms }; }
       let l1, l2 = '';
@@ -340,36 +369,38 @@
       else if (paused || !active()) { l1 = 'PAUSED'; l2 = paused ? 'PRESS P' : 'CLICK TABLE'; }
       else if (S.state === 'launch') { l1 = S.charge > 0 ? 'POWER' : 'HOLD SPACE'; l2 = S.charge > 0 ? '■'.repeat(Math.round(S.charge * 12)) : (blink ? '' : 'TO LAUNCH'); }
       else if (S.wizard > 0) { l1 = 'WARP MODE x2'; l2 = Math.ceil(S.wizard) + ' SEC'; }
-      ctx.fillStyle = '#ffb020'; ctx.font = '700 12px "Courier New", monospace';
+      ctx.fillStyle = '#6ff0ff'; ctx.font = '700 12px Verdana, sans-serif';
       if (l1) ctx.fillText(l1, X + 14, 256); if (l2) ctx.fillText(l2, X + 14, 274);
-      ctx.fillStyle = '#7a5010'; ctx.fillText(S.ride ? '>> ON LANE' : '', X + 14, 294);
+      ctx.fillStyle = '#2a7a9a'; ctx.fillText(S.ride ? '>> ON LANE' : '', X + 14, 294);
       // mission
       const ms = S.mission;
-      ctx.fillStyle = '#7ad4ff'; ctx.fillText(ms.name, X + 14, 348); ctx.fillStyle = '#ffb020'; ctx.font = '700 10px "Courier New", monospace'; ctx.fillText(ms.hint, X + 14, 366);
-      ctx.fillStyle = '#2e1c04'; ctx.fillRect(X + 14, 382, PANEL - 28, 8); ctx.fillStyle = '#ffb020'; ctx.fillRect(X + 14, 382, (PANEL - 28) * Math.min(1, ms.have / ms.need), 8);
+      ctx.fillStyle = '#7ad4ff'; ctx.fillText(ms.name, X + 14, 348); ctx.fillStyle = '#6ff0ff'; ctx.font = '700 10px Verdana, sans-serif'; ctx.fillText(ms.hint, X + 14, 366);
+      ctx.fillStyle = '#0c2a3a'; ctx.fillRect(X + 14, 382, PANEL - 28, 8); ctx.fillStyle = '#6ff0ff'; ctx.fillRect(X + 14, 382, (PANEL - 28) * Math.min(1, ms.have / ms.need), 8);
       ctx.fillText(`${ms.have}/${ms.need}   MISSIONS ${S.done}`, X + 14, 396);
       // multiplier lamps
       for (let n = 1; n <= 5; n++) {
         const x = X + 14 + (n - 1) * 35, lit = S.mult >= n;
-        ctx.fillStyle = lit ? '#ffb020' : '#2e1c04'; ctx.fillRect(x, 440, 30, 22);
-        ctx.fillStyle = lit ? '#000' : '#5a3a10'; ctx.font = '900 11px "Arial Black", sans-serif'; ctx.fillText(n + 'X', x + 6, 445);
+        ctx.fillStyle = lit ? '#6ff0ff' : '#0c2a3a'; ctx.fillRect(x, 440, 30, 22);
+        ctx.fillStyle = lit ? '#000' : '#2a5a7a'; ctx.font = '900 11px "Arial Black", sans-serif'; ctx.fillText(n + 'X', x + 6, 445);
       }
       // high score
-      ctx.fillStyle = '#ffb020'; ctx.font = '700 14px "Courier New", monospace'; ctx.fillText(fmt(Math.max(S.hi, S.score)), X + 14, 494);
+      ctx.fillStyle = '#6ff0ff'; ctx.font = '700 14px Verdana, sans-serif'; ctx.fillText(fmt(Math.max(S.hi, S.score)), X + 14, 494);
     }
     function draw(now) {
       drawTable();
-      ctx.imageSmoothingEnabled = false;
+      ctx.setTransform(SC, 0, 0, SC, 0, 0);
       ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+      ctx.drawImage(BACK, 0, 0, W, TOP + 30);
       drawCabinet();
       ctx.save();
-      if (shake > 0) ctx.translate(Math.round((Math.random() - 0.5) * 3), Math.round((Math.random() - 0.5) * 3));
-      for (let i = 0; i < NS; i++) { const o = SLICES[i]; ctx.drawImage(tbl, 0, i * SLH, W, SLH, o.dx, o.dy, o.dw, o.dh + 0.6); }
+      if (shake > 0) ctx.translate((Math.random() - 0.5) * 3, (Math.random() - 0.5) * 3);
+      for (let i = 0; i < NS; i++) { const o = SLICES[i]; ctx.drawImage(tbl, 0, i * SLH * SC, W * SC, SLH * SC, o.dx, o.dy, o.dw, o.dh + 0.6); }
       ctx.restore();
+      ctx.drawImage(SHEEN, 0, 0, W, H);
       if (S.state === 'over' || paused) {
         ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(0, 0, W, H);
-        A.chromeText(ctx, paused ? 'PAUSED' : 'GAME OVER', W / 2, 290, 30, false);
-        if (!paused) { ctx.font = '700 13px Tahoma, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText('Score ' + fmt(S.score) + '  -  press Enter or click', W / 2, 330); ctx.textAlign = 'left'; }
+        A.chromeText(ctx, paused ? 'PAUSED' : 'GAME OVER', W / 2, 320, 30, false);
+        if (!paused) { ctx.font = '700 13px Tahoma, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.fillText('Score ' + fmt(S.score) + '  -  press Enter or click', W / 2, 360); ctx.textAlign = 'left'; }
       }
       drawPanel(now);
     }
