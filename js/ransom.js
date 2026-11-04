@@ -9,17 +9,9 @@
   window.triggerRansom = function() {
     if (solved() || window.ransomActive) return;
     window.ransomActive = true;
-    window.docLocked = true;
-    window.docUnlocked = false;
-
+    window.lockFlag('ransom');                                    // Flag.txt becomes Flag.txt.locked
     if (typeof closeStartMenu === 'function') closeStartMenu();
     document.getElementById('update-modal').style.display = 'none';
-    ['doc', 'blocked'].forEach(k => windowManager.closeWindow(k));
-
-    // The file icon becomes a locked file
-    const ic = document.getElementById('doc-icon');
-    ic.querySelector('use').setAttribute('href', '#i-lock');
-    ic.querySelector('span').textContent = 'Flag.txt.locked';
 
     // Ransom note replaces the desktop background
     const r = document.createElement('div');

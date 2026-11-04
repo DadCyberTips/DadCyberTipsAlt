@@ -34,6 +34,15 @@ function openDocument() {
   }
 }
 
+// Lock Flag.txt for the rest of this visit (the ransom note and the phishing page both use this)
+window.lockFlag = function(reason) {
+  window.docLocked = true; window.docUnlocked = false; window.lockReason = reason;
+  const ic = document.getElementById('doc-icon');
+  ic.querySelector('use').setAttribute('href', '#i-lock');
+  ic.querySelector('span').textContent = 'Flag.txt.locked';
+  if (typeof windowManager !== 'undefined') ['doc', 'blocked'].forEach(k => windowManager.closeWindow(k));
+};
+
 function showLockedMessage() {
   if (typeof windowManager === 'undefined') return;
   windowManager.createWindow({
@@ -45,7 +54,7 @@ function showLockedMessage() {
       <div class="dialog">
         <h2 style="color: #c42b1c;">🔒 This file is encrypted</h2>
         <p>Windows can't open Flag.txt.</p>
-        <p>The file has been locked. Read the message on your desktop.</p>
+        <p>${window.lockReason === 'phish' ? 'Someone signed in to your account after you entered your details on a fake page. Reload the page to start over.' : 'The file has been locked. Read the message on your desktop.'}</p>
       </div>`,
     width: 450,
     height: 280,

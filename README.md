@@ -26,6 +26,10 @@ Publish the contents of `dist/` (for GitHub Pages: the root of the branch Pages 
 | todo.txt acrostic flag (first letter of each item: CTF 5N4CK 4774CK ...) | `todoList()` in `js/filesystem.js` |
 | Pinball flag (shown at 31,337 points) | `FLAG` at the top of `js/pinball.js` |
 | Light anti-inspection (right-click, F12, view-source) | `js/guard.js` |
+| Mail app: two phishing emails + fake sign-in (locks Flag.txt) | `js/mail.js` |
+| Double-extension trap `Invoice_Oct.pdf.exe` (starts the ransomware) | `js/filesystem.js`, `js/explorer.js` |
+| SnackSync story: webcam light, whispers (10 min), ghost cursor (13 min); ending snacksync.exe stops it | `js/snacksync.js` |
+| Honeypot flags: console, `robots.txt` -> `/flag-backup/`, HTML comment | `js/guard.js`, `flag-backup/`, `index.html`, `HONEYPOTS` in `tools/build.mjs` |
 
 Flags use the format `{CTF}[...]`. Put them in plain quoted strings (not template
 literals) so the build can find and encode them.

@@ -397,6 +397,7 @@
     const p = SYS.all().find(x => (name && lc(x.img) === lc(name)) || (pid != null && x.pid === pid));
     if (!p) { c.emit(name ? `ERROR: The process "${name}" not found.` : `ERROR: The process "${pid}" not found.`); return false; }
     if (p.sys) { c.emit(`ERROR: The process "${p.img}" with PID ${p.pid} could not be terminated.`, 'Reason: Access is denied.'); return false; }
+    if (p.img === 'snacksync.exe') { window.SnackSync.kill(); c.emit(`SUCCESS: The process "${p.img}" with PID ${p.pid} has been terminated.`); return true; }
     windowManager.closeWindow(SYS.apps().find(x => x.pid === p.pid).key);
     c.emit(`SUCCESS: Sent termination signal to the process "${p.img}" with PID ${p.pid}.`);
     return true;
@@ -510,6 +511,7 @@
     const p = SYS.all().find(x => (name && lc(x.img.replace(/\.exe$/, '')) === lc(name)) || (id >= 0 && x.pid === +a[id + 1]));
     if (!p) { c.emit(`Stop-Process : Cannot find a process with the name "${name || a[id + 1]}". Verify the process name and call the cmdlet again.`); return; }
     if (p.sys) { c.emit(`Stop-Process : Cannot stop process "${p.img.replace(/\.exe$/, '')} (${p.pid})" because of the following error: Access is denied`); return; }
+    if (p.img === 'snacksync.exe') { window.SnackSync.kill(); return; }
     windowManager.closeWindow(SYS.apps().find(x => x.pid === p.pid).key);
   }, PSCMD);
   def('get-service gsv', (a, c) => {

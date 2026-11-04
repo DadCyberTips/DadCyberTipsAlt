@@ -114,6 +114,8 @@ window.launchApp=a=>{
   else if(a==='pinball')window.openPinball();
   else if(a==='explorer')window.openExplorer();
   else if(a==='calc')window.openCalculator();
+  else if(a==='mail')window.openMail();
+  else if(a==='camera')window.openCamera();
   else if(a==='notepad')window.openNotepad();
   else if(a==='taskmgr')window.openTaskManager();
   else if(a==='clock')window.openClock();

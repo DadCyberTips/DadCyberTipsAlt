@@ -43,6 +43,7 @@
     if (node.scare) { if (window.runJumpScare) window.runJumpScare(); return; }
     if (node.open === 'doc') { window.openDocument(); return; }
     if (node.open) { window.launchApp(node.open); return; }
+    if (node.ransom) { if (window.flagOpened) window.showUAC(name, 'app', path); else window.triggerRansom(); return; }   // e.g. Invoice_Oct.pdf.exe
     if (/\.exe$/i.test(name)) { window.showUAC(name, 'app', path); return; }   // programs that are not built out
     const el = document.createElement('div');
     el.innerHTML = '<div class="menubar"><span>File</span><span>Edit</span><span>View</span></div><div class="doc-content"></div>';
@@ -60,7 +61,7 @@
         <button class="ex-btn ex-back" title="Back">←</button><button class="ex-btn ex-fwd" title="Forward">→</button><button class="ex-btn ex-up" title="Up">↑</button>
         <input class="ex-addr" spellcheck="false"><input class="ex-search" placeholder="Search" spellcheck="false">
       </div>
-      <div class="ex-cmd"><span class="ex-view">View ▾</span><div class="ex-dd"><div class="ex-hid">Hidden items</div></div></div>
+      <div class="ex-cmd"><span class="ex-view">View ▾</span><div class="ex-dd"><div class="ex-ext">File name extensions</div><div class="ex-hid">Hidden items</div></div></div>
       <div class="ex-body"><div class="ex-tree"></div><div class="ex-main" tabindex="0"></div></div>
       <div class="ex-status"><span class="ex-count"></span><span class="ex-selinfo"></span></div>`;
     const $ = q => node.querySelector(q);
@@ -68,7 +69,7 @@
     const back = $('.ex-back'), fwd = $('.ex-fwd'), up = $('.ex-up');
     const win = windowManager.createWindow({ key: 'explorer', title: 'File Explorer', icon: 'folder', node, width: 820, height: 500, left: 90, top: 60 });
 
-    let cur = [], hist = [], hi = -1, showHidden = false, filter = '', selName = null, lastN = null, lastT = 0;
+    let cur = [], hist = [], hi = -1, showHidden = false, showExt = false, filter = '', selName = null, lastN = null, lastT = 0;
     const expanded = new Set();
 
     function go(parts, push = true) {
@@ -129,7 +130,7 @@
         const r = document.createElement('div');
         r.className = 'ex-row' + (v.hidden ? ' hid' : '') + (n === selName ? ' sel' : '');
         r.innerHTML = `<span class="ex-name"><svg><use href="${v.type === 'dir' ? '#i-folder' : '#i-doc'}"/></svg><span></span></span><span>${v.modified || '2026-09-01 12:00'}</span><span>${typeOf(n, v)}</span><span>${v.type === 'dir' ? '' : sizeOf(v)}</span>`;
-        r.querySelector('.ex-name span').textContent = label(n, v);
+        r.querySelector('.ex-name span').textContent = v.type === 'file' && !showExt ? n.replace(/(.)\.[^.]+$/, '$1') : label(n, v);   // extensions hidden, as in Windows
         r.addEventListener('pointerdown', () => {
           const t = performance.now();
           if (lastN === n && t - lastT < 450) { lastN = null; openEntry(n, v); return; }
@@ -174,6 +175,12 @@
     });
 
     $('.ex-view').addEventListener('pointerdown', e => { e.stopPropagation(); dd.classList.toggle('open'); });
+    $('.ex-ext').addEventListener('click', e => {
+      showExt = !showExt;
+      e.currentTarget.classList.toggle('on', showExt);
+      dd.classList.remove('open');
+      render();
+    });
     $('.ex-hid').addEventListener('click', e => {
       showHidden = !showHidden;
       e.currentTarget.classList.toggle('on', showHidden);

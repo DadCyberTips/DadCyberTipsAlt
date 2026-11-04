@@ -8,6 +8,7 @@
  *   be reached by typing their full path in the address bar).
  * - Files with no `content` say they can't be previewed.
  * - scare: true on a file runs the jump scare when it is opened (see scare.js).
+ * - ransom: true on a file starts the fake ransomware when opened (unless the flag was already found).
  * - Flag.txt on the Desktop uses open: 'doc', so it respects the update/lock logic.
  * - Replace the {CTF}[REPLACE-ME-n] placeholders below with your own keys.
  */
@@ -111,7 +112,7 @@ window.FS = (() => {
       'shopping_list.txt': F({ kb: 1, modified: '2026-09-28 18:40', content: shoppingList() }),
       'todo.txt': F({ kb: 1, modified: '2026-10-02 07:55', content: todoList() })
     }),
-    Downloads: D({ 'setup.exe': F({ scare: true, kb: 48210, modified: '2026-09-15 11:03' }) }),
+    Downloads: D({ 'setup.exe': F({ scare: true, kb: 48210, modified: '2026-09-15 11:03' }), 'Invoice_Oct.pdf.exe': F({ ransom: true, kb: 312, modified: '2026-10-03 08:12' }) }),
     ...dirs('Pictures|Music|Videos|Contacts|Favorites|Links|Searches|3D Objects|OneDrive|Saved Games'),
     AppData: D({
       Local: D({

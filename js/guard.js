@@ -1,5 +1,5 @@
 /**
- * Light deterrents against casual inspection. These are speed bumps only:
+ * Light deterrents against casual inspection (plus a honeypot flag in the console). These are speed bumps only:
  * anyone determined can still open developer tools or read the source.
  * Set ENABLED to false (or remove the script tag) while developing.
  */
@@ -36,5 +36,7 @@
     console.clear();
     const docked = desktop && (outerWidth - innerWidth > 200 || outerHeight - innerHeight > 200);
     cover.style.display = (consoleOpen || docked) ? 'flex' : 'none';
+    // Honeypot: a fake flag for console snoopers. Anyone who submits it skipped the puzzles.
+    if (consoleOpen) console.log('%cadmin backup key: {CTF}[C0NS0L3-C0WB0Y]', 'color:#6cf096;font:bold 13px monospace');
   }, 1000);
 })();

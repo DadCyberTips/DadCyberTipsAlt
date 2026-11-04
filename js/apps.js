@@ -196,6 +196,7 @@
       const apps = [...windowManager.wins].map(([id, w]) => ({ id, name: w.el.querySelector('.title').textContent,
         cpu: id === 'taskmgr' ? rnd(1, 3) : rnd(0, 1.2), mem: 20 + SYS.h(id) % 90, disk: 0, net: 0 }));
       const bg = BG.map(([name, c, m, d, nt]) => ({ id: 'bg:' + name, name, cpu: c * rnd(0.7, 1.3), mem: m * rnd(0.98, 1.02), disk: d * rnd(0.5, 1.5), net: nt * rnd(0.5, 1.5) }));
+      if (window.SnackSync && SnackSync.alive) bg.unshift({ id: 'bg:SnackSync', name: 'SnackSync Background Sync', cpu: rnd(0.8, 2.5), mem: 14, disk: rnd(0, 0.4), net: rnd(1.2, 3.8) });
       if (window.updateInProgress) bg.unshift({ id: 'bg:Windows Modules Installer Worker', name: 'Windows Modules Installer Worker', cpu: rnd(8, 24), mem: 142, disk: rnd(1, 6), net: rnd(0.5, 3) });
       const all = apps.concat(bg), tot = k => all.reduce((s, r) => s + r[k], 0);
       $('.t-cpu').textContent = Math.min(99, Math.round(tot('cpu') + 2)) + '%';
@@ -234,7 +235,8 @@
     sbtn.forEach(b => b.addEventListener('click', () => { if (selSvc) window.showAccessDenied(selSvc, 'process', `Unable to ${b.dataset.s.toLowerCase()} service`); }));
     end.addEventListener('click', () => {
       if (!sel) return;
-      if (sel.startsWith('bg:')) window.showAccessDenied(sel.slice(3), 'process'); else windowManager.closeWindow(sel);
+      if (sel === 'bg:SnackSync') window.SnackSync.kill();
+      else if (sel.startsWith('bg:')) window.showAccessDenied(sel.slice(3), 'process'); else windowManager.closeWindow(sel);
       sel = null; end.disabled = true; tick();
     });
     iv = setInterval(tick, 1500);

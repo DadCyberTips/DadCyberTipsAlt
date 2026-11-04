@@ -17,6 +17,8 @@
     settings: { label: 'Settings', icon: 'gear', win: 'settings' },
     mines: { label: 'Minesweeper', icon: 'mine', win: 'minesweeper' },
     pinball: { label: 'Pinball', icon: 'pinball', win: 'pinball' },
+    mail: { label: 'Mail', icon: 'mail', win: 'mail' },
+    camera: { label: 'Camera', icon: 'camera', win: 'camera' },
     about: { label: 'About', icon: 'info', win: '' }
   };
   const load = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
@@ -119,8 +121,8 @@
 
   /* ---------- Start menu: All apps, search, Recommended files ---------- */
   const ALL = [
-    ['About', 'info', 'about'], ['Calculator', 'calc', 'calc'], ['Calendar', '📅', 'stub:Calendar'], ['Camera', '📷', 'stub:Camera'], ['Clock', 'clock', 'clock'], ['Command Prompt', 'cmd', 'cmd'],
-    ['File Explorer', 'folder', 'explorer'], ['Mail', '✉️', 'stub:Mail'], ['Microsoft Edge', 'edge', 'edge'], ['Microsoft Store', '🛍️', 'stub:Microsoft Store'],
+    ['About', 'info', 'about'], ['Calculator', 'calc', 'calc'], ['Calendar', '📅', 'stub:Calendar'], ['Camera', 'camera', 'camera'], ['Clock', 'clock', 'clock'], ['Command Prompt', 'cmd', 'cmd'],
+    ['File Explorer', 'folder', 'explorer'], ['Mail', 'mail', 'mail'], ['Microsoft Edge', 'edge', 'edge'], ['Microsoft Store', '🛍️', 'stub:Microsoft Store'],
     ['Minesweeper', 'mine', 'mines'], ['Pinball', 'pinball', 'pinball'], ['Notepad', 'notepad', 'notepad'], ['Paint', '🎨', 'stub:Paint'],
     ['Phone Link', '📱', 'stub:Phone Link'], ['Photos', '🖼️', 'stub:Photos'], ['Settings', 'gear', 'settings'], ['Task Manager', 'taskmgr', 'taskmgr'],
     ['Windows PowerShell', 'ps', 'ps'], ['Windows Security', '🛡️', 'stub:Windows Security']

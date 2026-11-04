@@ -226,3 +226,11 @@ svg use{pointer-events:none}
 .cal-clock{padding:5px 10px;background:rgba(255,255,255,.08);border-radius:4px;font-size:12px}
 .cal-clock:hover{background:rgba(255,255,255,.14)}
 .cal-clock:active{background:rgba(255,255,255,.05)}
+.toast{position:absolute;right:12px;bottom:60px;width:340px;max-width:calc(100% - 24px);padding:14px 16px;background:#2b2b2b;border:1px solid rgba(255,255,255,.08);border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.5);z-index:9000;opacity:0;transform:translateY(12px);transition:opacity .3s,transform .3s}
+.toast.in{opacity:1;transform:none}
+.toast b{display:block;margin-bottom:4px;font-size:13px}
+.toast p{font-size:13px;color:rgba(255,255,255,.8)}
+#cam-led{position:absolute;top:4px;left:50%;width:7px;height:7px;margin-left:-3px;border-radius:50%;background:#ff2d2d;box-shadow:0 0 6px 2px rgba(255,45,45,.7);z-index:9500;animation:camLed 2.4s ease-in-out infinite}
+@keyframes camLed{50%{opacity:.55}}
+#ghost-cursor{position:absolute;left:0;top:0;width:16px;height:24px;z-index:9600;pointer-events:none;filter:drop-shadow(1px 2px 1px rgba(0,0,0,.4))}
+#ghost-cursor svg{width:16px;height:24px}

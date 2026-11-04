@@ -1,3 +1,5 @@
 # Hidden site: every crawler is asked to stay out. Honest bots follow this; it is a request, not a lock.
 User-agent: *
 Disallow: /
+# TODO: delete the old flag backup before the con
+Disallow: /flag-backup/

@@ -37,7 +37,7 @@ window.SYS = (() => {
 
   // window key -> process image shown while that app is open
   const APPIMG = { notepad: 'notepad.exe', calc: 'CalculatorApp.exe', taskmgr: 'Taskmgr.exe', settings: 'SystemSettings.exe', minesweeper: 'Minesweeper.exe', edge: 'msedge.exe',
-    cmd: 'cmd.exe', ps: 'powershell.exe', clock: 'Time.exe', pinball: 'Pinball.exe', explorer: null };
+    cmd: 'cmd.exe', ps: 'powershell.exe', clock: 'Time.exe', pinball: 'Pinball.exe', mail: 'HxOutlook.exe', camera: 'WindowsCamera.exe', explorer: null };
 
   // The machine lives at Cape Canaveral, FL (US Eastern time)
   const tz = 'America/New_York', place = 'Cape Canaveral, FL';
@@ -49,12 +49,12 @@ window.SYS = (() => {
   };
   const services = () => SVC.map(([name, display, pid, run, start, bin]) => {
     const updating = !!window.updateInProgress && (name === 'wuauserv' || name === 'TrustedInstaller');
-    const running = run === 1 || updating;
+    const running = (run === 1 || updating) && !(name === 'SnackSync' && window.SnackSync && !SnackSync.alive);
     return { name, display, pid: updating ? (name === 'wuauserv' ? 860 : 3300) : pid, running, start, bin: bin || 'C:\\Windows\\system32\\svchost.exe -k netsvcs -p' };
   });
   const apps = () => [...windowManager.wins.keys()].filter(k => APPIMG[k]).map(k => ({ key: k, img: APPIMG[k], pid: 5000 + h(k) % 4000, ses: 'Console', mem: 8000 + h(k + 'm') % 90000 }));
   const all = () => {
-    const a = procs.map(([img, pid, ses, mem]) => ({ img, pid, ses, mem, sys: true }));
+    const a = procs.filter(([img]) => !(img === 'snacksync.exe' && window.SnackSync && !SnackSync.alive)).map(([img, pid, ses, mem]) => ({ img, pid, ses, mem, sys: img !== 'snacksync.exe' }));
     if (window.updateInProgress) a.push({ img: 'TrustedInstaller.exe', pid: 3300, ses: 'Services', mem: 142000, sys: true });
     return a.concat(apps());
   };

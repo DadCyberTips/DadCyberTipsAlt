@@ -4,8 +4,8 @@
  *   dist/app.js       every script from index.html, in load order, minified, with each
  *                     string containing {CTF} encoded so no flag appears as plain text
  *   dist/app.css      both stylesheets, comments and line breaks removed
- *   dist/img, dist/video, dist/robots.txt   copied as they are
- * The build stops if any flag text is still readable in dist/.
+ *   dist/img, dist/video, dist/robots.txt, dist/flag-backup   copied as they are
+ * The build stops if any flag text other than the honeypots is still readable in dist/.
  *
  *   npm install && npm run build
  */
@@ -18,6 +18,8 @@ import { minify } from 'terser';
 
 const root = new URL('..', import.meta.url).pathname, out = join(root, 'dist');
 const read = f => readFileSync(join(root, f), 'utf8');
+// Honeypot flags are meant to be found by people who snoop instead of solving (see README)
+const HONEYPOTS = ['{CTF}[C0NS0L3-C0WB0Y]', '{CTF}[R0B0TS-R3AD3R]', '{CTF}[V13W-S0URC3]'];
 const hash = s => createHash('sha256').update(s).digest('hex').slice(0, 10);
 
 // Flags are XORed with this key (and the byte position), then base64-encoded. It only stops
@@ -54,7 +56,8 @@ html = html
   .replace(/<script[\s\S]*?<\/script>\s*/g, '')
   .replace('</head>', `<link rel="stylesheet" href="app.css?v=${hash(appCss)}"></head>`)
   .replace('</body>', `<script src="app.js?v=${hash(appJs)}"></script></body>`)
-  .replace(/<!--[\s\S]*?-->/g, '')
+  .replace(/<!--(?!!)[\s\S]*?-->/g, '')       // comments are dropped, except <!--! ... --> (the source-viewer honeypot)
+  .replace(/<!--!/g, '<!--')
   .replace(/>\s+</g, '><')
   .trim() + '\n';
 
@@ -64,10 +67,10 @@ mkdirSync(out);
 writeFileSync(join(out, 'index.html'), html);
 writeFileSync(join(out, 'app.js'), appJs);
 writeFileSync(join(out, 'app.css'), appCss);
-for (const d of ['img', 'video', 'robots.txt']) cpSync(join(root, d), join(out, d), { recursive: true });
+for (const d of ['img', 'video', 'robots.txt', 'flag-backup']) cpSync(join(root, d), join(out, d), { recursive: true });
 
 // Safety check: nothing in dist/ may contain a readable flag
 const files = d => readdirSync(d).flatMap(f => statSync(join(d, f)).isDirectory() ? files(join(d, f)) : [join(d, f)]);
-const leaks = files(out).filter(f => /\.(html|js|css|txt)$/.test(f) && /\{CTF\}|CTF\}\[|REPLACE-ME|L0VE|SN4CK-1337/.test(readFileSync(f, 'utf8')));
+const leaks = files(out).filter(f => /\.(html|js|css|txt)$/.test(f) && /\{CTF\}|CTF\}\[|REPLACE-ME|L0VE|SN4CK-1337/.test(HONEYPOTS.reduce((t, h) => t.split(h).join(''), readFileSync(f, 'utf8'))));
 if (leaks.length) { console.error('Flag text found in:', leaks); process.exit(1); }
 console.log(`dist/ built: ${hits.length} flag strings encoded, app.js ${(appJs.length / 1024).toFixed(0)} KB, app.css ${(appCss.length / 1024).toFixed(0)} KB, ${scripts.length} scripts bundled`);
