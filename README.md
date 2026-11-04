@@ -23,6 +23,7 @@ Publish the contents of `dist/` (for GitHub Pages: the root of the branch Pages 
 | Update timer (unlock at 45-75 s, shows 23%) | `js/update.js` |
 | Crash 20-40 s after the unlock (75% ransom, 25% blue screen) | `js/bsod.js`, `js/ransom.js` |
 | Fake file system, hidden files, decoy puzzles, placeholder flags | `js/filesystem.js` |
+| todo.txt acrostic flag (first letter of each item: CTF 5N4CK 4774CK ...) | `todoList()` in `js/filesystem.js` |
 | Pinball flag (shown at 1,337 points) | `FLAG` at the top of `js/pinball.js` |
 | Light anti-inspection (right-click, F12, view-source) | `js/guard.js` |
 

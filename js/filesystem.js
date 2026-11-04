@@ -39,12 +39,14 @@ function shoppingList(flag = DECOY_FLAG) {
 }
 
 /**
- * todo.txt hides a message as an acrostic: the FIRST CHARACTER of each item, read top to
- * bottom (blank lines separate the words), spells  5N4CK 4774CK H4CK 7H3 PL4N37 1337.
- * Items keep their meaning, but each is worded to start with the right character.
+ * todo.txt hides a flag as an acrostic: the FIRST CHARACTER of each item, read top to
+ * bottom (blank lines separate the words), spells  CTF 5N4CK 4774CK H4CK 7H3 PL4N37 1337,
+ * i.e. the flag {CTF}[5N4CK-4774CK-H4CK-7H3-PL4N37-1337]. The first group (C, T, F) is the
+ * format marker, worded as ordinary chores. Each item is worded to start with the right character.
  */
 function todoList() {
   const words = [
+    [['Change the smoke detector batteries'], ['Take the recycling out Thursday night'], ['Fix the wobbly desk chair', 1]],
     [['5 minutes with the firewall off ("just for five minutes")'], ['Never reuse the same password on everything'],
      ['4 weeks of photos to back up to the external drive'], ['Call mom back', 1], ['Keyboard needs charging before the con', 1]],
     [['4 PM: pick up the dry cleaning'], ['7 AM: figure out why the PC freezes sometimes'], ['7 plants to water (again)'],
