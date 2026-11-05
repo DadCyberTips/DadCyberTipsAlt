@@ -122,7 +122,6 @@ window.launchApp=a=>{
   else if(a==='edge')window.openEdge();
   else if(a==='cmd')window.openTerminal('cmd');
   else if(a==='ps')window.openTerminal('ps');
-  else if(a.startsWith('stub:'))window.openStub(a.slice(5));
   else if(a==='about')window.showAbout();
 };
 window.fakeShutdown=function(){

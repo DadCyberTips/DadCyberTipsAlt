@@ -121,13 +121,11 @@
 
   /* ---------- Start menu: All apps, search, Recommended files ---------- */
   const ALL = [
-    ['About', 'info', 'about'], ['Calculator', 'calc', 'calc'], ['Calendar', '📅', 'stub:Calendar'], ['Camera', 'camera', 'camera'], ['Clock', 'clock', 'clock'], ['Command Prompt', 'cmd', 'cmd'],
-    ['File Explorer', 'folder', 'explorer'], ['Mail', 'mail', 'mail'], ['Microsoft Edge', 'edge', 'edge'], ['Microsoft Store', '🛍️', 'stub:Microsoft Store'],
-    ['Minesweeper', 'mine', 'mines'], ['Pinball', 'pinball', 'pinball'], ['Notepad', 'notepad', 'notepad'], ['Paint', '🎨', 'stub:Paint'],
-    ['Phone Link', '📱', 'stub:Phone Link'], ['Photos', '🖼️', 'stub:Photos'], ['Settings', 'gear', 'settings'], ['Task Manager', 'taskmgr', 'taskmgr'],
-    ['Windows PowerShell', 'ps', 'ps'], ['Windows Security', '🛡️', 'stub:Windows Security']
+    ['About', 'info', 'about'], ['Calculator', 'calc', 'calc'], ['Camera', 'camera', 'camera'], ['Clock', 'clock', 'clock'], ['Command Prompt', 'cmd', 'cmd'],
+    ['File Explorer', 'folder', 'explorer'], ['Mail', 'mail', 'mail'], ['Microsoft Edge', 'edge', 'edge'], ['Minesweeper', 'mine', 'mines'], ['Notepad', 'notepad', 'notepad'],
+    ['Pinball', 'pinball', 'pinball'], ['Settings', 'gear', 'settings'], ['Task Manager', 'taskmgr', 'taskmgr'], ['Windows PowerShell', 'ps', 'ps']
   ];
-  const iconHtml = ic => /^[a-z]+$/.test(ic) ? `<svg><use href="#i-${ic}"/></svg>` : `<span class="emo">${ic}</span>`;
+  const iconHtml = ic => `<svg><use href="#i-${ic}"/></svg>`;
   const sa = menu.querySelector('.start-all');
   let lastLetter = '';
   ALL.slice().sort((a, b) => a[0].localeCompare(b[0])).forEach(([label, ic, app]) => {

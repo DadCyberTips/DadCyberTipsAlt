@@ -29,9 +29,6 @@
     btn('Cancel', close);
   };
 
-  /* ---------- Apps that are not built out ---------- */
-  window.openStub = function(name) { window.showUAC(name, 'app'); };
-
 
   /* ---------- UAC prompt: always ends in "no permission" ---------- */
   window.showUAC = function(name, kind, path) {

@@ -184,8 +184,6 @@ svg use{pointer-events:none}
 #scare.calm .sc-stage{animation:none!important;transform:scale(1.15)}
 #scare.calm .sc-grain{animation:none}
 
-.emo{display:block;width:32px;height:32px;font-size:26px;line-height:32px;text-align:center}
-.app-tile .emo{margin:0 auto}
 .start-all,.start-results{display:none;flex:1;min-height:0;margin-top:4px;overflow:auto}
 #start-menu.mode-all .start-pinned,#start-menu.mode-all .start-rec,#start-menu.mode-all .hd-rec,
 #start-menu.mode-search .start-pinned,#start-menu.mode-search .start-rec,#start-menu.mode-search .hd-rec,#start-menu.mode-search .hd-pin{display:none}
@@ -194,7 +192,7 @@ svg use{pointer-events:none}
 .sa-row{display:flex;align-items:center;gap:12px;padding:7px 10px;border-radius:6px;font-size:13px}
 .sa-row:hover{background:rgba(255,255,255,.08)}
 .sa-row:active{background:rgba(255,255,255,.05)}
-.sa-row svg,.sa-row .emo{flex:none;width:24px;height:24px;font-size:19px;line-height:24px}
+.sa-row svg{flex:none;width:24px;height:24px}
 .sa-row small{margin-left:auto;max-width:55%;overflow:hidden;color:rgba(255,255,255,.5);font-size:11px;text-overflow:ellipsis;white-space:nowrap}
 .pill:hover{background:rgba(255,255,255,.14)}
 .wd-btn{position:absolute;left:8px;top:4px;display:flex;align-items:center;gap:8px;height:40px;padding:0 10px;border-radius:6px;font-size:12px;line-height:1.15;text-align:left}
